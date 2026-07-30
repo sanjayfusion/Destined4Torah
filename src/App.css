@@ -20,6 +20,27 @@
   font-size: 16px;
 }
 
+.parsha-toggle {
+  margin-top: 16px;
+  border: 1px solid var(--accent);
+  background: transparent;
+  color: var(--accent);
+  border-radius: 20px;
+  padding: 8px 18px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.parsha-toggle:hover {
+  background: var(--accent-bg);
+}
+
+.parsha-toggle.active {
+  background: var(--accent);
+  color: #fff;
+}
+
 .app-body {
   display: grid;
   grid-template-columns: 260px 1fr;
@@ -149,6 +170,34 @@
 .reader-header h2 {
   font-size: 20px;
   margin: 0;
+}
+
+.parsha-label {
+  margin: 0 0 2px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.parsha-ref {
+  margin: -8px 0 20px;
+  font-size: 13px;
+  color: var(--text);
+}
+
+.parsha-section + .parsha-section {
+  margin-top: 24px;
+}
+
+.chapter-divider {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--accent);
+  border-top: 1px solid var(--border);
+  padding-top: 16px;
+  margin: 0 0 12px;
 }
 
 .verse-list {

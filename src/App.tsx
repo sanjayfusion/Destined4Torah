@@ -1,10 +1,14 @@
 import { useEffect, useState } from 'react'
 import { BookNav } from './components/BookNav'
 import { Reader } from './components/Reader'
+import { WeeklyParsha } from './components/WeeklyParsha'
 import { fetchChapter, type ChapterText } from './lib/sefaria'
 import './App.css'
 
+type View = 'book' | 'parsha'
+
 function App() {
+  const [view, setView] = useState<View>('parsha')
   const [selectedBook, setSelectedBook] = useState('Genesis')
   const [selectedChapter, setSelectedChapter] = useState(1)
   const [chapter, setChapter] = useState<ChapterText | null>(null)
@@ -12,6 +16,8 @@ function App() {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
+    if (view !== 'book') return
+
     let cancelled = false
     setLoading(true)
     setError(null)
@@ -30,13 +36,20 @@ function App() {
     return () => {
       cancelled = true
     }
-  }, [selectedBook, selectedChapter])
+  }, [view, selectedBook, selectedChapter])
 
   return (
     <div className="app">
       <header className="app-header">
         <h1>Destined4Torah</h1>
         <p>A simple space to learn the Five Books of Moses, in Hebrew and English.</p>
+        <button
+          type="button"
+          className={view === 'parsha' ? 'parsha-toggle active' : 'parsha-toggle'}
+          onClick={() => setView('parsha')}
+        >
+          This Week's Parsha
+        </button>
       </header>
 
       <div className="app-body">
@@ -44,12 +57,17 @@ function App() {
           selectedBook={selectedBook}
           selectedChapter={selectedChapter}
           onSelect={(book, chap) => {
+            setView('book')
             setSelectedBook(book)
             setSelectedChapter(chap)
           }}
         />
         <main className="app-main">
-          <Reader chapter={chapter} loading={loading} error={error} />
+          {view === 'parsha' ? (
+            <WeeklyParsha />
+          ) : (
+            <Reader chapter={chapter} loading={loading} error={error} />
+          )}
         </main>
       </div>
     </div>
