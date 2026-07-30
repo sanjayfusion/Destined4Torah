@@ -1,0 +1,189 @@
+.app {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 32px 20px 80px;
+}
+
+.app-header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.app-header h1 {
+  font-size: 34px;
+  margin: 0 0 8px;
+  letter-spacing: -0.5px;
+}
+
+.app-header p {
+  color: var(--text);
+  font-size: 16px;
+}
+
+.app-body {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: 28px;
+}
+
+@media (max-width: 800px) {
+  .app-body {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Book / chapter nav */
+
+.book-nav {
+  position: sticky;
+  top: 20px;
+  align-self: start;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.book-list {
+  list-style: none;
+  margin: 0 0 16px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.book-button {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  padding: 8px 10px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+  font-size: 15px;
+  text-align: left;
+}
+
+.book-button:hover {
+  background: var(--accent-bg);
+}
+
+.book-button.active {
+  background: var(--accent-bg);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.book-hebrew {
+  font-size: 14px;
+}
+
+.chapter-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(34px, 1fr));
+  gap: 6px;
+  border-top: 1px solid var(--border);
+  padding-top: 12px;
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.chapter-button {
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  border-radius: 6px;
+  padding: 6px 0;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.chapter-button:hover {
+  border-color: var(--accent);
+}
+
+.chapter-button.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+  font-weight: 600;
+}
+
+/* Reader */
+
+.app-main {
+  min-width: 0;
+}
+
+.status {
+  padding: 40px 0;
+  text-align: center;
+  color: var(--text);
+}
+
+.status.error {
+  color: #b3352b;
+}
+
+.reader {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 24px 28px 32px;
+}
+
+.reader-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 12px;
+  margin-bottom: 16px;
+}
+
+.reader-header h2 {
+  font-size: 20px;
+  margin: 0;
+}
+
+.verse-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.verse {
+  display: grid;
+  grid-template-columns: 28px 1fr;
+  column-gap: 12px;
+}
+
+.verse-number {
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 600;
+  padding-top: 4px;
+}
+
+.verse-hebrew {
+  grid-column: 2;
+  font-size: 22px;
+  line-height: 1.7;
+  margin: 0 0 4px;
+}
+
+.verse-english {
+  grid-column: 2;
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--text);
+  margin: 0;
+}
