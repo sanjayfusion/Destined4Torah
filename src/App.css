@@ -299,6 +299,16 @@
   line-height: 1.7;
 }
 
+.about-books-link {
+  color: var(--accent);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.about-books-link:hover {
+  text-decoration: underline;
+}
+
 .about-motto {
   margin: 20px 0;
   padding: 4px 0 4px 16px;

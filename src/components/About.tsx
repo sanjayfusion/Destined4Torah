@@ -32,7 +32,14 @@ export function About() {
           Prophetic Word (Word Network).
         </p>
         <p>
-          Sanjay is the author of four books:
+          <a
+            href="https://www.amazon.com/author/sanjayprajapati"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="about-books-link"
+          >
+            Sanjay is the author of four books:
+          </a>
         </p>
         <ul className="about-books">
           {BOOKS.map((book) => (
