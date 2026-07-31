@@ -1,13 +1,14 @@
 import type { ChapterText } from '../lib/sefaria'
-import { SefariaCredit } from './SefariaCredit'
+import { TextCredit } from './TextCredit'
 
 interface ReaderProps {
   chapter: ChapterText | null
   loading: boolean
   error: string | null
+  source: 'sefaria' | 'kjv'
 }
 
-export function Reader({ chapter, loading, error }: ReaderProps) {
+export function Reader({ chapter, loading, error, source }: ReaderProps) {
   if (loading) {
     return <p className="status">Loading text…</p>
   }
@@ -26,20 +27,24 @@ export function Reader({ chapter, loading, error }: ReaderProps) {
     <article className="reader">
       <header className="reader-header">
         <h2>{chapter.ref}</h2>
-        <h2 className="hebrew" dir="rtl">{chapter.heRef}</h2>
+        {chapter.heRef && (
+          <h2 className="hebrew" dir="rtl">{chapter.heRef}</h2>
+        )}
       </header>
 
       <ol className="verse-list">
         {Array.from({ length: verseCount }, (_, i) => (
           <li key={i} className="verse">
             <span className="verse-number">{i + 1}</span>
-            <p className="verse-hebrew" dir="rtl">{chapter.hebrew[i]}</p>
+            {chapter.hebrew[i] && (
+              <p className="verse-hebrew" dir="rtl">{chapter.hebrew[i]}</p>
+            )}
             <p className="verse-english">{chapter.english[i]}</p>
           </li>
         ))}
       </ol>
 
-      <SefariaCredit />
+      <TextCredit source={source} />
     </article>
   )
 }

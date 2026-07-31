@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { fetchWeeklyParsha, type WeeklyParsha as WeeklyParshaData } from '../lib/sefaria'
-import { SefariaCredit } from './SefariaCredit'
+import { TextCredit } from './TextCredit'
 
 export function WeeklyParsha() {
   const [parsha, setParsha] = useState<WeeklyParshaData | null>(null)
@@ -70,7 +70,7 @@ export function WeeklyParsha() {
         </div>
       ))}
 
-      <SefariaCredit />
+      <TextCredit source="sefaria" />
     </article>
   )
 }

@@ -3,6 +3,8 @@ import { About } from './components/About'
 import { BookNav } from './components/BookNav'
 import { Reader } from './components/Reader'
 import { WeeklyParsha } from './components/WeeklyParsha'
+import { fetchNewTestamentChapter } from './lib/bibleApi'
+import { ALL_BOOKS } from './data/books'
 import { fetchChapter, type ChapterText } from './lib/sefaria'
 import logo from './assets/logo.png'
 import './App.css'
@@ -17,6 +19,9 @@ function App() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
+  const selectedBookInfo = ALL_BOOKS.find((book) => book.slug === selectedBook)
+  const source = selectedBookInfo?.testament === 'new' ? 'kjv' : 'sefaria'
+
   useEffect(() => {
     if (view !== 'book') return
 
@@ -24,7 +29,12 @@ function App() {
     setLoading(true)
     setError(null)
 
-    fetchChapter(selectedBook, selectedChapter)
+    const fetchPromise =
+      source === 'kjv'
+        ? fetchNewTestamentChapter(selectedBook, selectedChapter)
+        : fetchChapter(selectedBook, selectedChapter)
+
+    fetchPromise
       .then((data) => {
         if (!cancelled) setChapter(data)
       })
@@ -38,13 +48,13 @@ function App() {
     return () => {
       cancelled = true
     }
-  }, [view, selectedBook, selectedChapter])
+  }, [view, selectedBook, selectedChapter, source])
 
   return (
     <div className="app">
       <header className="app-header">
         <img src={logo} className="app-logo" alt="Destined4Torah" />
-        <p>A simple space to learn the Five Books of Moses, in Hebrew and English.</p>
+        <p>A simple space to learn Scripture, Genesis to Revelation.</p>
         <div className="header-nav">
           <button
             type="button"
@@ -84,7 +94,9 @@ function App() {
         <main className="app-main">
           {view === 'parsha' && <WeeklyParsha />}
           {view === 'about' && <About />}
-          {view === 'book' && <Reader chapter={chapter} loading={loading} error={error} />}
+          {view === 'book' && (
+            <Reader chapter={chapter} loading={loading} error={error} source={source} />
+          )}
         </main>
       </div>
     </div>
