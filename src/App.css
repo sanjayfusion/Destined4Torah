@@ -257,16 +257,15 @@
 .about-body {
   display: flex;
   gap: 24px;
-  align-items: center;
+  align-items: flex-start;
   flex-wrap: wrap;
   margin-bottom: 24px;
 }
 
 .about-photo {
-  width: 140px;
-  height: 140px;
-  border-radius: 50%;
-  object-fit: cover;
+  width: 220px;
+  height: auto;
+  border-radius: 12px;
   flex-shrink: 0;
 }
 
