@@ -7,6 +7,22 @@ const BOOKS = [
   'Becoming a Royal: Assuming Your Role as a Royal in the Tapestry of Creation',
 ]
 
+const SOCIAL_LINKS = [
+  { label: 'Facebook', href: 'https://www.facebook.com/destined4torah' },
+  { label: 'Instagram', href: 'https://www.instagram.com/destined4torah' },
+  {
+    label: 'Spotify',
+    href: 'https://open.spotify.com/show/7xKxwlBgYAhWaH7qiQSE96?si=OsAB83d1RwCGDPa-NThfRQ&nd=1&dlsi=516b4bf6332543fc',
+  },
+  { label: 'YouTube', href: 'https://www.youtube.com/@destined4torah' },
+  { label: 'Amazon', href: 'https://www.amazon.com/author/sanjayprajapati' },
+  {
+    label: 'Apple Podcasts',
+    href: 'https://podcasts.apple.com/us/podcast/destined4torah/id1441022266',
+  },
+  { label: 'X', href: 'https://x.com/destined4torah' },
+]
+
 export function About() {
   return (
     <article className="reader about">
@@ -16,6 +32,15 @@ export function About() {
         <div className="about-text">
           <h3 className="about-name">Dr. Sanjay Prajapati</h3>
           <p className="about-title">Author, Teacher &amp; Public Speaker</p>
+          <ul className="social-links">
+            {SOCIAL_LINKS.map((link) => (
+              <li key={link.label}>
+                <a href={link.href} target="_blank" rel="noopener noreferrer">
+                  {link.label}
+                </a>
+              </li>
+            ))}
+          </ul>
         </div>
       </div>
 
