@@ -54,6 +54,23 @@
   color: #fff;
 }
 
+.donate-link {
+  margin-top: 16px;
+  display: inline-block;
+  border: 1px solid var(--accent);
+  background: var(--accent);
+  color: #fff;
+  border-radius: 20px;
+  padding: 8px 18px;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.donate-link:hover {
+  opacity: 0.9;
+}
+
 .app-body {
   display: grid;
   grid-template-columns: 260px 1fr;

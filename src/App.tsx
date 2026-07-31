@@ -60,6 +60,14 @@ function App() {
           >
             About
           </button>
+          <a
+            href="https://square.link/u/TQ6ubiPe?src=sheet"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="donate-link"
+          >
+            Donate
+          </a>
         </div>
       </header>
 
