@@ -64,6 +64,14 @@
   .app-body {
     grid-template-columns: 1fr;
   }
+
+  .app-main {
+    order: -1;
+  }
+
+  .book-nav {
+    position: static;
+  }
 }
 
 /* Book / chapter nav */
