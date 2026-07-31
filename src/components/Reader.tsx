@@ -1,4 +1,5 @@
 import type { ChapterText } from '../lib/sefaria'
+import { SefariaCredit } from './SefariaCredit'
 
 interface ReaderProps {
   chapter: ChapterText | null
@@ -37,6 +38,8 @@ export function Reader({ chapter, loading, error }: ReaderProps) {
           </li>
         ))}
       </ol>
+
+      <SefariaCredit />
     </article>
   )
 }
