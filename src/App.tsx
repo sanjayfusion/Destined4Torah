@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react'
+import { About } from './components/About'
 import { BookNav } from './components/BookNav'
 import { Reader } from './components/Reader'
 import { WeeklyParsha } from './components/WeeklyParsha'
 import { fetchChapter, type ChapterText } from './lib/sefaria'
+import logo from './assets/logo.png'
 import './App.css'
 
-type View = 'book' | 'parsha'
+type View = 'book' | 'parsha' | 'about'
 
 function App() {
   const [view, setView] = useState<View>('parsha')
@@ -41,15 +43,24 @@ function App() {
   return (
     <div className="app">
       <header className="app-header">
-        <h1>Destined4Torah</h1>
+        <img src={logo} className="app-logo" alt="Destined4Torah" />
         <p>A simple space to learn the Five Books of Moses, in Hebrew and English.</p>
-        <button
-          type="button"
-          className={view === 'parsha' ? 'parsha-toggle active' : 'parsha-toggle'}
-          onClick={() => setView('parsha')}
-        >
-          This Week's Parsha
-        </button>
+        <div className="header-nav">
+          <button
+            type="button"
+            className={view === 'parsha' ? 'parsha-toggle active' : 'parsha-toggle'}
+            onClick={() => setView('parsha')}
+          >
+            This Week's Parsha
+          </button>
+          <button
+            type="button"
+            className={view === 'about' ? 'parsha-toggle active' : 'parsha-toggle'}
+            onClick={() => setView('about')}
+          >
+            About
+          </button>
+        </div>
       </header>
 
       <div className="app-body">
@@ -63,11 +74,9 @@ function App() {
           }}
         />
         <main className="app-main">
-          {view === 'parsha' ? (
-            <WeeklyParsha />
-          ) : (
-            <Reader chapter={chapter} loading={loading} error={error} />
-          )}
+          {view === 'parsha' && <WeeklyParsha />}
+          {view === 'about' && <About />}
+          {view === 'book' && <Reader chapter={chapter} loading={loading} error={error} />}
         </main>
       </div>
     </div>

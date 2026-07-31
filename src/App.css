@@ -9,15 +9,28 @@
   margin-bottom: 32px;
 }
 
-.app-header h1 {
-  font-size: 34px;
-  margin: 0 0 8px;
-  letter-spacing: -0.5px;
+.app-logo {
+  height: 56px;
+  width: auto;
+  margin: 0 0 12px;
+}
+
+@media (prefers-color-scheme: dark) {
+  .app-logo {
+    filter: invert(1) brightness(1.15);
+  }
 }
 
 .app-header p {
   color: var(--text);
   font-size: 16px;
+}
+
+.header-nav {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
 .parsha-toggle {
@@ -235,4 +248,52 @@
   line-height: 1.6;
   color: var(--text);
   margin: 0;
+}
+
+.about h2 {
+  margin: 0 0 20px;
+}
+
+.about-body {
+  display: flex;
+  gap: 24px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.about-photo,
+.about-photo-placeholder {
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.about-photo-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--accent-bg);
+  color: var(--accent);
+}
+
+.about-photo-placeholder svg {
+  width: 56px;
+  height: 56px;
+}
+
+.about-text {
+  flex: 1;
+  min-width: 220px;
+}
+
+.about-text p {
+  margin: 0 0 12px;
+  line-height: 1.6;
+  color: var(--text);
+}
+
+.about-placeholder-note {
+  font-style: italic;
 }
