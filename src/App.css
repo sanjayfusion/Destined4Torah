@@ -259,10 +259,10 @@
   gap: 24px;
   align-items: center;
   flex-wrap: wrap;
+  margin-bottom: 24px;
 }
 
-.about-photo,
-.about-photo-placeholder {
+.about-photo {
   width: 140px;
   height: 140px;
   border-radius: 50%;
@@ -270,30 +270,43 @@
   flex-shrink: 0;
 }
 
-.about-photo-placeholder {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--accent-bg);
+.about-name {
+  margin: 0 0 4px;
+  font-size: 22px;
+}
+
+.about-title {
+  margin: 0;
   color: var(--accent);
+  font-weight: 600;
+  font-size: 14px;
 }
 
-.about-photo-placeholder svg {
-  width: 56px;
-  height: 56px;
+.about-bio {
+  max-width: 680px;
 }
 
-.about-text {
-  flex: 1;
-  min-width: 220px;
-}
-
-.about-text p {
-  margin: 0 0 12px;
-  line-height: 1.6;
+.about-bio p {
+  margin: 0 0 14px;
+  line-height: 1.7;
   color: var(--text);
 }
 
-.about-placeholder-note {
+.about-books {
+  margin: 0 0 14px;
+  padding-left: 20px;
+  color: var(--text);
+  line-height: 1.7;
+}
+
+.about-motto {
+  margin: 20px 0;
+  padding: 4px 0 4px 16px;
+  border-left: 3px solid var(--accent);
   font-style: italic;
+  color: var(--text-h);
+}
+
+.about-location {
+  font-size: 14px;
 }
