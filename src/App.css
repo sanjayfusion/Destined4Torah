@@ -226,6 +226,24 @@
   margin: 0;
 }
 
+.parsha-date-header {
+  margin: 0 0 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+  font-size: 14px;
+  color: var(--text);
+}
+
+.parsha-date-header a {
+  color: var(--accent);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.parsha-date-header a:hover {
+  text-decoration: underline;
+}
+
 .parsha-label {
   margin: 0 0 2px;
   font-size: 12px;

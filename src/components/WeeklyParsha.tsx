@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { fetchWeeklyParsha, type WeeklyParsha as WeeklyParshaData } from '../lib/sefaria'
+import { ParshaDateHeader } from './ParshaDateHeader'
 import { TextCredit } from './TextCredit'
 
 export function WeeklyParsha() {
@@ -42,6 +43,8 @@ export function WeeklyParsha() {
 
   return (
     <article className="reader">
+      <ParshaDateHeader parshaName={parsha.englishName} parshaUrl={parsha.url} />
+
       <header className="reader-header">
         <div>
           <p className="parsha-label">This Week's Parsha</p>

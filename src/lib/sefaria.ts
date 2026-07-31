@@ -73,10 +73,18 @@ export interface ParshaSection {
   english: string[]
 }
 
+function refToUrlSlug(ref: string): string {
+  const match = ref.match(/^([A-Za-z]+)\s+(.+)$/)
+  if (!match) return ref
+  const [, book, rest] = match
+  return `${book}.${rest.replace(/:/g, '.')}`
+}
+
 export interface WeeklyParsha {
   englishName: string
   hebrewName: string
   ref: string
+  url: string
   sections: ParshaSection[]
 }
 
@@ -123,6 +131,7 @@ export async function fetchWeeklyParsha(): Promise<WeeklyParsha> {
     englishName: item.displayValue?.en ?? item.ref,
     hebrewName: item.displayValue?.he ?? '',
     ref: item.ref,
+    url: item.url ?? refToUrlSlug(item.ref),
     sections,
   }
 }
