@@ -1,4 +1,5 @@
 import type { ChapterText } from '../lib/sefaria'
+import { HebrewVerseText } from './HebrewVerseText'
 import { TextCredit } from './TextCredit'
 
 interface ReaderProps {
@@ -36,9 +37,7 @@ export function Reader({ chapter, loading, error, source }: ReaderProps) {
         {Array.from({ length: verseCount }, (_, i) => (
           <li key={i} className="verse">
             <span className="verse-number">{i + 1}</span>
-            {chapter.hebrew[i] && (
-              <p className="verse-hebrew" dir="rtl">{chapter.hebrew[i]}</p>
-            )}
+            {chapter.hebrew[i] && <HebrewVerseText text={chapter.hebrew[i]} />}
             <p className="verse-english">{chapter.english[i]}</p>
           </li>
         ))}

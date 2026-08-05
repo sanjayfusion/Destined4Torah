@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { fetchWeeklyParsha, type WeeklyParsha as WeeklyParshaData } from '../lib/sefaria'
+import { HebrewVerseText } from './HebrewVerseText'
 import { ParshaDateHeader } from './ParshaDateHeader'
 import { TextCredit } from './TextCredit'
 
@@ -65,7 +66,7 @@ export function WeeklyParsha() {
                 <span className="verse-number">
                   {section.chapter}:{section.startVerse + i}
                 </span>
-                <p className="verse-hebrew" dir="rtl">{section.hebrew[i]}</p>
+                <HebrewVerseText text={section.hebrew[i]} />
                 <p className="verse-english">{section.english[i]}</p>
               </li>
             ))}
