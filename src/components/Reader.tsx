@@ -3,6 +3,7 @@ import { fetchChapterCommentary, type CommentaryByVerse } from '../lib/commentar
 import type { ChapterText } from '../lib/sefaria'
 import { GreekVerseText } from './GreekVerseText'
 import { HebrewVerseText } from './HebrewVerseText'
+import { ReadAloudBar } from './ReadAloudBar'
 import { TextCredit } from './TextCredit'
 import { VerseCommentary } from './VerseCommentary'
 
@@ -60,6 +61,8 @@ export function Reader({ chapter, loading, error, source, bookSlug, chapterNum }
           <h2 className="hebrew" dir="rtl">{chapter.heRef}</h2>
         )}
       </header>
+
+      <ReadAloudBar texts={chapter.hebrew} />
 
       <ol className="verse-list">
         {Array.from({ length: verseCount }, (_, i) => (

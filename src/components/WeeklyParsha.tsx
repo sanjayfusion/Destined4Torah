@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { fetchWeeklyParsha, type WeeklyParsha as WeeklyParshaData } from '../lib/sefaria'
 import { HebrewVerseText } from './HebrewVerseText'
 import { ParshaDateHeader } from './ParshaDateHeader'
+import { ReadAloudBar } from './ReadAloudBar'
 import { TextCredit } from './TextCredit'
 
 export function WeeklyParsha() {
@@ -54,6 +55,11 @@ export function WeeklyParsha() {
         <h2 className="hebrew" dir="rtl">{parsha.hebrewName}</h2>
       </header>
       <p className="parsha-ref">{parsha.ref}</p>
+
+      <ReadAloudBar
+        texts={parsha.sections.flatMap((section) => section.hebrew)}
+        label="Read parsha aloud"
+      />
 
       {parsha.sections.map((section) => (
         <div key={section.chapter} className="parsha-section">

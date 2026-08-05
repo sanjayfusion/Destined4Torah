@@ -340,6 +340,34 @@
   color: var(--text);
 }
 
+.read-aloud-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.read-aloud-button {
+  border: 1px solid var(--accent);
+  background: var(--accent);
+  color: #fff;
+  border-radius: 20px;
+  padding: 7px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.read-aloud-button.playing {
+  background: transparent;
+  color: var(--accent);
+}
+
+.read-aloud-status {
+  font-size: 13px;
+  color: var(--text);
+}
+
 .parsha-section + .parsha-section {
   margin-top: 24px;
 }
