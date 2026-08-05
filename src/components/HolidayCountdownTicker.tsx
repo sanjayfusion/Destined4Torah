@@ -12,6 +12,10 @@ function formatCountdown(target: Date): string {
   return `${days} day${days === 1 ? '' : 's'}, ${hours} hour${hours === 1 ? '' : 's'}, ${minutes} minute${minutes === 1 ? '' : 's'}`
 }
 
+function formatDateLabel(date: Date): string {
+  return new Intl.DateTimeFormat('en-US', { weekday: 'short', month: 'short', day: 'numeric' }).format(date)
+}
+
 export function HolidayCountdownTicker() {
   const [holiday, setHoliday] = useState<HolidayCountdown | null>(null)
   const [, forceUpdate] = useState(0)
@@ -29,7 +33,8 @@ export function HolidayCountdownTicker() {
     return null
   }
 
-  const message = `${formatCountdown(holiday.target)} until ${holiday.name} — ${holiday.hebrewDate} · ${holiday.gregorianDate}`
+  const range = `${formatDateLabel(holiday.start)} sunset to ${formatDateLabel(holiday.end)} sunset`
+  const message = `${formatCountdown(holiday.start)} until ${holiday.name} — ${holiday.hebrewDate} · ${range}`
 
   return (
     <div className="holiday-ticker">
