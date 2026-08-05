@@ -3,6 +3,7 @@ export interface ChapterText {
   heRef: string
   english: string[]
   hebrew: string[]
+  greek?: string[]
 }
 
 function stripTags(value: string): string {

@@ -32,7 +32,7 @@ function App() {
 
     const fetchPromise =
       source === 'kjv'
-        ? fetchNewTestamentChapter(selectedBook, selectedChapter)
+        ? fetchNewTestamentChapter(selectedBook, selectedChapter, selectedBookInfo?.bookNumber)
         : fetchChapter(selectedBook, selectedChapter)
 
     fetchPromise

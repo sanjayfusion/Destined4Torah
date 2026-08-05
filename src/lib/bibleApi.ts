@@ -1,3 +1,4 @@
+import { fetchGreekChapter } from './greekBible'
 import type { ChapterText } from './sefaria'
 
 interface BibleApiVerse {
@@ -7,9 +8,16 @@ interface BibleApiVerse {
   text: string
 }
 
-export async function fetchNewTestamentChapter(bookSlug: string, chapter: number): Promise<ChapterText> {
+export async function fetchNewTestamentChapter(
+  bookSlug: string,
+  chapter: number,
+  bookNumber?: number,
+): Promise<ChapterText> {
   const url = `https://bible-api.com/${encodeURIComponent(bookSlug)}+${chapter}?translation=kjv`
-  const response = await fetch(url)
+  const [response, greekResult] = await Promise.all([
+    fetch(url),
+    bookNumber ? fetchGreekChapter(bookNumber, chapter).catch(() => undefined) : Promise.resolve(undefined),
+  ])
 
   if (!response.ok) {
     throw new Error(`Bible API request failed (${response.status})`)
@@ -28,5 +36,6 @@ export async function fetchNewTestamentChapter(bookSlug: string, chapter: number
     heRef: '',
     english: verses.map((verse) => verse.text.replace(/\s+/g, ' ').trim()),
     hebrew: [],
+    greek: greekResult,
   }
 }

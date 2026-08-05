@@ -5,6 +5,8 @@ export interface BibleBook {
   hebrew?: string
   chapters: number
   testament: 'old' | 'new'
+  /** Standard 1-66 book number (Genesis=1 ... Revelation=66), used for the Greek NT source */
+  bookNumber?: number
 }
 
 export const OLD_TESTAMENT_BOOKS: BibleBook[] = [
@@ -50,33 +52,33 @@ export const OLD_TESTAMENT_BOOKS: BibleBook[] = [
 ]
 
 export const NEW_TESTAMENT_BOOKS: BibleBook[] = [
-  { slug: 'Matthew', english: 'Matthew', chapters: 28, testament: 'new' },
-  { slug: 'Mark', english: 'Mark', chapters: 16, testament: 'new' },
-  { slug: 'Luke', english: 'Luke', chapters: 24, testament: 'new' },
-  { slug: 'John', english: 'John', chapters: 21, testament: 'new' },
-  { slug: 'Acts', english: 'Acts', chapters: 28, testament: 'new' },
-  { slug: 'Romans', english: 'Romans', chapters: 16, testament: 'new' },
-  { slug: '1 Corinthians', english: '1 Corinthians', chapters: 16, testament: 'new' },
-  { slug: '2 Corinthians', english: '2 Corinthians', chapters: 13, testament: 'new' },
-  { slug: 'Galatians', english: 'Galatians', chapters: 6, testament: 'new' },
-  { slug: 'Ephesians', english: 'Ephesians', chapters: 6, testament: 'new' },
-  { slug: 'Philippians', english: 'Philippians', chapters: 4, testament: 'new' },
-  { slug: 'Colossians', english: 'Colossians', chapters: 4, testament: 'new' },
-  { slug: '1 Thessalonians', english: '1 Thessalonians', chapters: 5, testament: 'new' },
-  { slug: '2 Thessalonians', english: '2 Thessalonians', chapters: 3, testament: 'new' },
-  { slug: '1 Timothy', english: '1 Timothy', chapters: 6, testament: 'new' },
-  { slug: '2 Timothy', english: '2 Timothy', chapters: 4, testament: 'new' },
-  { slug: 'Titus', english: 'Titus', chapters: 3, testament: 'new' },
-  { slug: 'Philemon', english: 'Philemon', chapters: 1, testament: 'new' },
-  { slug: 'Hebrews', english: 'Hebrews', chapters: 13, testament: 'new' },
-  { slug: 'James', english: 'James', chapters: 5, testament: 'new' },
-  { slug: '1 Peter', english: '1 Peter', chapters: 5, testament: 'new' },
-  { slug: '2 Peter', english: '2 Peter', chapters: 3, testament: 'new' },
-  { slug: '1 John', english: '1 John', chapters: 5, testament: 'new' },
-  { slug: '2 John', english: '2 John', chapters: 1, testament: 'new' },
-  { slug: '3 John', english: '3 John', chapters: 1, testament: 'new' },
-  { slug: 'Jude', english: 'Jude', chapters: 1, testament: 'new' },
-  { slug: 'Revelation', english: 'Revelation', chapters: 22, testament: 'new' },
+  { slug: 'Matthew', english: 'Matthew', chapters: 28, testament: 'new', bookNumber: 40 },
+  { slug: 'Mark', english: 'Mark', chapters: 16, testament: 'new', bookNumber: 41 },
+  { slug: 'Luke', english: 'Luke', chapters: 24, testament: 'new', bookNumber: 42 },
+  { slug: 'John', english: 'John', chapters: 21, testament: 'new', bookNumber: 43 },
+  { slug: 'Acts', english: 'Acts', chapters: 28, testament: 'new', bookNumber: 44 },
+  { slug: 'Romans', english: 'Romans', chapters: 16, testament: 'new', bookNumber: 45 },
+  { slug: '1 Corinthians', english: '1 Corinthians', chapters: 16, testament: 'new', bookNumber: 46 },
+  { slug: '2 Corinthians', english: '2 Corinthians', chapters: 13, testament: 'new', bookNumber: 47 },
+  { slug: 'Galatians', english: 'Galatians', chapters: 6, testament: 'new', bookNumber: 48 },
+  { slug: 'Ephesians', english: 'Ephesians', chapters: 6, testament: 'new', bookNumber: 49 },
+  { slug: 'Philippians', english: 'Philippians', chapters: 4, testament: 'new', bookNumber: 50 },
+  { slug: 'Colossians', english: 'Colossians', chapters: 4, testament: 'new', bookNumber: 51 },
+  { slug: '1 Thessalonians', english: '1 Thessalonians', chapters: 5, testament: 'new', bookNumber: 52 },
+  { slug: '2 Thessalonians', english: '2 Thessalonians', chapters: 3, testament: 'new', bookNumber: 53 },
+  { slug: '1 Timothy', english: '1 Timothy', chapters: 6, testament: 'new', bookNumber: 54 },
+  { slug: '2 Timothy', english: '2 Timothy', chapters: 4, testament: 'new', bookNumber: 55 },
+  { slug: 'Titus', english: 'Titus', chapters: 3, testament: 'new', bookNumber: 56 },
+  { slug: 'Philemon', english: 'Philemon', chapters: 1, testament: 'new', bookNumber: 57 },
+  { slug: 'Hebrews', english: 'Hebrews', chapters: 13, testament: 'new', bookNumber: 58 },
+  { slug: 'James', english: 'James', chapters: 5, testament: 'new', bookNumber: 59 },
+  { slug: '1 Peter', english: '1 Peter', chapters: 5, testament: 'new', bookNumber: 60 },
+  { slug: '2 Peter', english: '2 Peter', chapters: 3, testament: 'new', bookNumber: 61 },
+  { slug: '1 John', english: '1 John', chapters: 5, testament: 'new', bookNumber: 62 },
+  { slug: '2 John', english: '2 John', chapters: 1, testament: 'new', bookNumber: 63 },
+  { slug: '3 John', english: '3 John', chapters: 1, testament: 'new', bookNumber: 64 },
+  { slug: 'Jude', english: 'Jude', chapters: 1, testament: 'new', bookNumber: 65 },
+  { slug: 'Revelation', english: 'Revelation', chapters: 22, testament: 'new', bookNumber: 66 },
 ]
 
 export const ALL_BOOKS: BibleBook[] = [...OLD_TESTAMENT_BOOKS, ...NEW_TESTAMENT_BOOKS]

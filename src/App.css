@@ -378,6 +378,18 @@
   margin: 0 0 4px;
 }
 
+.verse-greek-wrap {
+  grid-column: 2;
+}
+
+.verse-greek {
+  font-size: 17px;
+  font-style: italic;
+  line-height: 1.6;
+  color: var(--text);
+  margin: 0 0 4px;
+}
+
 .strongs-word {
   border: none;
   background: transparent;

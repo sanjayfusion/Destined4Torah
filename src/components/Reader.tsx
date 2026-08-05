@@ -1,4 +1,5 @@
 import type { ChapterText } from '../lib/sefaria'
+import { GreekVerseText } from './GreekVerseText'
 import { HebrewVerseText } from './HebrewVerseText'
 import { TextCredit } from './TextCredit'
 
@@ -38,6 +39,7 @@ export function Reader({ chapter, loading, error, source }: ReaderProps) {
           <li key={i} className="verse">
             <span className="verse-number">{i + 1}</span>
             {chapter.hebrew[i] && <HebrewVerseText text={chapter.hebrew[i]} />}
+            {chapter.greek?.[i] && <GreekVerseText text={chapter.greek[i]} />}
             <p className="verse-english">{chapter.english[i]}</p>
           </li>
         ))}
