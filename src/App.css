@@ -406,6 +406,14 @@
   margin: 0 0 4px;
 }
 
+.verse-translit {
+  font-size: 14px;
+  font-style: italic;
+  color: var(--text);
+  opacity: 0.8;
+  margin: 0 0 6px;
+}
+
 .verse-greek-wrap {
   grid-column: 2;
 }

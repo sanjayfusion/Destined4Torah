@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { tokenizeHebrewVerse } from '../lib/hebrewWords'
+import { transliterateHebrew } from '../lib/transliterate'
 
 interface HebrewVerseTextProps {
   text: string
@@ -28,6 +29,8 @@ export function HebrewVerseText({ text }: HebrewVerseTextProps) {
           ),
         )}
       </p>
+
+      <p className="verse-translit">{transliterateHebrew(text)}</p>
 
       {active?.entry && (
         <div className="strongs-popover" dir="ltr">
