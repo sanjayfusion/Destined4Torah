@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { About } from './components/About'
 import { BookNav } from './components/BookNav'
-import { HeaderDate } from './components/HeaderDate'
 import { NewsTicker } from './components/NewsTicker'
 import { Reader } from './components/Reader'
 import { WeeklyParsha } from './components/WeeklyParsha'
@@ -59,7 +58,6 @@ function App() {
         <header className="app-header">
           <img src={logo} className="app-logo" alt="Destined4Torah" />
           <p>A simple space to learn Scripture, Genesis to Revelation.</p>
-          <HeaderDate />
           <div className="header-nav">
             <button
               type="button"
