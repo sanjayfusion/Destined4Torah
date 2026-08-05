@@ -18,7 +18,7 @@ const HTML_ENTITIES: Record<string, string> = {
   '&#39;': "'",
 }
 
-function stripTags(value: string): string {
+export function stripTags(value: string): string {
   return value
     // Footnote markers/bodies: drop the whole element, not just the tag,
     // since their text isn't meant to sit inline with the verse.

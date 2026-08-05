@@ -98,7 +98,14 @@ function App() {
             {view === 'parsha' && <WeeklyParsha />}
             {view === 'about' && <About />}
             {view === 'book' && (
-              <Reader chapter={chapter} loading={loading} error={error} source={source} />
+              <Reader
+                chapter={chapter}
+                loading={loading}
+                error={error}
+                source={source}
+                bookSlug={selectedBook}
+                chapterNum={selectedChapter}
+              />
             )}
           </main>
         </div>
