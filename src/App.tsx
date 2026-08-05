@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { About } from './components/About'
 import { BookNav } from './components/BookNav'
+import { HolidayCountdownTicker } from './components/HolidayCountdownTicker'
 import { NewsTicker } from './components/NewsTicker'
 import { Reader } from './components/Reader'
 import { WeeklyParsha } from './components/WeeklyParsha'
@@ -54,6 +55,7 @@ function App() {
   return (
     <>
       <NewsTicker />
+      <HolidayCountdownTicker />
       <div className="app">
         <header className="app-header">
           <img src={logo} className="app-logo" alt="Destined4Torah" />

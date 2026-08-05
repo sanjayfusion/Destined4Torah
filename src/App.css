@@ -69,6 +69,59 @@
   text-decoration: underline;
 }
 
+/* Holiday countdown ticker */
+
+.holiday-ticker {
+  display: flex;
+  align-items: center;
+  background: var(--accent);
+  color: #fff;
+  overflow: hidden;
+}
+
+.holiday-ticker-label {
+  flex-shrink: 0;
+  padding: 8px 14px;
+  background: rgba(0, 0, 0, 0.15);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.holiday-ticker-track {
+  flex: 1;
+  overflow: hidden;
+}
+
+.holiday-ticker-content {
+  display: flex;
+  width: max-content;
+  animation: holiday-ticker-scroll 40s linear infinite;
+}
+
+.holiday-ticker:hover .holiday-ticker-content {
+  animation-play-state: paused;
+}
+
+.holiday-ticker-item {
+  flex-shrink: 0;
+  padding: 8px 48px 8px 0;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+@keyframes holiday-ticker-scroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-33.333%);
+  }
+}
+
 @keyframes news-ticker-scroll {
   from {
     transform: translateX(0);
