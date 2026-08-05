@@ -6,8 +6,31 @@ export interface ChapterText {
   greek?: string[]
 }
 
+const HTML_ENTITIES: Record<string, string> = {
+  '&nbsp;': ' ',
+  '&thinsp;': ' ',
+  '&ensp;': ' ',
+  '&emsp;': ' ',
+  '&rlm;': '',
+  '&lrm;': '',
+  '&amp;': '&',
+  '&quot;': '"',
+  '&#39;': "'",
+}
+
 function stripTags(value: string): string {
-  return value.replace(/<[^>]*>/g, '').trim()
+  return value
+    // Footnote markers/bodies: drop the whole element, not just the tag,
+    // since their text isn't meant to sit inline with the verse.
+    .replace(/<sup\b[^>]*>.*?<\/sup>/gis, '')
+    .replace(/<i\b[^>]*>.*?<\/i>/gis, '')
+    // Any other formatting tags: keep the inner text, drop the tag.
+    .replace(/<[^>]*>/g, '')
+    .replace(/&[a-z]+;|&#\d+;/gi, (entity) => HTML_ENTITIES[entity.toLowerCase()] ?? '')
+    // Sefaria's open/closed-section markers (e.g. {פ} {ס}) in the Hebrew text.
+    .replace(/\{[^}]*\}/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
 }
 
 export async function fetchChapter(bookSlug: string, chapter: number): Promise<ChapterText> {
