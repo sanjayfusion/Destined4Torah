@@ -1,14 +1,17 @@
 import { useEffect, useState } from 'react'
+import { fetchChapterCommentary, type CommentaryByVerse } from '../lib/commentary'
 import { fetchWeeklyParsha, type WeeklyParsha as WeeklyParshaData } from '../lib/sefaria'
 import { HebrewVerseText } from './HebrewVerseText'
 import { ParshaDateHeader } from './ParshaDateHeader'
 import { ReadAloudBar } from './ReadAloudBar'
 import { TextCredit } from './TextCredit'
+import { VerseCommentary } from './VerseCommentary'
 
 export function WeeklyParsha() {
   const [parsha, setParsha] = useState<WeeklyParshaData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [commentaryByChapter, setCommentaryByChapter] = useState<Record<number, CommentaryByVerse>>({})
 
   useEffect(() => {
     let cancelled = false
@@ -30,6 +33,26 @@ export function WeeklyParsha() {
       cancelled = true
     }
   }, [])
+
+  useEffect(() => {
+    if (!parsha) return
+    let cancelled = false
+
+    Promise.all(
+      parsha.sections.map((section) =>
+        fetchChapterCommentary(parsha.ref.split(' ')[0], section.chapter)
+          .then((data) => [section.chapter, data] as const)
+          .catch(() => [section.chapter, {} as CommentaryByVerse] as const),
+      ),
+    ).then((results) => {
+      if (cancelled) return
+      setCommentaryByChapter(Object.fromEntries(results))
+    })
+
+    return () => {
+      cancelled = true
+    }
+  }, [parsha])
 
   if (loading) {
     return <p className="status">Loading this week's parsha…</p>
@@ -74,6 +97,9 @@ export function WeeklyParsha() {
                 </span>
                 <HebrewVerseText text={section.hebrew[i]} />
                 <p className="verse-english">{section.english[i]}</p>
+                <VerseCommentary
+                  entries={commentaryByChapter[section.chapter]?.[section.startVerse + i] ?? []}
+                />
               </li>
             ))}
           </ol>
