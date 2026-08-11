@@ -142,3 +142,95 @@ export function transliterateHebrew(text: string): string {
     .trim()
     .replace(/^\w/, (c) => c.toUpperCase())
 }
+
+const GREEK_LETTERS: Record<string, string> = {
+  α: 'a', β: 'b', γ: 'g', δ: 'd', ε: 'e', ζ: 'z', η: 'ē', θ: 'th',
+  ι: 'i', κ: 'k', λ: 'l', μ: 'm', ν: 'n', ξ: 'x', ο: 'o', π: 'p',
+  ρ: 'r', σ: 's', ς: 's', τ: 't', υ: 'y', φ: 'ph', χ: 'ch', ψ: 'ps', ω: 'ō',
+}
+
+// Classical vowel-pair diphthongs. Broken up by a diaeresis (dialytika) on
+// the second vowel, which marks the letters as pronounced separately.
+const GREEK_DIPHTHONGS: Record<string, string> = {
+  αι: 'ai', ει: 'ei', οι: 'oi', υι: 'yi',
+  αυ: 'au', ευ: 'eu', ηυ: 'ēu', ου: 'ou',
+}
+
+const ROUGH_BREATHING = '̔' // combining reversed comma above (dasia)
+const DIAERESIS = '̈' // combining diaeresis (dialytika)
+const GREEK_LETTER_REGEX = /[α-ωΑ-Ω]/
+// Combining Diacritical Marks block — covers accents, breathing marks,
+// iota subscript, and diaeresis once the text is NFD-decomposed.
+const GREEK_MARK_REGEX = /[̀-ͯ]/
+
+interface GreekLetterGroup {
+  base: string
+  marks: string[]
+  end: number
+}
+
+function readGreekGroup(chars: string[], start: number): GreekLetterGroup | null {
+  if (start >= chars.length || !GREEK_LETTER_REGEX.test(chars[start])) return null
+
+  const base = chars[start].toLowerCase()
+  let i = start + 1
+  const marks: string[] = []
+  while (i < chars.length && GREEK_MARK_REGEX.test(chars[i])) {
+    marks.push(chars[i])
+    i++
+  }
+
+  return { base, marks, end: i }
+}
+
+function transliterateGreekWord(word: string): string {
+  const chars = [...word.normalize('NFD')]
+  let result = ''
+  let i = 0
+
+  while (i < chars.length) {
+    const first = readGreekGroup(chars, i)
+    if (!first) {
+      i++
+      continue
+    }
+
+    const second = readGreekGroup(chars, first.end)
+    const pair = second ? first.base + second.base : null
+    const isDiphthong =
+      pair !== null &&
+      GREEK_DIPHTHONGS[pair] !== undefined &&
+      !first.marks.includes(DIAERESIS) &&
+      !second!.marks.includes(DIAERESIS)
+
+    if (isDiphthong && second) {
+      const hasRough = first.marks.includes(ROUGH_BREATHING) || second.marks.includes(ROUGH_BREATHING)
+      result += (hasRough ? 'h' : '') + GREEK_DIPHTHONGS[pair!]
+      i = second.end
+      continue
+    }
+
+    const hasRough = first.marks.includes(ROUGH_BREATHING)
+    const letter = GREEK_LETTERS[first.base]
+    if (letter === undefined) {
+      i = first.end
+      continue
+    }
+
+    // Rho with rough breathing (ῥ) is conventionally "rh", not "hr".
+    result += first.base === 'ρ' && hasRough ? 'rh' : (hasRough ? 'h' : '') + letter
+    i = first.end
+  }
+
+  return result
+}
+
+/** A simplified, readable transliteration — a pronunciation guide for study, not a scholarly-grade transcription. */
+export function transliterateGreek(text: string): string {
+  return text
+    .split(/(\s+)/)
+    .map((part) => (/\s/.test(part) ? part : transliterateGreekWord(part)))
+    .join('')
+    .trim()
+    .replace(/^\w/, (c) => c.toUpperCase())
+}

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { tokenizeGreekVerse } from '../lib/greekWords'
+import { transliterateGreek } from '../lib/transliterate'
 
 interface GreekVerseTextProps {
   text: string
@@ -28,6 +29,8 @@ export function GreekVerseText({ text }: GreekVerseTextProps) {
           ),
         )}
       </p>
+
+      <p className="verse-translit">{transliterateGreek(text)}</p>
 
       {active?.entry && (
         <div className="strongs-popover">
