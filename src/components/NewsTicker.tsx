@@ -6,7 +6,7 @@ const REFRESH_INTERVAL_MS = 10 * 60 * 1000
 
 export function NewsTicker() {
   const [items, setItems] = useState<NewsItem[]>([])
-  const { ref, duration } = useTickerSpeed(2, items)
+  const { ref, duration } = useTickerSpeed(2, items, 63)
 
   useEffect(() => {
     let cancelled = false

@@ -33,7 +33,7 @@ export function HolidayCountdownTicker() {
   const message = holiday
     ? `${formatCountdown(holiday.start)} until ${holiday.name} — ${holiday.hebrewDate} · ${formatDateLabel(holiday.start)} sunset to ${formatDateLabel(holiday.end)} sunset`
     : ''
-  const { ref, duration } = useTickerSpeed(3, message)
+  const { ref, duration } = useTickerSpeed(3, message, 135)
 
   if (!holiday) {
     return null
