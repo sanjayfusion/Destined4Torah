@@ -31,7 +31,7 @@ export function useReadAloud(texts: string[]) {
     verses.forEach((text, i) => {
       const utterance = new SpeechSynthesisUtterance(text)
       utterance.lang = 'he-IL'
-      utterance.rate = 0.85
+      utterance.rate = 0.65
       utterance.onstart = () => setCurrentIndex(i)
       if (i === verses.length - 1) {
         utterance.onend = () => {
