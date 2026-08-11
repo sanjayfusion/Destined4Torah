@@ -49,7 +49,7 @@
 .news-ticker-content {
   display: flex;
   width: max-content;
-  animation: news-ticker-scroll 60s linear infinite;
+  animation: news-ticker-scroll 100s linear infinite;
 }
 
 .news-ticker:hover .news-ticker-content {
@@ -98,7 +98,7 @@
 .holiday-ticker-content {
   display: flex;
   width: max-content;
-  animation: holiday-ticker-scroll 40s linear infinite;
+  animation: holiday-ticker-scroll 18s linear infinite;
 }
 
 .holiday-ticker:hover .holiday-ticker-content {
