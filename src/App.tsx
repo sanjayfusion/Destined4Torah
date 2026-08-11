@@ -62,7 +62,7 @@ function App() {
       <div className="app">
         <header className="app-header">
           <img src={logo} className="app-logo" alt="Destined4Torah" />
-          <p>A simple space to learn Scripture, Genesis to Revelation.</p>
+          <p>Scripture in its Jewish context, Genesis to Revelation.</p>
           <div className="header-nav">
             <button
               type="button"
