@@ -4,9 +4,10 @@ export type ReadAloudStatus = 'idle' | 'playing' | 'unsupported'
 
 const isSupported = typeof window !== 'undefined' && 'speechSynthesis' in window
 
-export function useReadAloud(texts: string[], lang = 'he-IL', rate = 0.65) {
+export function useReadAloud(texts: string[], lang = 'he-IL', rate = 0.5) {
   const [status, setStatus] = useState<ReadAloudStatus>(isSupported ? 'idle' : 'unsupported')
   const [currentIndex, setCurrentIndex] = useState<number | null>(null)
+  const [currentCharIndex, setCurrentCharIndex] = useState<number | null>(null)
   const textsRef = useRef(texts)
   textsRef.current = texts
 
@@ -21,6 +22,7 @@ export function useReadAloud(texts: string[], lang = 'he-IL', rate = 0.65) {
     window.speechSynthesis.cancel()
     setStatus('idle')
     setCurrentIndex(null)
+    setCurrentCharIndex(null)
   }, [])
 
   const play = useCallback(() => {
@@ -32,11 +34,24 @@ export function useReadAloud(texts: string[], lang = 'he-IL', rate = 0.65) {
       const utterance = new SpeechSynthesisUtterance(text)
       utterance.lang = lang
       utterance.rate = rate
-      utterance.onstart = () => setCurrentIndex(i)
+      utterance.onstart = () => {
+        setCurrentIndex(i)
+        setCurrentCharIndex(0)
+      }
+      // Lets the verse text highlight along as speech progresses. Browser
+      // and voice support for this varies — some fire a boundary per word,
+      // some only per sentence, some not at all. Playback still works
+      // either way; word highlighting just won't track as closely without it.
+      utterance.onboundary = (event) => {
+        if (!event.name || event.name === 'word') {
+          setCurrentCharIndex(event.charIndex)
+        }
+      }
       if (i === verses.length - 1) {
         utterance.onend = () => {
           setStatus('idle')
           setCurrentIndex(null)
+          setCurrentCharIndex(null)
         }
       }
       window.speechSynthesis.speak(utterance)
@@ -45,5 +60,5 @@ export function useReadAloud(texts: string[], lang = 'he-IL', rate = 0.65) {
     setStatus('playing')
   }, [lang, rate])
 
-  return { status, currentIndex, play, stop }
+  return { status, currentIndex, currentCharIndex, play, stop }
 }

@@ -709,6 +709,13 @@
   opacity: 0.5;
 }
 
+.read-aloud-active {
+  background: var(--accent);
+  color: #fff !important;
+  border-radius: 4px;
+  box-shadow: 0 0 0 2px var(--accent);
+}
+
 .about h2 {
   margin: 0 0 20px;
 }

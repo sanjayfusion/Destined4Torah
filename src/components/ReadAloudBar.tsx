@@ -1,15 +1,22 @@
-import { useReadAloud } from '../hooks/useReadAloud'
+import type { ReadAloudStatus } from '../hooks/useReadAloud'
 
 interface ReadAloudBarProps {
   texts: string[]
+  status: ReadAloudStatus
+  currentIndex: number | null
+  play: () => void
+  stop: () => void
   label?: string
-  lang?: string
-  rate?: number
 }
 
-export function ReadAloudBar({ texts, label = 'Read Hebrew aloud', lang = 'he-IL', rate = 0.5 }: ReadAloudBarProps) {
-  const { status, currentIndex, play, stop } = useReadAloud(texts, lang, rate)
-
+export function ReadAloudBar({
+  texts,
+  status,
+  currentIndex,
+  play,
+  stop,
+  label = 'Read Hebrew aloud',
+}: ReadAloudBarProps) {
   if (status === 'unsupported' || texts.length === 0) {
     return null
   }

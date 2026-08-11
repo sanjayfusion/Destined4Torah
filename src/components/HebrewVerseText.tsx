@@ -2,34 +2,40 @@ import { useState } from 'react'
 import { tokenizeHebrewVerse } from '../lib/hebrewWords'
 import { buildHebrewInterlinear } from '../lib/interlinear'
 import { transliterateHebrew } from '../lib/transliterate'
+import { findTokenIndexAtChar } from '../lib/wordHighlight'
 import { VerseInterlinear } from './VerseInterlinear'
 
 interface HebrewVerseTextProps {
   text: string
+  highlightCharIndex?: number | null
 }
 
-export function HebrewVerseText({ text }: HebrewVerseTextProps) {
+export function HebrewVerseText({ text, highlightCharIndex = null }: HebrewVerseTextProps) {
   const [activeIndex, setActiveIndex] = useState<number | null>(null)
   const tokens = tokenizeHebrewVerse(text)
   const active = activeIndex !== null ? tokens[activeIndex] : undefined
+  const spokenIndex = findTokenIndexAtChar(tokens, highlightCharIndex)
 
   return (
     <div className="verse-hebrew-wrap">
       <p className="verse-hebrew" dir="rtl">
-        {tokens.map((token, i) =>
-          token.entry ? (
+        {tokens.map((token, i) => {
+          const spokenClass = i === spokenIndex ? ' read-aloud-active' : ''
+          return token.entry ? (
             <button
               key={i}
               type="button"
-              className="strongs-word"
+              className={`strongs-word${spokenClass}`}
               onClick={() => setActiveIndex(activeIndex === i ? null : i)}
             >
               {token.text}
             </button>
           ) : (
-            <span key={i}>{token.text}</span>
-          ),
-        )}
+            <span key={i} className={spokenClass || undefined}>
+              {token.text}
+            </span>
+          )
+        })}
       </p>
 
       <p className="verse-translit">{transliterateHebrew(text)}</p>

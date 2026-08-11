@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useReadAloud } from '../hooks/useReadAloud'
 import { fetchChapterCommentary, type CommentaryByVerse } from '../lib/commentary'
 import { fetchWeeklyParsha, type WeeklyParsha as WeeklyParshaData } from '../lib/sefaria'
 import { HebrewVerseText } from './HebrewVerseText'
@@ -12,6 +13,7 @@ export function WeeklyParsha() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [commentaryByChapter, setCommentaryByChapter] = useState<Record<number, CommentaryByVerse>>({})
+  const readAloud = useReadAloud(parsha?.sections.flatMap((section) => section.hebrew) ?? [], 'he-IL')
 
   useEffect(() => {
     let cancelled = false
@@ -81,30 +83,48 @@ export function WeeklyParsha() {
 
       <ReadAloudBar
         texts={parsha.sections.flatMap((section) => section.hebrew)}
+        status={readAloud.status}
+        currentIndex={readAloud.currentIndex}
+        play={readAloud.play}
+        stop={readAloud.stop}
         label="Read parsha aloud"
       />
 
-      {parsha.sections.map((section) => (
-        <div key={section.chapter} className="parsha-section">
-          {parsha.sections.length > 1 && (
-            <h3 className="chapter-divider">Chapter {section.chapter}</h3>
-          )}
-          <ol className="verse-list">
-            {section.hebrew.map((_, i) => (
-              <li key={i} className="verse">
-                <span className="verse-number">
-                  {section.chapter}:{section.startVerse + i}
-                </span>
-                <HebrewVerseText text={section.hebrew[i]} />
-                <p className="verse-english">{section.english[i]}</p>
-                <VerseCommentary
-                  entries={commentaryByChapter[section.chapter]?.[section.startVerse + i] ?? []}
-                />
-              </li>
-            ))}
-          </ol>
-        </div>
-      ))}
+      {(() => {
+        let globalVerseIndex = 0
+
+        return parsha.sections.map((section) => {
+          const sectionStartIndex = globalVerseIndex
+          globalVerseIndex += section.hebrew.length
+
+          return (
+            <div key={section.chapter} className="parsha-section">
+              {parsha.sections.length > 1 && (
+                <h3 className="chapter-divider">Chapter {section.chapter}</h3>
+              )}
+              <ol className="verse-list">
+                {section.hebrew.map((_, i) => (
+                  <li key={i} className="verse">
+                    <span className="verse-number">
+                      {section.chapter}:{section.startVerse + i}
+                    </span>
+                    <HebrewVerseText
+                      text={section.hebrew[i]}
+                      highlightCharIndex={
+                        readAloud.currentIndex === sectionStartIndex + i ? readAloud.currentCharIndex : null
+                      }
+                    />
+                    <p className="verse-english">{section.english[i]}</p>
+                    <VerseCommentary
+                      entries={commentaryByChapter[section.chapter]?.[section.startVerse + i] ?? []}
+                    />
+                  </li>
+                ))}
+              </ol>
+            </div>
+          )
+        })
+      })()}
 
       <TextCredit source="sefaria" />
     </article>
