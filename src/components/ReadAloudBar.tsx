@@ -3,10 +3,12 @@ import { useReadAloud } from '../hooks/useReadAloud'
 interface ReadAloudBarProps {
   texts: string[]
   label?: string
+  lang?: string
+  rate?: number
 }
 
-export function ReadAloudBar({ texts, label = 'Read Hebrew aloud' }: ReadAloudBarProps) {
-  const { status, currentIndex, play, stop } = useReadAloud(texts)
+export function ReadAloudBar({ texts, label = 'Read Hebrew aloud', lang = 'he-IL', rate = 0.65 }: ReadAloudBarProps) {
+  const { status, currentIndex, play, stop } = useReadAloud(texts, lang, rate)
 
   if (status === 'unsupported' || texts.length === 0) {
     return null

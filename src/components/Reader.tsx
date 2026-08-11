@@ -63,6 +63,9 @@ export function Reader({ chapter, loading, error, source, bookSlug, chapterNum }
       </header>
 
       <ReadAloudBar texts={chapter.hebrew} />
+      {chapter.greek && chapter.greek.length > 0 && (
+        <ReadAloudBar texts={chapter.greek} label="Read Greek aloud" lang="el-GR" />
+      )}
 
       <ol className="verse-list">
         {Array.from({ length: verseCount }, (_, i) => (
