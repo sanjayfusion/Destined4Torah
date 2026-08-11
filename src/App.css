@@ -4,12 +4,31 @@
   padding: 32px 20px 80px;
 }
 
+/* Original-language type: purpose-built serifs for Hebrew (niqqud-aware)
+   and classical Greek, distinct from the body/heading fonts. */
+.hebrew,
+.book-hebrew,
+.parshiyot-hebrew,
+.tanakh-division-hebrew,
+.verse-hebrew,
+.strongs-popover-word[dir='rtl'],
+.verse-interlinear-word[dir='rtl'] {
+  font-family: var(--font-hebrew);
+}
+
+.verse-greek,
+.strongs-popover-word,
+.verse-interlinear-word {
+  font-family: var(--font-greek);
+}
+
 /* News ticker */
 
 .news-ticker {
   display: flex;
   align-items: center;
   background: var(--text-h);
+  background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.06), transparent 60%);
   color: var(--bg);
   overflow: hidden;
 }
@@ -75,6 +94,7 @@
   display: flex;
   align-items: center;
   background: var(--accent);
+  background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.1), transparent 60%);
   color: #fff;
   overflow: hidden;
 }
@@ -133,13 +153,13 @@
 
 .app-header {
   text-align: center;
-  margin-bottom: 32px;
+  margin-bottom: 44px;
 }
 
 .app-logo {
-  height: 56px;
+  height: 60px;
   width: auto;
-  margin: 0 0 12px;
+  margin: 0 0 14px;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -182,11 +202,13 @@
 
 .parsha-toggle:hover {
   background: var(--accent-bg);
+  transform: translateY(-1px);
 }
 
 .parsha-toggle.active {
   background: var(--accent);
   color: #fff;
+  box-shadow: 0 4px 12px -4px var(--accent);
 }
 
 .donate-link {
@@ -200,10 +222,13 @@
   font-size: 14px;
   font-weight: 600;
   text-decoration: none;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
 }
 
 .donate-link:hover {
-  opacity: 0.9;
+  opacity: 0.92;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px -4px var(--accent);
 }
 
 .app-body {
@@ -234,8 +259,9 @@
   align-self: start;
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 16px;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: var(--shadow-card);
 }
 
 .book-group {
@@ -405,8 +431,9 @@
 .reader {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 24px 28px 32px;
+  border-radius: 16px;
+  padding: 32px 36px 40px;
+  box-shadow: var(--shadow-card);
 }
 
 .reader-header {
@@ -414,12 +441,12 @@
   justify-content: space-between;
   align-items: baseline;
   border-bottom: 1px solid var(--border);
-  padding-bottom: 12px;
-  margin-bottom: 16px;
+  padding-bottom: 14px;
+  margin-bottom: 20px;
 }
 
 .reader-header h2 {
-  font-size: 20px;
+  font-size: 22px;
   margin: 0;
 }
 
@@ -583,7 +610,7 @@
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 24px;
 }
 
 .verse {
@@ -604,9 +631,9 @@
 }
 
 .verse-hebrew {
-  font-size: 22px;
-  line-height: 1.7;
-  margin: 0 0 4px;
+  font-size: 24px;
+  line-height: 1.75;
+  margin: 0 0 5px;
 }
 
 .verse-translit {
@@ -645,12 +672,13 @@
 
 .strongs-popover {
   position: relative;
-  margin: 4px 0 10px;
-  padding: 10px 32px 10px 12px;
+  margin: 6px 0 12px;
+  padding: 12px 34px 12px 14px;
   background: var(--accent-bg);
   border: 1px solid var(--accent);
-  border-radius: 8px;
+  border-radius: 10px;
   font-size: 14px;
+  box-shadow: var(--shadow-card);
 }
 
 .strongs-popover-close {
@@ -718,11 +746,11 @@
 
 .verse-commentary-body {
   margin-top: 8px;
-  padding: 10px 14px;
+  padding: 12px 16px;
   background: var(--surface);
   border: 1px solid var(--border);
   border-left: 3px solid var(--accent);
-  border-radius: 6px;
+  border-radius: 8px;
 }
 
 .verse-commentary-entry + .verse-commentary-entry {
@@ -770,11 +798,11 @@
 
 .verse-interlinear-body {
   margin-top: 8px;
-  padding: 10px 14px;
+  padding: 12px 16px;
   background: var(--surface);
   border: 1px solid var(--border);
   border-left: 3px solid var(--accent);
-  border-radius: 6px;
+  border-radius: 8px;
   overflow-x: auto;
 }
 
@@ -849,8 +877,9 @@
 .about-photo {
   width: 220px;
   height: auto;
-  border-radius: 12px;
+  border-radius: 14px;
   flex-shrink: 0;
+  box-shadow: var(--shadow-card);
 }
 
 .about-name {
@@ -925,9 +954,11 @@
 }
 
 .about-motto {
-  margin: 20px 0;
-  padding: 4px 0 4px 16px;
+  margin: 24px 0;
+  padding: 6px 0 6px 18px;
   border-left: 3px solid var(--accent);
+  font-family: var(--font-serif);
+  font-size: 18px;
   font-style: italic;
   color: var(--text-h);
 }
