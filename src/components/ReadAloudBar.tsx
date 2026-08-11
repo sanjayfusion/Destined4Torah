@@ -7,7 +7,7 @@ interface ReadAloudBarProps {
   rate?: number
 }
 
-export function ReadAloudBar({ texts, label = 'Read Hebrew aloud', lang = 'he-IL', rate = 0.65 }: ReadAloudBarProps) {
+export function ReadAloudBar({ texts, label = 'Read Hebrew aloud', lang = 'he-IL', rate = 0.5 }: ReadAloudBarProps) {
   const { status, currentIndex, play, stop } = useReadAloud(texts, lang, rate)
 
   if (status === 'unsupported' || texts.length === 0) {

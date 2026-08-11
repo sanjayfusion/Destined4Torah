@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { tokenizeGreekVerse } from '../lib/greekWords'
+import { buildGreekInterlinear } from '../lib/interlinear'
 import { transliterateGreek } from '../lib/transliterate'
+import { VerseInterlinear } from './VerseInterlinear'
 
 interface GreekVerseTextProps {
   text: string
@@ -49,6 +51,8 @@ export function GreekVerseText({ text }: GreekVerseTextProps) {
           <p className="strongs-popover-def">{active.entry.definition}</p>
         </div>
       )}
+
+      <VerseInterlinear rows={buildGreekInterlinear(text)} />
     </div>
   )
 }

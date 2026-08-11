@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { tokenizeHebrewVerse } from '../lib/hebrewWords'
+import { buildHebrewInterlinear } from '../lib/interlinear'
 import { transliterateHebrew } from '../lib/transliterate'
+import { VerseInterlinear } from './VerseInterlinear'
 
 interface HebrewVerseTextProps {
   text: string
@@ -49,6 +51,8 @@ export function HebrewVerseText({ text }: HebrewVerseTextProps) {
           <p className="strongs-popover-def">{active.entry.definition}</p>
         </div>
       )}
+
+      <VerseInterlinear rows={buildHebrewInterlinear(text)} dir="rtl" />
     </div>
   )
 }

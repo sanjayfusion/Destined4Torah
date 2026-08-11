@@ -76,7 +76,7 @@ export function HolidayCountdownTicker() {
   // actually being shown changes (a new holiday or a new parsha), not on
   // every digit tick.
   const stableKey = `${parshaName ?? ''}|${nextHoliday?.name ?? ''}`
-  const { ref, duration } = useTickerSpeed(2, stableKey, 135)
+  const { ref, duration } = useTickerSpeed(2, stableKey, 108)
 
   if (items.length === 0) {
     return null
