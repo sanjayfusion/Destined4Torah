@@ -1,14 +1,20 @@
 import { useEffect, useState } from 'react'
 import { useReadAloud } from '../hooks/useReadAloud'
 import { fetchChapterCommentary, type CommentaryByVerse } from '../lib/commentary'
-import { fetchWeeklyParsha, type WeeklyParsha as WeeklyParshaData } from '../lib/sefaria'
+import { fetchParshaByRef, fetchWeeklyParsha, type WeeklyParsha as WeeklyParshaData } from '../lib/sefaria'
+import type { ParshaListEntry } from '../data/parshiyot'
 import { HebrewVerseText } from './HebrewVerseText'
 import { ParshaDateHeader } from './ParshaDateHeader'
 import { ReadAloudBar } from './ReadAloudBar'
 import { TextCredit } from './TextCredit'
 import { VerseCommentary } from './VerseCommentary'
 
-export function WeeklyParsha() {
+interface WeeklyParshaProps {
+  /** When set, shows this specific parsha instead of the current week's. */
+  overrideParsha?: ParshaListEntry | null
+}
+
+export function WeeklyParsha({ overrideParsha = null }: WeeklyParshaProps) {
   const [parsha, setParsha] = useState<WeeklyParshaData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -19,13 +25,22 @@ export function WeeklyParsha() {
     let cancelled = false
     setLoading(true)
     setError(null)
+    setParsha(null)
 
-    fetchWeeklyParsha()
+    const load = overrideParsha
+      ? fetchParshaByRef({
+          englishName: overrideParsha.english,
+          hebrewName: overrideParsha.hebrew,
+          ref: overrideParsha.ref,
+        })
+      : fetchWeeklyParsha()
+
+    load
       .then((data) => {
         if (!cancelled) setParsha(data)
       })
       .catch(() => {
-        if (!cancelled) setError('Could not load this week\'s parashah. Please try again.')
+        if (!cancelled) setError('Could not load this parashah. Please try again.')
       })
       .finally(() => {
         if (!cancelled) setLoading(false)
@@ -34,7 +49,7 @@ export function WeeklyParsha() {
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [overrideParsha])
 
   useEffect(() => {
     if (!parsha) return
@@ -57,7 +72,7 @@ export function WeeklyParsha() {
   }, [parsha])
 
   if (loading) {
-    return <p className="status">Loading this week's parashah…</p>
+    return <p className="status">Loading parashah…</p>
   }
 
   if (error) {
@@ -70,11 +85,11 @@ export function WeeklyParsha() {
 
   return (
     <article className="reader">
-      <ParshaDateHeader parshaName={parsha.englishName} parshaUrl={parsha.url} />
+      {!overrideParsha && <ParshaDateHeader parshaName={parsha.englishName} parshaUrl={parsha.url} />}
 
       <header className="reader-header">
         <div>
-          <p className="parsha-label">This Week's Parashah</p>
+          <p className="parsha-label">{overrideParsha ? 'Parashah' : "This Week's Parashah"}</p>
           <h2>{parsha.englishName}</h2>
         </div>
         <h2 className="hebrew" dir="rtl">{parsha.hebrewName}</h2>
@@ -87,7 +102,7 @@ export function WeeklyParsha() {
         currentIndex={readAloud.currentIndex}
         play={readAloud.play}
         stop={readAloud.stop}
-        label="Read parsha aloud"
+        label="Read parashah aloud"
       />
 
       {(() => {

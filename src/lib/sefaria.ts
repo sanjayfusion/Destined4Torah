@@ -140,9 +140,15 @@ export interface WeeklyParsha extends ParshaInfo {
   sections: ParshaSection[]
 }
 
-export async function fetchWeeklyParsha(): Promise<WeeklyParsha> {
-  const info = await fetchParshaInfo()
-  const range = parseParshaRef(info.ref)
+interface NamedParshaRef {
+  englishName: string
+  hebrewName: string
+  ref: string
+}
+
+/** Fetches the full text for any named parsha (not just the current week's). */
+export async function fetchParshaByRef(entry: NamedParshaRef): Promise<WeeklyParsha> {
+  const range = parseParshaRef(entry.ref)
   const chapterNumbers = Array.from(
     { length: range.endChapter - range.startChapter + 1 },
     (_, i) => range.startChapter + i,
@@ -165,5 +171,16 @@ export async function fetchWeeklyParsha(): Promise<WeeklyParsha> {
     }
   })
 
-  return { ...info, sections }
+  return {
+    englishName: entry.englishName,
+    hebrewName: entry.hebrewName,
+    ref: entry.ref,
+    url: refToUrlSlug(entry.ref),
+    sections,
+  }
+}
+
+export async function fetchWeeklyParsha(): Promise<WeeklyParsha> {
+  const info = await fetchParshaInfo()
+  return fetchParshaByRef({ englishName: info.englishName, hebrewName: info.hebrewName, ref: info.ref })
 }

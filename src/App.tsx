@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { About } from './components/About'
+import { AllParshiyot } from './components/AllParshiyot'
 import { BookNav } from './components/BookNav'
 import { HolidayCountdownTicker } from './components/HolidayCountdownTicker'
 import { NewsTicker } from './components/NewsTicker'
@@ -7,14 +8,16 @@ import { Reader } from './components/Reader'
 import { WeeklyParsha } from './components/WeeklyParsha'
 import { fetchNewTestamentChapter } from './lib/bibleApi'
 import { ALL_BOOKS } from './data/books'
+import type { ParshaListEntry } from './data/parshiyot'
 import { fetchChapter, type ChapterText } from './lib/sefaria'
 import logo from './assets/logo.png'
 import './App.css'
 
-type View = 'book' | 'parsha' | 'about'
+type View = 'book' | 'parsha' | 'about' | 'parshiyot-list'
 
 function App() {
   const [view, setView] = useState<View>('parsha')
+  const [selectedParsha, setSelectedParsha] = useState<ParshaListEntry | null>(null)
   const [selectedBook, setSelectedBook] = useState('Genesis')
   const [selectedChapter, setSelectedChapter] = useState(1)
   const [chapter, setChapter] = useState<ChapterText | null>(null)
@@ -64,9 +67,19 @@ function App() {
             <button
               type="button"
               className={view === 'parsha' ? 'parsha-toggle active' : 'parsha-toggle'}
-              onClick={() => setView('parsha')}
+              onClick={() => {
+                setSelectedParsha(null)
+                setView('parsha')
+              }}
             >
               This Week's Parashah
+            </button>
+            <button
+              type="button"
+              className={view === 'parshiyot-list' ? 'parsha-toggle active' : 'parsha-toggle'}
+              onClick={() => setView('parshiyot-list')}
+            >
+              All Parshiyot
             </button>
             <button
               type="button"
@@ -97,7 +110,15 @@ function App() {
             }}
           />
           <main className="app-main">
-            {view === 'parsha' && <WeeklyParsha />}
+            {view === 'parsha' && <WeeklyParsha overrideParsha={selectedParsha} />}
+            {view === 'parshiyot-list' && (
+              <AllParshiyot
+                onSelect={(parsha) => {
+                  setSelectedParsha(parsha)
+                  setView('parsha')
+                }}
+              />
+            )}
             {view === 'about' && <About />}
             {view === 'book' && (
               <Reader

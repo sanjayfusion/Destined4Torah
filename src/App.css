@@ -459,6 +459,57 @@
   margin: 0 0 12px;
 }
 
+.parshiyot-group + .parshiyot-group {
+  margin-top: 8px;
+}
+
+.parshiyot-list {
+  list-style: none;
+  margin: 0 0 8px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.parshiyot-button {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  padding: 10px 12px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+  text-align: left;
+}
+
+.parshiyot-button:hover {
+  background: var(--accent-bg);
+}
+
+.parshiyot-hebrew {
+  font-size: 15px;
+  flex-shrink: 0;
+}
+
+.parshiyot-english {
+  font-size: 15px;
+  font-weight: 600;
+  flex: 1;
+}
+
+.parshiyot-ref {
+  font-size: 12px;
+  color: var(--text);
+  opacity: 0.6;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
 .verse-list {
   list-style: none;
   margin: 0;
