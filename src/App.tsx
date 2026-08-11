@@ -64,7 +64,8 @@ function App() {
           <img src={logo} className="app-logo" alt="Destined4Torah" />
           <p>Scripture in its Jewish context, Genesis to Revelation.</p>
           <p className="header-verse">
-            &ldquo;...salvation is of the Jews.&rdquo; &mdash; John 4:22 (KJV)
+            &ldquo;Ye worship ye know not what: we know what we worship: for salvation is of the
+            Jews.&rdquo; &mdash; John 4:22 (KJV)
           </p>
           <div className="header-nav">
             <button
