@@ -153,6 +153,14 @@
   font-size: 16px;
 }
 
+.app-header .header-verse {
+  margin-top: 4px;
+  font-size: 14px;
+  font-style: italic;
+  color: var(--accent);
+  opacity: 0.85;
+}
+
 .header-nav {
   display: flex;
   justify-content: center;
