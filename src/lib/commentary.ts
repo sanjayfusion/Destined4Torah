@@ -73,3 +73,42 @@ export async function fetchChapterCommentary(bookSlug: string, chapter: number):
 
   return byVerse
 }
+
+interface BollsCommentaryVerse {
+  verse: number
+  text: string
+}
+
+/**
+ * New Testament commentary, sourced from Matthew Henry's Concise
+ * Commentary (public domain, 1810) via bolls.life — the same host already
+ * used for the Greek text, keyed by the standard 1-66 book number. This
+ * endpoint's exact shape is unverified against a live response (same
+ * caveat as the Greek text fetch); failures here are non-fatal, since
+ * callers treat a rejected promise as "no commentary available."
+ */
+export async function fetchNTCommentary(bookNumber: number, chapter: number): Promise<CommentaryByVerse> {
+  const url = `https://bolls.life/get-commentary/MHCC/${bookNumber}/${chapter}/`
+  const response = await fetch(url)
+
+  if (!response.ok) {
+    throw new Error(`NT commentary request failed (${response.status})`)
+  }
+
+  const data = await response.json()
+
+  if (!Array.isArray(data)) {
+    throw new Error('Unexpected NT commentary response')
+  }
+
+  const byVerse: CommentaryByVerse = {}
+
+  for (const entry of data as BollsCommentaryVerse[]) {
+    const cleaned = entry.text?.replace(/<[^>]*>/g, '').trim()
+    if (!cleaned) continue
+
+    byVerse[entry.verse] = [{ commentator: "Matthew Henry's Concise Commentary", texts: [cleaned] }]
+  }
+
+  return byVerse
+}

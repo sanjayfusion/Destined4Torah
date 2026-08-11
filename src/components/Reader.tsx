@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { fetchChapterCommentary, type CommentaryByVerse } from '../lib/commentary'
+import { fetchChapterCommentary, fetchNTCommentary, type CommentaryByVerse } from '../lib/commentary'
+import { ALL_BOOKS } from '../data/books'
 import type { ChapterText } from '../lib/sefaria'
 import { useReadAloud } from '../hooks/useReadAloud'
 import { GreekVerseText } from './GreekVerseText'
@@ -23,19 +24,30 @@ export function Reader({ chapter, loading, error, source, bookSlug, chapterNum }
   const greekReadAloud = useReadAloud(chapter?.greek ?? [], 'el-GR')
 
   useEffect(() => {
-    if (source !== 'sefaria') {
-      setCommentary({})
-      return
-    }
-
     let cancelled = false
-    fetchChapterCommentary(bookSlug, chapterNum)
-      .then((data) => {
-        if (!cancelled) setCommentary(data)
-      })
-      .catch(() => {
-        if (!cancelled) setCommentary({})
-      })
+
+    if (source === 'sefaria') {
+      fetchChapterCommentary(bookSlug, chapterNum)
+        .then((data) => {
+          if (!cancelled) setCommentary(data)
+        })
+        .catch(() => {
+          if (!cancelled) setCommentary({})
+        })
+    } else {
+      const bookNumber = ALL_BOOKS.find((book) => book.slug === bookSlug)?.bookNumber
+      if (bookNumber === undefined) {
+        setCommentary({})
+      } else {
+        fetchNTCommentary(bookNumber, chapterNum)
+          .then((data) => {
+            if (!cancelled) setCommentary(data)
+          })
+          .catch(() => {
+            if (!cancelled) setCommentary({})
+          })
+      }
+    }
 
     return () => {
       cancelled = true
