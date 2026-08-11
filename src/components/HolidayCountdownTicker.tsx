@@ -60,14 +60,14 @@ export function HolidayCountdownTicker() {
       ? `${formatDateLabel(new Date())} after sunset · ${ordinal(Number(date.hebrewDay))} of ${date.hebrewMonth}, ${date.hebrewYear} · Parashat ${parshaName}`
       : null
 
-  // Re-scanned fresh on every tick, so a holiday that just passed simply
-  // stops appearing here — no separate "remove it" step needed.
-  const holidayMessages = findUpcomingHolidays(ROLLING_WINDOW_MONTHS).map(
-    (holiday) =>
-      `${formatCountdown(holiday.start)} until ${holiday.name} — ${holiday.hebrewDate} · ${formatDateLabel(holiday.start)} sunset to ${formatDateLabel(holiday.end)} sunset`,
-  )
+  // Re-scanned fresh on every tick, so once this holiday passes, the next
+  // one takes its place automatically — no separate "remove it" step needed.
+  const nextHoliday = findUpcomingHolidays(ROLLING_WINDOW_MONTHS)[0]
+  const holidayMessage = nextHoliday
+    ? `${formatCountdown(nextHoliday.start)} until ${nextHoliday.name} — ${nextHoliday.hebrewDate} · ${formatDateLabel(nextHoliday.start)} sunset to ${formatDateLabel(nextHoliday.end)} sunset`
+    : null
 
-  const items = [dateMessage, ...holidayMessages].filter((item): item is string => item !== null)
+  const items = [dateMessage, holidayMessage].filter((item): item is string => item !== null)
   const { ref, duration } = useTickerSpeed(2, items, 135)
 
   if (items.length === 0) {
@@ -76,7 +76,7 @@ export function HolidayCountdownTicker() {
 
   return (
     <div className="holiday-ticker">
-      <span className="holiday-ticker-label">Holidays</span>
+      <span className="holiday-ticker-label">Next Holiday</span>
       <div className="holiday-ticker-track">
         <div className="holiday-ticker-content" ref={ref} style={{ animationDuration: `${duration}s` }}>
           {[...items, ...items].map((message, i) => (
