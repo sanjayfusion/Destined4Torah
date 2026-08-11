@@ -13,6 +13,34 @@ const DIVISIONS: { key: string; title: string; hebrew?: string; books: BibleBook
   { key: 'new-testament', title: 'New Testament', books: NEW_TESTAMENT_BOOKS },
 ]
 
+const SUBCATEGORY_LABELS: Record<string, { title: string; hebrew?: string }> = {
+  'former-prophets': { title: 'Former Prophets', hebrew: 'נְבִיאִים רִאשׁוֹנִים' },
+  'latter-prophets': { title: 'Latter Prophets', hebrew: 'נְבִיאִים אַחֲרוֹנִים' },
+  'trei-asar': { title: 'Trei Asar (The Twelve)', hebrew: 'תְּרֵי עָשָׂר' },
+  'sifrei-emet': { title: 'Sifrei Emet (Poetry)', hebrew: 'סִפְרֵי אֱמֶ״ת' },
+  megillot: { title: 'Five Megillot', hebrew: 'חֲמֵשׁ מְגִלּוֹת' },
+  'other-writings': { title: 'Other Writings' },
+}
+
+interface BookSubgroup {
+  key: string | undefined
+  books: BibleBook[]
+}
+
+/** Splits an already subcategory-sorted book list into contiguous runs. */
+function groupBySubcategory(books: BibleBook[]): BookSubgroup[] {
+  const groups: BookSubgroup[] = []
+  for (const book of books) {
+    const last = groups[groups.length - 1]
+    if (last && last.key === book.subcategory) {
+      last.books.push(book)
+    } else {
+      groups.push({ key: book.subcategory, books: [book] })
+    }
+  }
+  return groups
+}
+
 function BookList({
   books,
   selectedBook,
@@ -31,7 +59,12 @@ function BookList({
             className={book.slug === selectedBook ? 'book-button active' : 'book-button'}
             onClick={() => onSelect(book.slug, 1)}
           >
-            {book.hebrew && <span className="book-hebrew">{book.hebrew}</span>}
+            {book.hebrew && (
+              <span className="book-hebrew-block">
+                <span className="book-hebrew">{book.hebrew}</span>
+                {book.transliteration && <span className="book-translit">{book.transliteration}</span>}
+              </span>
+            )}
             <span className="book-english">{book.english}</span>
           </button>
         </li>
@@ -54,7 +87,20 @@ export function BookNav({ selectedBook, selectedChapter, onSelect }: BookNavProp
                 {division.title}
                 {division.hebrew && <span className="tanakh-division-hebrew"> {division.hebrew}</span>}
               </h4>
-              <BookList books={division.books} selectedBook={selectedBook} onSelect={onSelect} />
+              {groupBySubcategory(division.books).map((group, i) => {
+                const label = group.key ? SUBCATEGORY_LABELS[group.key] : undefined
+                return (
+                  <div key={group.key ?? i} className={label ? 'tanakh-subcategory' : undefined}>
+                    {label && (
+                      <h5 className="tanakh-subcategory-title">
+                        {label.title}
+                        {label.hebrew && <span className="tanakh-division-hebrew"> {label.hebrew}</span>}
+                      </h5>
+                    )}
+                    <BookList books={group.books} selectedBook={selectedBook} onSelect={onSelect} />
+                  </div>
+                )
+              })}
             </div>
           ))}
         </div>
