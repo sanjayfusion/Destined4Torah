@@ -38,7 +38,7 @@ export const PARSHIYOT_BY_BOOK: TorahBookParshiyot[] = [
   {
     book: 'Exodus',
     parshiyot: [
-      { english: 'Shemot', hebrew: 'שְׁמוֹת', ref: 'Exodus 1:1-6:1' },
+      { english: 'Shemot', hebrew: 'שְׁמוֹת', ref: 'Exodus 1:1-6:1', youtubeUrl: 'https://www.youtube.com/live/WHbIZQqDKGs' },
       { english: 'Vaera', hebrew: 'וָאֵרָא', ref: 'Exodus 6:2-9:35' },
       { english: 'Bo', hebrew: 'בֹּא', ref: 'Exodus 10:1-13:16' },
       { english: 'Beshalach', hebrew: 'בְּשַׁלַּח', ref: 'Exodus 13:17-17:16' },
