@@ -104,15 +104,15 @@ function refToUrlSlug(ref: string): string {
   return `${book}.${rest.replace(/:/g, '.')}`
 }
 
-export interface WeeklyParsha {
+export interface ParshaInfo {
   englishName: string
   hebrewName: string
   ref: string
   url: string
-  sections: ParshaSection[]
 }
 
-export async function fetchWeeklyParsha(): Promise<WeeklyParsha> {
+/** Just the current parsha's name/ref — no verse text. Cheap to call often. */
+export async function fetchParshaInfo(): Promise<ParshaInfo> {
   const response = await fetch('https://www.sefaria.org/api/calendars')
 
   if (!response.ok) {
@@ -128,7 +128,21 @@ export async function fetchWeeklyParsha(): Promise<WeeklyParsha> {
     throw new Error('Could not find this week\'s parsha')
   }
 
-  const range = parseParshaRef(item.ref)
+  return {
+    englishName: item.displayValue?.en ?? item.ref,
+    hebrewName: item.displayValue?.he ?? '',
+    ref: item.ref,
+    url: item.url ?? refToUrlSlug(item.ref),
+  }
+}
+
+export interface WeeklyParsha extends ParshaInfo {
+  sections: ParshaSection[]
+}
+
+export async function fetchWeeklyParsha(): Promise<WeeklyParsha> {
+  const info = await fetchParshaInfo()
+  const range = parseParshaRef(info.ref)
   const chapterNumbers = Array.from(
     { length: range.endChapter - range.startChapter + 1 },
     (_, i) => range.startChapter + i,
@@ -151,11 +165,5 @@ export async function fetchWeeklyParsha(): Promise<WeeklyParsha> {
     }
   })
 
-  return {
-    englishName: item.displayValue?.en ?? item.ref,
-    hebrewName: item.displayValue?.he ?? '',
-    ref: item.ref,
-    url: item.url ?? refToUrlSlug(item.ref),
-    sections,
-  }
+  return { ...info, sections }
 }
