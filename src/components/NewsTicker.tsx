@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react'
+import { useTickerSpeed } from '../hooks/useTickerSpeed'
 import { fetchIsraelNews, type NewsItem } from '../lib/news'
 
 const REFRESH_INTERVAL_MS = 10 * 60 * 1000
 
 export function NewsTicker() {
   const [items, setItems] = useState<NewsItem[]>([])
+  const { ref, duration } = useTickerSpeed(2, items)
 
   useEffect(() => {
     let cancelled = false
@@ -40,7 +42,7 @@ export function NewsTicker() {
       </span>
       <span className="news-ticker-label">Israel News</span>
       <div className="news-ticker-track">
-        <div className="news-ticker-content">
+        <div className="news-ticker-content" ref={ref} style={{ animationDuration: `${duration}s` }}>
           {[...items, ...items].map((item, i) => (
             <a
               key={i}

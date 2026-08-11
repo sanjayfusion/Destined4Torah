@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useTickerSpeed } from '../hooks/useTickerSpeed'
 import { findNextHoliday, type HolidayCountdown } from '../lib/hebrewHolidays'
 
 function formatCountdown(target: Date): string {
@@ -29,18 +30,20 @@ export function HolidayCountdownTicker() {
     return () => clearInterval(interval)
   }, [])
 
+  const message = holiday
+    ? `${formatCountdown(holiday.start)} until ${holiday.name} — ${holiday.hebrewDate} · ${formatDateLabel(holiday.start)} sunset to ${formatDateLabel(holiday.end)} sunset`
+    : ''
+  const { ref, duration } = useTickerSpeed(3, message)
+
   if (!holiday) {
     return null
   }
-
-  const range = `${formatDateLabel(holiday.start)} sunset to ${formatDateLabel(holiday.end)} sunset`
-  const message = `${formatCountdown(holiday.start)} until ${holiday.name} — ${holiday.hebrewDate} · ${range}`
 
   return (
     <div className="holiday-ticker">
       <span className="holiday-ticker-label">Next Holiday</span>
       <div className="holiday-ticker-track">
-        <div className="holiday-ticker-content">
+        <div className="holiday-ticker-content" ref={ref} style={{ animationDuration: `${duration}s` }}>
           {[0, 1, 2].map((i) => (
             <span key={i} className="holiday-ticker-item">
               {message}
