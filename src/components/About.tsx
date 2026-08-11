@@ -14,6 +14,7 @@ const BOOKS = [
   'Earth, Wind, Fire, & A Still Small Voice: How to Hear the Voice of God',
   'Man in the Mirror: Creating a More Authentic Version of You',
   'Becoming a Royal: Assuming Your Role as a Royal in the Tapestry of Creation',
+  "Destiny's Arrow: How to Recognize the Signs of Greatness",
 ]
 
 const SOCIAL_LINKS = [
@@ -74,7 +75,7 @@ export function About() {
             rel="noopener noreferrer"
             className="about-books-link"
           >
-            Sanjay is the author of four books:
+            Sanjay is the author of five books:
           </a>
         </p>
         <ul className="about-books">
