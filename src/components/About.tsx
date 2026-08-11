@@ -1,4 +1,13 @@
 import photo from '../assets/sanjay.jpg'
+import {
+  AmazonIcon,
+  ApplePodcastsIcon,
+  FacebookIcon,
+  InstagramIcon,
+  SpotifyIcon,
+  XIcon,
+  YouTubeIcon,
+} from './icons'
 
 const BOOKS = [
   'The Final Countdown: Your Journey in the Symphony of Creation',
@@ -8,19 +17,21 @@ const BOOKS = [
 ]
 
 const SOCIAL_LINKS = [
-  { label: 'Facebook', href: 'https://www.facebook.com/destined4torah' },
-  { label: 'Instagram', href: 'https://www.instagram.com/destined4torah' },
+  { label: 'Facebook', href: 'https://www.facebook.com/destined4torah', Icon: FacebookIcon },
+  { label: 'Instagram', href: 'https://www.instagram.com/destined4torah', Icon: InstagramIcon },
   {
     label: 'Spotify',
     href: 'https://open.spotify.com/show/7xKxwlBgYAhWaH7qiQSE96?si=OsAB83d1RwCGDPa-NThfRQ&nd=1&dlsi=516b4bf6332543fc',
+    Icon: SpotifyIcon,
   },
-  { label: 'YouTube', href: 'https://www.youtube.com/@destined4torah' },
-  { label: 'Amazon', href: 'https://www.amazon.com/author/sanjayprajapati' },
+  { label: 'YouTube', href: 'https://www.youtube.com/@destined4torah', Icon: YouTubeIcon },
+  { label: 'Amazon', href: 'https://www.amazon.com/author/sanjayprajapati', Icon: AmazonIcon },
   {
     label: 'Apple Podcasts',
     href: 'https://podcasts.apple.com/us/podcast/destined4torah/id1441022266',
+    Icon: ApplePodcastsIcon,
   },
-  { label: 'X', href: 'https://x.com/destined4torah' },
+  { label: 'X', href: 'https://x.com/destined4torah', Icon: XIcon },
 ]
 
 export function About() {
@@ -33,10 +44,10 @@ export function About() {
           <h3 className="about-name">Dr. Sanjay Prajapati</h3>
           <p className="about-title">Author, Teacher &amp; Public Speaker</p>
           <ul className="social-links">
-            {SOCIAL_LINKS.map((link) => (
-              <li key={link.label}>
-                <a href={link.href} target="_blank" rel="noopener noreferrer">
-                  {link.label}
+            {SOCIAL_LINKS.map(({ label, href, Icon }) => (
+              <li key={label}>
+                <a href={href} target="_blank" rel="noopener noreferrer" aria-label={label} title={label}>
+                  <Icon className="social-icon" />
                 </a>
               </li>
             ))}
