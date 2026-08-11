@@ -82,7 +82,7 @@ function transliterateWord(word: string): string {
     i++
 
     const marks: string[] = []
-    while (i < chars.length && MARKS_REGEX.test(chars[i])) {
+    while (i < chars.length && chars[i] !== MAQAF && MARKS_REGEX.test(chars[i])) {
       marks.push(chars[i])
       i++
     }
