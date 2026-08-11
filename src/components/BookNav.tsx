@@ -6,10 +6,11 @@ interface BookNavProps {
   onSelect: (bookSlug: string, chapter: number) => void
 }
 
-const TANAKH_DIVISIONS: { key: BibleBook['division']; title: string; hebrew: string }[] = [
-  { key: 'torah', title: 'Torah', hebrew: 'תּוֹרָה' },
-  { key: 'neviim', title: "Nevi'im", hebrew: 'נְבִיאִים' },
-  { key: 'ketuvim', title: 'Ketuvim', hebrew: 'כְּתוּבִים' },
+const DIVISIONS: { key: string; title: string; hebrew?: string; books: BibleBook[] }[] = [
+  { key: 'torah', title: 'Torah', hebrew: 'תּוֹרָה', books: OLD_TESTAMENT_BOOKS.filter((book) => book.division === 'torah') },
+  { key: 'neviim', title: "Nevi'im", hebrew: 'נְבִיאִים', books: OLD_TESTAMENT_BOOKS.filter((book) => book.division === 'neviim') },
+  { key: 'ketuvim', title: 'Ketuvim', hebrew: 'כְּתוּבִים', books: OLD_TESTAMENT_BOOKS.filter((book) => book.division === 'ketuvim') },
+  { key: 'new-testament', title: 'New Testament', books: NEW_TESTAMENT_BOOKS },
 ]
 
 function BookList({
@@ -39,53 +40,25 @@ function BookList({
   )
 }
 
-function BookGroup({
-  title,
-  books,
-  selectedBook,
-  onSelect,
-}: {
-  title: string
-  books: BibleBook[]
-  selectedBook: string
-  onSelect: (bookSlug: string, chapter: number) => void
-}) {
-  return (
-    <div className="book-group">
-      <h3 className="book-group-title">{title}</h3>
-      <BookList books={books} selectedBook={selectedBook} onSelect={onSelect} />
-    </div>
-  )
-}
-
 export function BookNav({ selectedBook, selectedChapter, onSelect }: BookNavProps) {
   const activeBook = ALL_BOOKS.find((book) => book.slug === selectedBook) ?? ALL_BOOKS[0]
 
   return (
     <nav className="book-nav">
       <div className="book-group">
-        <h3 className="book-group-title">Hebrew Scriptures</h3>
+        <h3 className="book-group-title">Bible</h3>
         <div className="tanakh-scroll">
-          {TANAKH_DIVISIONS.map((division) => (
+          {DIVISIONS.map((division) => (
             <div key={division.key} className="tanakh-division">
               <h4 className="tanakh-division-title">
-                {division.title} <span className="tanakh-division-hebrew">{division.hebrew}</span>
+                {division.title}
+                {division.hebrew && <span className="tanakh-division-hebrew"> {division.hebrew}</span>}
               </h4>
-              <BookList
-                books={OLD_TESTAMENT_BOOKS.filter((book) => book.division === division.key)}
-                selectedBook={selectedBook}
-                onSelect={onSelect}
-              />
+              <BookList books={division.books} selectedBook={selectedBook} onSelect={onSelect} />
             </div>
           ))}
         </div>
       </div>
-      <BookGroup
-        title="New Testament"
-        books={NEW_TESTAMENT_BOOKS}
-        selectedBook={selectedBook}
-        onSelect={onSelect}
-      />
 
       <div className="chapter-grid">
         {Array.from({ length: activeBook.chapters }, (_, i) => i + 1).map((chapter) => (
