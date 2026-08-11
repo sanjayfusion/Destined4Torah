@@ -66,7 +66,7 @@ function App() {
               className={view === 'parsha' ? 'parsha-toggle active' : 'parsha-toggle'}
               onClick={() => setView('parsha')}
             >
-              This Week's Parsha
+              This Week's Parashah
             </button>
             <button
               type="button"

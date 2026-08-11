@@ -25,7 +25,7 @@ export function WeeklyParsha() {
         if (!cancelled) setParsha(data)
       })
       .catch(() => {
-        if (!cancelled) setError('Could not load this week\'s parsha. Please try again.')
+        if (!cancelled) setError('Could not load this week\'s parashah. Please try again.')
       })
       .finally(() => {
         if (!cancelled) setLoading(false)
@@ -57,7 +57,7 @@ export function WeeklyParsha() {
   }, [parsha])
 
   if (loading) {
-    return <p className="status">Loading this week's parsha…</p>
+    return <p className="status">Loading this week's parashah…</p>
   }
 
   if (error) {
@@ -74,7 +74,7 @@ export function WeeklyParsha() {
 
       <header className="reader-header">
         <div>
-          <p className="parsha-label">This Week's Parsha</p>
+          <p className="parsha-label">This Week's Parashah</p>
           <h2>{parsha.englishName}</h2>
         </div>
         <h2 className="hebrew" dir="rtl">{parsha.hebrewName}</h2>
