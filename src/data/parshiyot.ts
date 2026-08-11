@@ -2,6 +2,8 @@ export interface ParshaListEntry {
   english: string
   hebrew: string
   ref: string
+  /** Link to Sanjay's YouTube teaching on this parasha, where available. */
+  youtubeUrl?: string
 }
 
 export interface TorahBookParshiyot {
@@ -96,3 +98,17 @@ export const PARSHIYOT_BY_BOOK: TorahBookParshiyot[] = [
     ],
   },
 ]
+
+/**
+ * Looks up a parasha's static entry (including its YouTube link, if set)
+ * by English name. Used to find the matching teaching video for "this
+ * week's" parasha, whose name comes from Sefaria's live calendar rather
+ * than from this list directly.
+ */
+export function findParshaEntry(englishName: string): ParshaListEntry | undefined {
+  for (const group of PARSHIYOT_BY_BOOK) {
+    const match = group.parshiyot.find((parsha) => parsha.english === englishName)
+    if (match) return match
+  }
+  return undefined
+}

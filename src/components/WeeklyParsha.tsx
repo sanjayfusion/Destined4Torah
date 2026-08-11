@@ -2,8 +2,9 @@ import { useEffect, useState } from 'react'
 import { useReadAloud } from '../hooks/useReadAloud'
 import { fetchChapterCommentary, type CommentaryByVerse } from '../lib/commentary'
 import { fetchParshaByRef, fetchWeeklyParsha, type WeeklyParsha as WeeklyParshaData } from '../lib/sefaria'
-import type { ParshaListEntry } from '../data/parshiyot'
+import { findParshaEntry, type ParshaListEntry } from '../data/parshiyot'
 import { HebrewVerseText } from './HebrewVerseText'
+import { YouTubeIcon } from './icons'
 import { ParshaDateHeader } from './ParshaDateHeader'
 import { ReadAloudBar } from './ReadAloudBar'
 import { TextCredit } from './TextCredit'
@@ -83,6 +84,8 @@ export function WeeklyParsha({ overrideParsha = null }: WeeklyParshaProps) {
     return null
   }
 
+  const youtubeUrl = overrideParsha?.youtubeUrl ?? findParshaEntry(parsha.englishName)?.youtubeUrl
+
   return (
     <article className="reader">
       {!overrideParsha && <ParshaDateHeader parshaName={parsha.englishName} parshaUrl={parsha.url} />}
@@ -95,6 +98,13 @@ export function WeeklyParsha({ overrideParsha = null }: WeeklyParshaProps) {
         <h2 className="hebrew" dir="rtl">{parsha.hebrewName}</h2>
       </header>
       <p className="parsha-ref">{parsha.ref}</p>
+
+      {youtubeUrl && (
+        <a href={youtubeUrl} target="_blank" rel="noopener noreferrer" className="youtube-teaching-link">
+          <YouTubeIcon className="social-icon" />
+          Watch Sanjay's teaching on this parashah
+        </a>
+      )}
 
       <ReadAloudBar
         texts={parsha.sections.flatMap((section) => section.hebrew)}

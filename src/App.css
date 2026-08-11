@@ -455,6 +455,29 @@
   margin-bottom: 18px;
 }
 
+.youtube-teaching-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: 20px;
+  padding: 7px 16px 7px 12px;
+  margin-bottom: 18px;
+  background: #ff0000;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.youtube-teaching-link:hover {
+  background: #cc0000;
+}
+
+.youtube-teaching-link .social-icon {
+  width: 16px;
+  height: 16px;
+}
+
 .read-aloud-button {
   border: 1px solid var(--accent);
   background: var(--accent);
