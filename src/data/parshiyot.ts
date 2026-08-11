@@ -54,7 +54,7 @@ export const PARSHIYOT_BY_BOOK: TorahBookParshiyot[] = [
   {
     book: 'Leviticus',
     parshiyot: [
-      { english: 'Vayikra', hebrew: 'וַיִּקְרָא', ref: 'Leviticus 1:1-5:26' },
+      { english: 'Vayikra', hebrew: 'וַיִּקְרָא', ref: 'Leviticus 1:1-5:26', youtubeUrl: 'https://youtu.be/T81fCHV8Oks' },
       { english: 'Tzav', hebrew: 'צַו', ref: 'Leviticus 6:1-8:36' },
       { english: 'Shmini', hebrew: 'שְׁמִינִי', ref: 'Leviticus 9:1-11:47' },
       { english: 'Tazria', hebrew: 'תַזְרִיעַ', ref: 'Leviticus 12:1-13:59' },
