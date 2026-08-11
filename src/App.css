@@ -277,8 +277,14 @@
   font-weight: 400;
 }
 
-.tanakh-division .book-list {
-  max-height: 200px;
+.tanakh-scroll {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.tanakh-scroll .book-list {
+  max-height: none;
+  overflow-y: visible;
 }
 
 .book-button {

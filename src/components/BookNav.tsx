@@ -65,18 +65,20 @@ export function BookNav({ selectedBook, selectedChapter, onSelect }: BookNavProp
     <nav className="book-nav">
       <div className="book-group">
         <h3 className="book-group-title">Hebrew Scriptures</h3>
-        {TANAKH_DIVISIONS.map((division) => (
-          <div key={division.key} className="tanakh-division">
-            <h4 className="tanakh-division-title">
-              {division.title} <span className="tanakh-division-hebrew">{division.hebrew}</span>
-            </h4>
-            <BookList
-              books={OLD_TESTAMENT_BOOKS.filter((book) => book.division === division.key)}
-              selectedBook={selectedBook}
-              onSelect={onSelect}
-            />
-          </div>
-        ))}
+        <div className="tanakh-scroll">
+          {TANAKH_DIVISIONS.map((division) => (
+            <div key={division.key} className="tanakh-division">
+              <h4 className="tanakh-division-title">
+                {division.title} <span className="tanakh-division-hebrew">{division.hebrew}</span>
+              </h4>
+              <BookList
+                books={OLD_TESTAMENT_BOOKS.filter((book) => book.division === division.key)}
+                selectedBook={selectedBook}
+                onSelect={onSelect}
+              />
+            </div>
+          ))}
+        </div>
       </div>
       <BookGroup
         title="New Testament"
