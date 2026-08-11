@@ -2,8 +2,8 @@ export interface ParshaListEntry {
   english: string
   hebrew: string
   ref: string
-  /** Link to Sanjay's YouTube teaching on this parasha, where available. */
-  youtubeUrl?: string
+  /** Links to Sanjay's YouTube teaching(s) on this parasha — sometimes more than one part. */
+  youtubeUrls?: string[]
 }
 
 export interface TorahBookParshiyot {
@@ -38,7 +38,12 @@ export const PARSHIYOT_BY_BOOK: TorahBookParshiyot[] = [
   {
     book: 'Exodus',
     parshiyot: [
-      { english: 'Shemot', hebrew: 'שְׁמוֹת', ref: 'Exodus 1:1-6:1', youtubeUrl: 'https://www.youtube.com/live/WHbIZQqDKGs' },
+      {
+        english: 'Shemot',
+        hebrew: 'שְׁמוֹת',
+        ref: 'Exodus 1:1-6:1',
+        youtubeUrls: ['https://www.youtube.com/live/WHbIZQqDKGs', 'https://www.youtube.com/live/yW1Vnpe-uIw'],
+      },
       { english: 'Vaera', hebrew: 'וָאֵרָא', ref: 'Exodus 6:2-9:35' },
       { english: 'Bo', hebrew: 'בֹּא', ref: 'Exodus 10:1-13:16' },
       { english: 'Beshalach', hebrew: 'בְּשַׁלַּח', ref: 'Exodus 13:17-17:16' },
@@ -54,8 +59,8 @@ export const PARSHIYOT_BY_BOOK: TorahBookParshiyot[] = [
   {
     book: 'Leviticus',
     parshiyot: [
-      { english: 'Vayikra', hebrew: 'וַיִּקְרָא', ref: 'Leviticus 1:1-5:26', youtubeUrl: 'https://youtu.be/T81fCHV8Oks' },
-      { english: 'Tzav', hebrew: 'צַו', ref: 'Leviticus 6:1-8:36', youtubeUrl: 'https://youtu.be/fd__3SBpWaM' },
+      { english: 'Vayikra', hebrew: 'וַיִּקְרָא', ref: 'Leviticus 1:1-5:26', youtubeUrls: ['https://youtu.be/T81fCHV8Oks'] },
+      { english: 'Tzav', hebrew: 'צַו', ref: 'Leviticus 6:1-8:36', youtubeUrls: ['https://youtu.be/fd__3SBpWaM'] },
       { english: 'Shmini', hebrew: 'שְׁמִינִי', ref: 'Leviticus 9:1-11:47' },
       { english: 'Tazria', hebrew: 'תַזְרִיעַ', ref: 'Leviticus 12:1-13:59' },
       { english: 'Metzora', hebrew: 'מְצֹרָע', ref: 'Leviticus 14:1-15:33' },

@@ -455,13 +455,19 @@
   margin-bottom: 18px;
 }
 
+.youtube-teaching-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+
 .youtube-teaching-link {
   display: inline-flex;
   align-items: center;
   gap: 8px;
   border-radius: 20px;
   padding: 7px 16px 7px 12px;
-  margin-bottom: 18px;
   background: #ff0000;
   color: #fff;
   font-size: 13px;
