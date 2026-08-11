@@ -68,7 +68,15 @@ export function HolidayCountdownTicker() {
     : null
 
   const items = [dateMessage, holidayMessage].filter((item): item is string => item !== null)
-  const { ref, duration } = useTickerSpeed(2, items, 135)
+
+  // Re-measuring on every tick would reset animation-duration on an
+  // in-progress CSS animation, which restarts it from the beginning —
+  // that's the visible "jump" every minute. The countdown's exact minute
+  // barely changes the rendered width, so only re-measure when the thing
+  // actually being shown changes (a new holiday or a new parsha), not on
+  // every digit tick.
+  const stableKey = `${parshaName ?? ''}|${nextHoliday?.name ?? ''}`
+  const { ref, duration } = useTickerSpeed(2, stableKey, 135)
 
   if (items.length === 0) {
     return null
