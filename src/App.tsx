@@ -23,6 +23,7 @@ function App() {
   const [chapter, setChapter] = useState<ChapterText | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [mobileNavOpen, setMobileNavOpen] = useState(false)
 
   const selectedBookInfo = ALL_BOOKS.find((book) => book.slug === selectedBook)
   const source = selectedBookInfo?.testament === 'new' ? 'kjv' : 'sefaria'
@@ -54,6 +55,14 @@ function App() {
       cancelled = true
     }
   }, [view, selectedBook, selectedChapter, source])
+
+  useEffect(() => {
+    if (!mobileNavOpen) return
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [mobileNavOpen])
 
   return (
     <>
@@ -103,16 +112,36 @@ function App() {
           </div>
         </header>
 
+        <button type="button" className="mobile-nav-trigger" onClick={() => setMobileNavOpen(true)}>
+          <span className="mobile-nav-trigger-label">
+            {selectedBookInfo?.english ?? selectedBook} {selectedChapter}
+          </span>
+          <span aria-hidden="true">Browse books ▾</span>
+        </button>
+
         <div className="app-body">
-          <BookNav
-            selectedBook={selectedBook}
-            selectedChapter={selectedChapter}
-            onSelect={(book, chap) => {
-              setView('book')
-              setSelectedBook(book)
-              setSelectedChapter(chap)
-            }}
-          />
+          <div className={mobileNavOpen ? 'book-nav-wrapper open' : 'book-nav-wrapper'}>
+            {mobileNavOpen && (
+              <button
+                type="button"
+                className="mobile-nav-close"
+                onClick={() => setMobileNavOpen(false)}
+                aria-label="Close book navigation"
+              >
+                ✕
+              </button>
+            )}
+            <BookNav
+              selectedBook={selectedBook}
+              selectedChapter={selectedChapter}
+              onSelect={(book, chap) => {
+                setView('book')
+                setSelectedBook(book)
+                setSelectedChapter(chap)
+                setMobileNavOpen(false)
+              }}
+            />
+          </div>
           <main className="app-main">
             {view === 'parsha' && <WeeklyParsha overrideParsha={selectedParsha} />}
             {view === 'parshiyot-list' && (

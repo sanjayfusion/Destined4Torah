@@ -237,6 +237,10 @@
   gap: 28px;
 }
 
+.mobile-nav-trigger {
+  display: none;
+}
+
 @media (max-width: 800px) {
   .app-body {
     grid-template-columns: 1fr;
@@ -248,6 +252,74 @@
 
   .book-nav {
     position: static;
+  }
+
+  /* On mobile the reader comes first (see order: -1 above), which buries
+     book/chapter navigation below a potentially long chapter. This sticky
+     trigger plus the drawer below give quick access without that scroll. */
+  .mobile-nav-trigger {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    margin-bottom: 16px;
+    padding: 12px 16px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--surface);
+    color: var(--text);
+    font-size: 14px;
+    font-weight: 600;
+    box-shadow: var(--shadow-card);
+    cursor: pointer;
+  }
+
+  .mobile-nav-trigger-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .mobile-nav-trigger span:last-child {
+    flex-shrink: 0;
+    color: var(--accent);
+    font-weight: 700;
+    font-size: 13px;
+  }
+
+  .book-nav-wrapper.open {
+    position: fixed;
+    inset: 0;
+    z-index: 30;
+    overflow-y: auto;
+    background: var(--bg);
+    padding: 16px;
+  }
+
+  .book-nav-wrapper.open .book-nav {
+    margin-top: 8px;
+  }
+
+  .mobile-nav-close {
+    position: sticky;
+    top: 0;
+    margin-left: auto;
+    display: flex;
+    width: 36px;
+    height: 36px;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    background: var(--surface);
+    color: var(--text);
+    font-size: 16px;
+    cursor: pointer;
+    box-shadow: var(--shadow-card);
   }
 }
 
