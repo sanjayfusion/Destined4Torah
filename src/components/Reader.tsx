@@ -16,12 +16,27 @@ interface ReaderProps {
   source: 'sefaria' | 'kjv'
   bookSlug: string
   chapterNum: number
+  /** Set when the reader should jump to and briefly highlight a specific verse. */
+  targetVerse?: { verse: number; token: number } | null
 }
 
-export function Reader({ chapter, loading, error, source, bookSlug, chapterNum }: ReaderProps) {
+export function Reader({ chapter, loading, error, source, bookSlug, chapterNum, targetVerse }: ReaderProps) {
   const [commentary, setCommentary] = useState<CommentaryByVerse>({})
+  const [highlightedVerse, setHighlightedVerse] = useState<number | null>(null)
   const hebrewReadAloud = useReadAloud(chapter?.hebrew ?? [], 'he-IL')
   const greekReadAloud = useReadAloud(chapter?.greek ?? [], 'el-GR')
+
+  useEffect(() => {
+    if (!chapter || !targetVerse) return
+
+    const el = document.getElementById(`verse-${targetVerse.verse}`)
+    if (!el) return
+
+    el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    setHighlightedVerse(targetVerse.verse)
+    const timeout = setTimeout(() => setHighlightedVerse(null), 2000)
+    return () => clearTimeout(timeout)
+  }, [chapter, targetVerse])
 
   useEffect(() => {
     let cancelled = false
@@ -97,7 +112,11 @@ export function Reader({ chapter, loading, error, source, bookSlug, chapterNum }
 
       <ol className="verse-list">
         {Array.from({ length: verseCount }, (_, i) => (
-          <li key={i} className="verse">
+          <li
+            key={i}
+            id={`verse-${i + 1}`}
+            className={highlightedVerse === i + 1 ? 'verse verse-highlighted' : 'verse'}
+          >
             <span className="verse-number">{i + 1}</span>
             {chapter.hebrew[i] && (
               <HebrewVerseText

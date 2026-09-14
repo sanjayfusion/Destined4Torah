@@ -1,9 +1,10 @@
 import { ALL_BOOKS, NEW_TESTAMENT_BOOKS, OLD_TESTAMENT_BOOKS, type BibleBook } from '../data/books'
+import { GoToVerse } from './GoToVerse'
 
 interface BookNavProps {
   selectedBook: string
   selectedChapter: number
-  onSelect: (bookSlug: string, chapter: number) => void
+  onSelect: (bookSlug: string, chapter: number, verse?: number) => void
 }
 
 const DIVISIONS: { key: string; title: string; hebrew?: string; books: BibleBook[] }[] = [
@@ -78,6 +79,8 @@ export function BookNav({ selectedBook, selectedChapter, onSelect }: BookNavProp
 
   return (
     <nav className="book-nav">
+      <GoToVerse onGo={onSelect} />
+
       <div className="book-group">
         <h3 className="book-group-title">Bible</h3>
         <div className="tanakh-scroll">

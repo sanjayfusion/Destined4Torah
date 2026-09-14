@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { About } from './components/About'
 import { AllParshiyot } from './components/AllParshiyot'
 import { BookNav } from './components/BookNav'
@@ -24,6 +24,8 @@ function App() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [mobileNavOpen, setMobileNavOpen] = useState(false)
+  const [verseJump, setVerseJump] = useState<{ verse: number; token: number } | null>(null)
+  const verseJumpCounter = useRef(0)
 
   const selectedBookInfo = ALL_BOOKS.find((book) => book.slug === selectedBook)
   const source = selectedBookInfo?.testament === 'new' ? 'kjv' : 'sefaria'
@@ -134,11 +136,17 @@ function App() {
             <BookNav
               selectedBook={selectedBook}
               selectedChapter={selectedChapter}
-              onSelect={(book, chap) => {
+              onSelect={(book, chap, verse) => {
                 setView('book')
                 setSelectedBook(book)
                 setSelectedChapter(chap)
                 setMobileNavOpen(false)
+                if (verse !== undefined) {
+                  verseJumpCounter.current += 1
+                  setVerseJump({ verse, token: verseJumpCounter.current })
+                } else {
+                  setVerseJump(null)
+                }
               }}
             />
           </div>
@@ -161,6 +169,7 @@ function App() {
                 source={source}
                 bookSlug={selectedBook}
                 chapterNum={selectedChapter}
+                targetVerse={verseJump}
               />
             )}
           </main>
