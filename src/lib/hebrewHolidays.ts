@@ -1,3 +1,6 @@
+import { getApproxCoordinates } from './location'
+import { getSunsetUtc } from './sunset'
+
 export interface HolidayCountdown {
   name: string
   hebrewDate: string
@@ -68,6 +71,8 @@ function addDays(date: Date, days: number): Date {
  * own, no separate cleanup needed.
  */
 export function findUpcomingHolidays(monthsAhead = 12): HolidayCountdown[] {
+  const { latitude, longitude } = getApproxCoordinates()
+
   const today = new Date()
   today.setHours(0, 0, 0, 0)
 
@@ -84,11 +89,13 @@ export function findUpcomingHolidays(monthsAhead = 12): HolidayCountdown[] {
     const match = HOLIDAYS.find((holiday) => holiday.month === heb.month && holiday.day === heb.day)
     if (!match) continue
 
-    // Hebrew days run sunset-to-sunset, so the holiday starts the evening
-    // before its first civil day and ends the evening its last civil day
-    // closes out.
-    const start = addDays(firstCivilDay, -1)
-    const end = addDays(firstCivilDay, match.days - 1)
+    // Hebrew days run sunset-to-sunset, so the holiday starts at actual
+    // sunset the evening before its first civil day, and ends at actual
+    // sunset on its last civil day.
+    const eveningBefore = addDays(firstCivilDay, -1)
+    const lastCivilDay = addDays(firstCivilDay, match.days - 1)
+    const start = getSunsetUtc(eveningBefore, latitude, longitude)
+    const end = getSunsetUtc(lastCivilDay, latitude, longitude)
 
     if (end < today) continue
 
