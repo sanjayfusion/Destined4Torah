@@ -24,7 +24,7 @@ function flashFrom(url: URL): Flash {
 }
 
 function adminPage(title: string, body: string, flash: Flash = null, extraHead = ''): Response {
-  const nav = `<nav class="top"><strong>Daily Planet mail</strong>
+  const nav = `<nav class="top"><strong>Destined4Torah</strong>
     <a href="/admin">Dashboard</a><a href="/admin/subscribers">Subscribers</a><a href="/admin/contacts">Contacts (no email)</a><a href="/admin/texts">Texts</a><a href="/admin/campaigns">Emails</a>
     <form method="post" action="/admin/logout"><button class="link" type="submit">Log out</button></form></nav>`
   const notice = flash ? `<div class="${flash.kind}">${esc(flash.text)}</div>` : ''
@@ -52,7 +52,7 @@ async function login(request: Request, env: Env): Promise<Response> {
   const form = (flash: Flash) =>
     htmlResponse(
       'Log in',
-      `<div class="wrap narrow"><div class="card"><h1>Daily Planet mail</h1>${flash ? `<div class="err">${esc(flash.text)}</div>` : ''}
+      `<div class="wrap narrow"><div class="card"><h1>Destined4Torah</h1>${flash ? `<div class="err">${esc(flash.text)}</div>` : ''}
       <form method="post" action="/admin/login"><label for="password">Admin password</label>
       <input id="password" name="password" type="password" autocomplete="current-password" required autofocus>
       <div class="actions"><button type="submit">Log in</button></div></form></div></div>`,

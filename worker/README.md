@@ -1,4 +1,4 @@
-# Daily Planet mail
+# Destined4Torah mail
 
 Your own email-list system for app.destined4torah.com: a signup form, double opt-in confirmation, one-click unsubscribe, an admin area to import your list and write and send emails, and bounce/open/click tracking.
 
