@@ -1,8 +1,9 @@
 import { checkPassword, clearSessionCookie, createSessionCookie, isAuthenticated, sameOrigin } from './auth'
 import { parseImport, type ImportRow } from './csv'
-import { emailConfigured, mailingAddress, renderCampaign, sendBatch } from './email'
+import { bannerFor, emailConfigured, mailingAddress, renderCampaign, sendBatch, type Banner } from './email'
 import type { Campaign, Env, Subscriber } from './env'
 import { esc, htmlResponse } from './html'
+import { detectImageType, storeImage, toDataUri } from './images'
 import { processQueue } from './sender'
 import { clientIp, formatDate, normalizeEmail, now, randomToken, recordRequest, tooManyRequests } from './util'
 
@@ -292,24 +293,21 @@ async function campaignsPage(env: Env, url: URL): Promise<Response> {
 
 const STARTER_BODY = `Shalom,
 
-Write your message here. You can use **bold**, *italic*, and [links](https://app.destined4torah.com).
-
-## A heading
-
-- A list item
-- Another item
-
-Blessings,
-Dr. Sanjay Prajapati`
+Write your newsletter here.`
 
 function composeForm(env: Env, campaign: Campaign | null, url: URL): Response {
   const action = campaign ? `/admin/campaigns/${campaign.id}` : '/admin/campaigns'
   return adminPage(
     campaign ? 'Edit email' : 'New email',
     `${warnings(env)}<h1>${campaign ? 'Edit email' : 'Write an email'}</h1>
-    <div class="card"><form method="post" action="${action}">
+    <div class="card"><form method="post" action="${action}" enctype="multipart/form-data">
       <label for="subject">Subject</label><input id="subject" name="subject" type="text" maxlength="200" required value="${esc(campaign?.subject ?? '')}">
-      <label for="body">Message</label><textarea id="body" name="body" required>${esc(campaign?.body ?? STARTER_BODY)}</textarea>
+      <label for="banner">Banner image (the picture under your logo; replace it for each email)</label>
+      ${campaign?.banner_image ? `<p><img src="/img/${esc(campaign.banner_image)}" alt="" style="max-width:320px;border-radius:6px"><br><label style="font-weight:400"><input type="checkbox" name="remove_banner" value="yes"> Remove this image</label></p>` : ''}
+      <input id="banner" name="banner" type="file" accept="image/png,image/jpeg,image/gif,image/webp">
+      <input type="hidden" name="existing_banner" value="${esc(campaign?.banner_image ?? '')}">
+      <label for="banner_alt">Describe the image (optional, for screen readers)</label><input id="banner_alt" name="banner_alt" type="text" maxlength="200" value="${esc(campaign?.banner_alt ?? '')}">
+      <label for="body">Your newsletter (appears below the banner)</label><textarea id="body" name="body" required>${esc(campaign?.body ?? STARTER_BODY)}</textarea>
       <p class="muted">Formatting: <code># Heading</code>, <code>**bold**</code>, <code>*italic*</code>, <code>[text](https://link)</code>, <code>![alt](https://image-url)</code>, <code>- list</code>, <code>&gt; quote</code>, <code>---</code> line. An unsubscribe link and your mailing address are added automatically.</p>
       <label for="to">Send a test to</label><input id="to" name="to" type="email" placeholder="you@example.com">
       <div class="actions">
@@ -346,7 +344,7 @@ async function campaignReport(env: Env, campaign: Campaign, url: URL): Promise<R
     <div class="stats">${stat('Recipients', campaign.total_recipients)}${stat('Sent', delivery.sent)}${stat('Waiting', (delivery.pending ?? 0) + (delivery.sending ?? 0))}${stat('Failed', delivery.failed)}${stat('Skipped (opted out)', delivery.skipped)}</div>
     <h2>Results</h2><div class="stats">${stat('Delivered', events.delivered)}${stat('Opened', events.opened)}${stat('Clicked', events.clicked)}${stat('Bounced', events.bounced)}${stat('Spam complaints', events.complained)}</div>
     <p class="muted">Delivered, opened and clicked counts come from your sending service and appear once its webhook is connected (see the setup guide).</p>
-    <h2>Message</h2><div class="card"><iframe title="Email preview" sandbox srcdoc="${esc(renderCampaign(env, campaign.subject, campaign.body, '#').html)}" style="width:100%;height:520px;border:0"></iframe></div>`,
+    <h2>Message</h2><div class="card"><iframe title="Email preview" sandbox srcdoc="${esc(renderCampaign(env, campaign.subject, campaign.body, '#', bannerFor(env, campaign)).html)}" style="width:100%;height:520px;border:0"></iframe></div>`,
     flashFrom(url),
     refresh,
   )
@@ -368,18 +366,35 @@ async function sendConfirmPage(env: Env, campaign: Campaign, url: URL): Promise<
 }
 
 async function saveCampaign(request: Request, env: Env, id: number | null): Promise<Response> {
-  const form = await formData(request)
+  const raw = await request.formData()
+  const form = Object.fromEntries([...raw.entries()].map(([k, v]) => [k, typeof v === 'string' ? v : '']))
   const subject = (form.subject ?? '').trim().slice(0, 200)
   const body = form.body ?? ''
   const timestamp = now()
-  if (!subject || !body.trim()) return redirect(id ? `/admin/campaigns/${id}` : '/admin/campaigns/new', 'A subject and a message are both required.', 'err')
+  const back = id ? `/admin/campaigns/${id}` : '/admin/campaigns/new'
+  if (!subject || !body.trim()) return redirect(back, 'A subject and a message are both required.', 'err')
+
+  // Keep the current banner unless it is removed or a new file is chosen.
+  let bannerImage = id === null ? '' : ((await loadCampaign(env, id))?.banner_image ?? '')
+  if (form.remove_banner === 'yes') bannerImage = ''
+  const file = raw.get('banner')
+  if (file instanceof File && file.size > 0) {
+    const stored = await storeImage(env, file)
+    if ('error' in stored) return redirect(back, stored.error, 'err')
+    bannerImage = stored.token
+  }
+  const bannerAlt = (form.banner_alt ?? '').trim().slice(0, 200)
 
   let campaignId = id
   if (id === null) {
-    const result = await env.DB.prepare(`INSERT INTO campaigns (subject, body, created_at, updated_at) VALUES (?, ?, ?, ?)`).bind(subject, body, timestamp, timestamp).run()
+    const result = await env.DB.prepare(`INSERT INTO campaigns (subject, body, banner_image, banner_alt, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)`)
+      .bind(subject, body, bannerImage, bannerAlt, timestamp, timestamp)
+      .run()
     campaignId = Number(result.meta.last_row_id)
   } else {
-    const result = await env.DB.prepare(`UPDATE campaigns SET subject = ?, body = ?, updated_at = ? WHERE id = ? AND status = 'draft'`).bind(subject, body, timestamp, id).run()
+    const result = await env.DB.prepare(`UPDATE campaigns SET subject = ?, body = ?, banner_image = ?, banner_alt = ?, updated_at = ? WHERE id = ? AND status = 'draft'`)
+      .bind(subject, body, bannerImage, bannerAlt, timestamp, id)
+      .run()
     if (result.meta.changes === 0) return redirect(`/admin/campaigns/${id}`, 'This email has already been sent and can no longer be edited.', 'err')
   }
 
@@ -388,7 +403,7 @@ async function saveCampaign(request: Request, env: Env, id: number | null): Prom
   if (form.do === 'test') {
     const to = normalizeEmail(form.to ?? '')
     if (!to) return redirect(page, 'Saved, but enter a valid address to send a test to.', 'err')
-    const { html, text } = renderCampaign(env, `[TEST] ${subject}`, body, `${env.WORKER_URL}/unsubscribe?t=test`)
+    const { html, text } = renderCampaign(env, `[TEST] ${subject}`, body, `${env.WORKER_URL}/unsubscribe?t=test`, bannerFor(env, { banner_image: bannerImage, banner_alt: bannerAlt }))
     const result = await sendBatch(env, [{ to, subject: `[TEST] ${subject}`, html, text }])
     return result.ok ? redirect(page, `Saved. Test email sent to ${to}.`) : redirect(page, `Saved, but the test failed: ${result.error}`, 'err')
   }
@@ -447,8 +462,19 @@ export async function handleAdmin(request: Request, env: Env, ctx: ExecutionCont
   if (path === '/admin/campaigns') return post ? saveCampaign(request, env, null) : campaignsPage(env, url)
   if (path === '/admin/campaigns/new') return composeForm(env, null, url)
   if (path === '/admin/preview' && post) {
-    const form = await formData(request)
-    const { html } = renderCampaign(env, form.subject ?? '', form.body ?? '', '#')
+    const raw = await request.formData()
+    const form = Object.fromEntries([...raw.entries()].map(([k, v]) => [k, typeof v === 'string' ? v : '']))
+    const alt = (form.banner_alt ?? '').slice(0, 200)
+    let banner: Banner | undefined
+    const file = raw.get('banner')
+    if (file instanceof File && file.size > 0) {
+      const buffer = await file.arrayBuffer()
+      const type = detectImageType(buffer)
+      if (type) banner = { src: toDataUri(buffer, type), alt }
+    } else if (/^[a-f0-9]{48}$/.test(form.existing_banner ?? '') && form.remove_banner !== 'yes') {
+      banner = bannerFor(env, { banner_image: form.existing_banner, banner_alt: alt })
+    }
+    const { html } = renderCampaign(env, form.subject ?? '', form.body ?? '', '#', banner)
     return new Response(html, {
       headers: { 'Content-Type': 'text/html; charset=utf-8', 'Content-Security-Policy': "default-src 'none'; style-src 'unsafe-inline'; img-src https: data:", 'Cache-Control': 'no-store' },
     })

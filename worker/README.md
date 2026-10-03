@@ -38,7 +38,13 @@ npx wrangler login                      # opens your browser to approve access
 npx wrangler d1 create d4t-mail         # prints a database_id
 ```
 
-Paste that `database_id` into `wrangler.toml`, then:
+Also create the storage used for banner images, and paste both ids into `wrangler.toml`:
+
+```bash
+npx wrangler kv namespace create IMAGES   # prints an id for [[kv_namespaces]]
+```
+
+Paste the `database_id` into `wrangler.toml`, then:
 
 ```bash
 npm run db:migrate:remote

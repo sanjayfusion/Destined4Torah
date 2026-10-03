@@ -54,8 +54,9 @@ export function markdownToHtml(source: string): string {
     } else if (heading) {
       flush()
       const level = heading[1].length
-      const size = level === 1 ? 26 : level === 2 ? 21 : 18
-      blocks.push(`<h${level} style="margin:24px 0 10px;font:600 ${size}px Georgia,serif;color:#1a1522">${inline(heading[2])}</h${level}>`)
+      const size = level === 1 ? 28 : level === 2 ? 22 : 18
+      const align = level === 1 ? 'center' : 'left'
+      blocks.push(`<h${level} style="margin:24px 0 12px;font:700 ${size}px/1.25 Arial,Helvetica,sans-serif;color:#1a1522;text-align:${align}">${inline(heading[2])}</h${level}>`)
     } else if (/^---+$/.test(trimmed)) {
       flush()
       blocks.push('<hr style="border:0;border-top:1px solid #e6e2d8;margin:22px 0">')

@@ -1,4 +1,4 @@
-import { renderCampaign, sendBatch, unsubscribeHeaders, unsubscribeUrl, type Message } from './email'
+import { bannerFor, renderCampaign, sendBatch, unsubscribeHeaders, unsubscribeUrl, type Message } from './email'
 import type { Campaign, Env } from './env'
 import { now, sha256Hex } from './util'
 
@@ -75,7 +75,7 @@ export async function processQueue(env: Env): Promise<number> {
       continue
     }
     const unsubUrl = unsubscribeUrl(env, recipient.token)
-    const { html, text } = renderCampaign(env, campaign.subject, campaign.body, unsubUrl)
+    const { html, text } = renderCampaign(env, campaign.subject, campaign.body, unsubUrl, bannerFor(env, campaign))
     toSend.push({
       claim,
       message: {
