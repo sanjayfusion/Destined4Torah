@@ -1146,6 +1146,10 @@
   font-size: 15px;
 }
 
+.subscribe-input-wide {
+  flex-basis: 100%;
+}
+
 .subscribe-input:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 1px;

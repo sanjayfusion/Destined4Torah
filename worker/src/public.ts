@@ -61,6 +61,9 @@ export async function handleSubscribe(request: Request, env: Env): Promise<Respo
   const email = normalizeEmail(String(body.email ?? ''))
   if (!email) return jsonResponse(request, env, { ok: false, error: 'Please enter a valid email address.' }, 400)
   const name = String(body.name ?? '').trim().slice(0, 100)
+  if (!name) return jsonResponse(request, env, { ok: false, error: 'Please enter your name.' }, 400)
+  const phone = String(body.phone ?? '').trim().slice(0, 40)
+  const address = String(body.address ?? '').trim().slice(0, 300)
 
   const existing = await env.DB.prepare('SELECT * FROM subscribers WHERE email = ?').bind(email).first<Subscriber>()
   const timestamp = now()
@@ -75,19 +78,19 @@ export async function handleSubscribe(request: Request, env: Env): Promise<Respo
       return jsonResponse(request, env, { ok: true })
     }
     await env.DB.prepare(
-      `UPDATE subscribers SET status = 'pending', unsubscribed_at = NULL, confirmation_sent_at = ?,
-       name = CASE WHEN ? != '' THEN ? ELSE name END WHERE id = ?`,
+      `UPDATE subscribers SET status = 'pending', unsubscribed_at = NULL, confirmation_sent_at = ?, name = ?,
+       phone = CASE WHEN ? != '' THEN ? ELSE phone END, address = CASE WHEN ? != '' THEN ? ELSE address END WHERE id = ?`,
     )
-      .bind(timestamp, name, name, existing.id)
+      .bind(timestamp, name, phone, phone, address, address, existing.id)
       .run()
-    target = { email, name: name || existing.name, token: existing.token }
+    target = { email, name, token: existing.token }
   } else {
     const token = randomToken()
     await env.DB.prepare(
-      `INSERT INTO subscribers (email, name, status, token, source, created_at, confirmation_sent_at)
-       VALUES (?, ?, 'pending', ?, 'website', ?, ?)`,
+      `INSERT INTO subscribers (email, name, phone, address, status, token, source, created_at, confirmation_sent_at)
+       VALUES (?, ?, ?, ?, 'pending', ?, 'website', ?, ?)`,
     )
-      .bind(email, name, token, timestamp, timestamp)
+      .bind(email, name, phone, address, token, timestamp, timestamp)
       .run()
     target = { email, name, token }
   }

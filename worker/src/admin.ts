@@ -1,5 +1,5 @@
 import { checkPassword, clearSessionCookie, createSessionCookie, isAuthenticated, sameOrigin } from './auth'
-import { parseImport } from './csv'
+import { parseImport, type ImportRow } from './csv'
 import { emailConfigured, mailingAddress, renderCampaign, sendBatch } from './email'
 import type { Campaign, Env, Subscriber } from './env'
 import { esc, htmlResponse } from './html'
@@ -106,8 +106,8 @@ async function subscribersPage(env: Env, url: URL): Promise<Response> {
   const page = Math.max(1, Number.parseInt(url.searchParams.get('page') ?? '1', 10) || 1)
   const like = `%${escapeLike(q)}%`
 
-  const where = `WHERE (? = '' OR status = ?) AND (? = '' OR email LIKE ? ESCAPE '\\' OR name LIKE ? ESCAPE '\\')`
-  const binds = [status, status, q, like, like]
+  const where = `WHERE (? = '' OR status = ?) AND (? = '' OR email LIKE ? ESCAPE '\\' OR name LIKE ? ESCAPE '\\' OR phone LIKE ? ESCAPE '\\')`
+  const binds = [status, status, q, like, like, like]
   const total = (await env.DB.prepare(`SELECT COUNT(*) AS n FROM subscribers ${where}`).bind(...binds).first<{ n: number }>())?.n ?? 0
   const list = (
     await env.DB.prepare(`SELECT * FROM subscribers ${where} ORDER BY id DESC LIMIT ? OFFSET ?`).bind(...binds, PAGE_SIZE, (page - 1) * PAGE_SIZE).all<Subscriber>()
@@ -119,11 +119,11 @@ async function subscribersPage(env: Env, url: URL): Promise<Response> {
   const rows = list.length
     ? list
         .map(
-          (s) => `<tr><td>${esc(s.email)}</td><td>${esc(s.name)}</td><td><span class="pill ${s.status}">${s.status}</span></td><td>${formatDate(s.created_at)}</td>
+          (s) => `<tr><td>${s.name ? esc(s.name) : '<span class="muted">(no name)</span>'}<br><span class="muted">${esc(s.email)}</span></td><td>${esc(s.phone)}</td><td class="muted">${esc(s.address)}</td><td><span class="pill ${s.status}">${s.status}</span></td><td>${formatDate(s.created_at)}</td>
           <td><form method="post" action="/admin/subscribers/${s.id}/delete" style="margin:0"><button class="link" type="submit">Delete</button></form></td></tr>`,
         )
         .join('')
-    : '<tr><td colspan="5" class="muted">No subscribers match.</td></tr>'
+    : '<tr><td colspan="6" class="muted">No subscribers match.</td></tr>'
 
   const pages = Math.max(1, Math.ceil(total / PAGE_SIZE))
   const query = (p: number) => `/admin/subscribers?status=${encodeURIComponent(status)}&q=${encodeURIComponent(q)}&page=${p}`
@@ -132,10 +132,10 @@ async function subscribersPage(env: Env, url: URL): Promise<Response> {
   return adminPage(
     'Subscribers',
     `<h1>Subscribers</h1>
-    <form method="get" class="row" style="margin-bottom:14px"><input type="search" name="q" value="${esc(q)}" placeholder="Search name or email" style="max-width:280px">
+    <form method="get" class="row" style="margin-bottom:14px"><input type="search" name="q" value="${esc(q)}" placeholder="Search name, email or phone" style="max-width:280px">
       <select name="status" style="max-width:200px">${options}</select><button type="submit" class="secondary">Filter</button>
       <a class="btn secondary" href="/admin/subscribers.csv?status=${encodeURIComponent(status)}">Export CSV</a><a class="btn" href="/admin/import">Add or import</a></form>
-    <div class="card"><table><tr><th>Email</th><th>Name</th><th>Status</th><th>Joined</th><th></th></tr>${rows}</table>${pager}</div>`,
+    <div class="card"><table><tr><th>Name / email</th><th>Phone</th><th>Address</th><th>Status</th><th>Joined</th><th></th></tr>${rows}</table>${pager}</div>`,
     flashFrom(url),
   )
 }
@@ -149,9 +149,12 @@ function csvCell(value: string): string {
 async function exportCsv(env: Env, url: URL): Promise<Response> {
   const status = url.searchParams.get('status') ?? ''
   const rows = (
-    await env.DB.prepare(`SELECT email, name, status, created_at FROM subscribers WHERE (? = '' OR status = ?) ORDER BY id`).bind(status, status).all<Subscriber>()
+    await env.DB.prepare(`SELECT email, name, phone, address, status, created_at FROM subscribers WHERE (? = '' OR status = ?) ORDER BY id`).bind(status, status).all<Subscriber>()
   ).results
-  const lines = ['email,name,status,joined', ...rows.map((r) => [r.email, r.name, r.status, formatDate(r.created_at)].map(csvCell).join(','))]
+  const lines = [
+    'email,name,phone,address,status,joined',
+    ...rows.map((r) => [r.email, r.name, r.phone, r.address, r.status, formatDate(r.created_at)].map(csvCell).join(',')),
+  ]
   return new Response(lines.join('\n'), {
     headers: { 'Content-Type': 'text/csv; charset=utf-8', 'Content-Disposition': 'attachment; filename="subscribers.csv"', 'Cache-Control': 'no-store' },
   })
@@ -162,63 +165,92 @@ function importPage(url: URL): Response {
     'Add or import people',
     `<h1>Add or import people</h1>
     <div class="card"><h2>Add one person</h2><form method="post" action="/admin/subscribers/add">
-      <label for="email">Email</label><input id="email" name="email" type="email" required>
-      <label for="name">Name (optional)</label><input id="name" name="name" type="text">
+      <label for="name">Name (required)</label><input id="name" name="name" type="text" required maxlength="100">
+      <label for="email">Email (required)</label><input id="email" name="email" type="email" required>
+      <label for="phone">Phone (optional)</label><input id="phone" name="phone" type="text" maxlength="40">
+      <label for="address">Address (optional)</label><input id="address" name="address" type="text" maxlength="300">
       <label><input type="checkbox" name="consent" value="yes" required> This person has given me permission to email them.</label>
       <div class="actions"><button type="submit">Add person</button></div></form></div>
     <div class="card"><h2>Import a list</h2>
-      <p class="muted">Paste a CSV exported from Constant Contact (or any list with an email column), or just one email address per line. People marked unsubscribed or bounced in the file are skipped, and anyone who has already unsubscribed here stays unsubscribed.</p>
-      <form method="post" action="/admin/subscribers/import"><label for="csv">CSV or list of emails</label><textarea id="csv" name="csv" required style="min-height:200px"></textarea>
+      <p class="muted">Upload a CSV exported from Constant Contact (or any list with an email column), or paste it below. Name, phone and address columns are picked up automatically. People marked unsubscribed or bounced in the file are skipped, anyone who has already unsubscribed here stays unsubscribed, and rows without an email are ignored. People already on file keep their details; blank ones are filled in.</p>
+      <form method="post" action="/admin/subscribers/import" enctype="multipart/form-data">
+      <label for="file">CSV file</label><input id="file" name="file" type="file" accept=".csv,text/csv,text/plain">
+      <label for="csv">...or paste CSV / one email per line</label><textarea id="csv" name="csv" style="min-height:140px"></textarea>
       <label><input type="checkbox" name="consent" value="yes" required> Everyone on this list has given me permission to email them.</label>
       <div class="actions"><button type="submit">Import</button></div></form></div>`,
     flashFrom(url),
   )
 }
 
-async function upsertConfirmed(env: Env, email: string, name: string, source: string): Promise<'added' | 'updated' | 'kept'> {
-  const existing = await env.DB.prepare('SELECT id, status FROM subscribers WHERE email = ?').bind(email).first<{ id: number; status: string }>()
+const IMPORT_CHUNK = 100
+const MAX_IMPORT_BYTES = 2 * 1024 * 1024
+
+/**
+ * Adds people as confirmed in batches (one database round trip per chunk rather
+ * than per person). Existing people keep their status, so anyone who unsubscribed,
+ * bounced or complained is never re-subscribed; a person still pending is confirmed,
+ * and blank name/phone/address fields are filled in.
+ */
+async function addPeople(env: Env, people: ImportRow[], source: string): Promise<{ added: number; existing: number }> {
+  if (people.length === 0) return { added: 0, existing: 0 }
+  const countBefore = (await env.DB.prepare('SELECT COUNT(*) AS n FROM subscribers').first<{ n: number }>())?.n ?? 0
   const timestamp = now()
-  if (!existing) {
-    await env.DB.prepare(`INSERT INTO subscribers (email, name, status, token, source, created_at, confirmed_at) VALUES (?, ?, 'confirmed', ?, ?, ?, ?)`)
-      .bind(email, name, randomToken(), source, timestamp, timestamp)
-      .run()
-    return 'added'
+  const upsert = env.DB.prepare(
+    `INSERT INTO subscribers (email, name, phone, address, status, token, source, created_at, confirmed_at)
+     VALUES (?, ?, ?, ?, 'confirmed', ?, ?, ?, ?)
+     ON CONFLICT (email) DO UPDATE SET
+       confirmed_at = CASE WHEN subscribers.status = 'pending' THEN excluded.confirmed_at ELSE subscribers.confirmed_at END,
+       status = CASE WHEN subscribers.status = 'pending' THEN 'confirmed' ELSE subscribers.status END,
+       name = CASE WHEN subscribers.name = '' THEN excluded.name ELSE subscribers.name END,
+       phone = CASE WHEN subscribers.phone = '' THEN excluded.phone ELSE subscribers.phone END,
+       address = CASE WHEN subscribers.address = '' THEN excluded.address ELSE subscribers.address END`,
+  )
+  for (let i = 0; i < people.length; i += IMPORT_CHUNK) {
+    await env.DB.batch(
+      people.slice(i, i + IMPORT_CHUNK).map((p) => upsert.bind(p.email, p.name, p.phone, p.address, randomToken(), source, timestamp, timestamp)),
+    )
   }
-  // People who opted out, bounced, or complained are never re-subscribed by an import.
-  if (existing.status === 'pending') {
-    await env.DB.prepare(`UPDATE subscribers SET status = 'confirmed', confirmed_at = ? WHERE id = ?`).bind(timestamp, existing.id).run()
-    return 'updated'
-  }
-  return 'kept'
+  const countAfter = (await env.DB.prepare('SELECT COUNT(*) AS n FROM subscribers').first<{ n: number }>())?.n ?? 0
+  const added = countAfter - countBefore
+  return { added, existing: people.length - added }
 }
 
 async function addSubscriber(request: Request, env: Env): Promise<Response> {
   const form = await formData(request)
   const email = normalizeEmail(form.email ?? '')
+  const name = (form.name ?? '').trim().slice(0, 100)
+  if (!name) return redirect('/admin/import', 'Please enter a name.', 'err')
   if (!email) return redirect('/admin/import', 'That email address is not valid.', 'err')
   if (form.consent !== 'yes') return redirect('/admin/import', 'Please confirm you have permission to email this person.', 'err')
-  const result = await upsertConfirmed(env, email, (form.name ?? '').trim().slice(0, 100), 'manual')
-  const text = result === 'kept' ? `${email} was already on file (or opted out), so nothing changed.` : `Added ${email}.`
-  return redirect('/admin/import', text)
+  const { added } = await addPeople(env, [{ email, name, phone: (form.phone ?? '').trim().slice(0, 40), address: (form.address ?? '').trim().slice(0, 300) }], 'manual')
+  return redirect('/admin/import', added ? `Added ${email}.` : `${email} was already on file, so nothing was re-subscribed.`)
 }
 
 async function importSubscribers(request: Request, env: Env): Promise<Response> {
-  const form = await formData(request)
-  if (form.consent !== 'yes') return redirect('/admin/import', 'Please confirm everyone on the list has given permission.', 'err')
-  const parsed = parseImport(form.csv ?? '')
-  let added = 0
-  let updated = 0
-  let kept = 0
-  for (const row of parsed.rows) {
-    const result = await upsertConfirmed(env, row.email, row.name, 'import')
-    if (result === 'added') added++
-    else if (result === 'updated') updated++
-    else kept++
+  const form = await request.formData()
+  if (form.get('consent') !== 'yes') return redirect('/admin/import', 'Please confirm everyone on the list has given permission.', 'err')
+
+  const file = form.get('file')
+  let text = ''
+  if (file instanceof File && file.size > 0) {
+    if (file.size > MAX_IMPORT_BYTES) return redirect('/admin/import', 'That file is too large (2 MB limit).', 'err')
+    text = await file.text()
+  } else {
+    text = String(form.get('csv') ?? '')
   }
-  return redirect(
-    '/admin/subscribers',
-    `Imported ${added} new, ${updated} confirmed. ${kept} already on file or opted out, ${parsed.skipped} marked unsubscribed in the file, ${parsed.invalid} invalid rows.`,
-  )
+  if (!text.trim()) return redirect('/admin/import', 'Choose a CSV file or paste a list first.', 'err')
+
+  const parsed = parseImport(text)
+  const { added, existing } = await addPeople(env, parsed.rows, 'import')
+  const notes = [
+    `${parsed.rows.length} people in the file had an email address.`,
+    `${added} new, ${existing} already on file.`,
+    parsed.skipped ? `${parsed.skipped} skipped (marked unsubscribed or bounced).` : '',
+    parsed.noEmail ? `${parsed.noEmail} rows had no email address.` : '',
+    parsed.invalid ? `${parsed.invalid} had an invalid email address.` : '',
+    parsed.missingName ? `${parsed.missingName} imported without a name.` : '',
+  ]
+  return redirect('/admin/subscribers', `Imported. ${notes.filter(Boolean).join(' ')}`)
 }
 
 // ---------- campaigns ----------

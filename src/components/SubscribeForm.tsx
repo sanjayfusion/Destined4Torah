@@ -6,6 +6,8 @@ type Status = 'idle' | 'sending' | 'done' | 'error'
 export function SubscribeForm() {
   const [email, setEmail] = useState('')
   const [name, setName] = useState('')
+  const [phone, setPhone] = useState('')
+  const [address, setAddress] = useState('')
   const [company, setCompany] = useState('')
   const [status, setStatus] = useState<Status>('idle')
   const [message, setMessage] = useState('')
@@ -19,7 +21,7 @@ export function SubscribeForm() {
       const response = await fetch(`${SUBSCRIBE_API_URL}/api/subscribe`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, name, company }),
+        body: JSON.stringify({ email, name, phone, address, company }),
       })
       const data = (await response.json()) as { ok: boolean; error?: string }
       if (data.ok) {
@@ -49,9 +51,10 @@ export function SubscribeForm() {
           <input
             type="text"
             className="subscribe-input"
-            placeholder="First name (optional)"
-            aria-label="First name (optional)"
-            autoComplete="given-name"
+            placeholder="Your name"
+            aria-label="Your name"
+            autoComplete="name"
+            required
             maxLength={100}
             value={name}
             onChange={(e) => setName(e.target.value)}
@@ -65,6 +68,26 @@ export function SubscribeForm() {
             required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+          />
+          <input
+            type="tel"
+            className="subscribe-input"
+            placeholder="Phone (optional)"
+            aria-label="Phone number (optional)"
+            autoComplete="tel"
+            maxLength={40}
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+          />
+          <input
+            type="text"
+            className="subscribe-input subscribe-input-wide"
+            placeholder="Address (optional)"
+            aria-label="Address (optional)"
+            autoComplete="street-address"
+            maxLength={300}
+            value={address}
+            onChange={(e) => setAddress(e.target.value)}
           />
           <input
             type="text"
