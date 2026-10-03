@@ -6,6 +6,7 @@ export interface ImportRow {
   phone: string
   address: string
   lists: string
+  sourceName: string
 }
 
 export interface ParsedImport {
@@ -100,6 +101,7 @@ export function parseImport(text: string): ParsedImport {
   let addressCols: { street: number[]; city: number[]; state: number[]; zip: number[]; country: number[] } = { street: [], city: [], state: [], zip: [], country: [] }
   let statusCols: number[] = []
   let listsCol = -1
+  let sourceCol = -1
 
   if (hasHeader) {
     emailCol = first.findIndex((c) => /e-?mail/i.test(c) && !/status|permission|list|opt/i.test(c))
@@ -123,6 +125,7 @@ export function parseImport(text: string): ParsedImport {
       country: indexes(first, (h) => /^country\b/i.test(h)),
     }
     listsCol = first.findIndex((c) => /(e-?mail\s*)?lists?$/i.test(c))
+    sourceCol = first.findIndex((c) => /^source(\s*name)?$/i.test(c))
     statusCols = indexes(first, (h) => /status|permission/i.test(h) && !/sms|phone|text/i.test(h))
   }
 
@@ -161,7 +164,8 @@ export function parseImport(text: string): ParsedImport {
     const lists = listsCol >= 0 ? (cells[listsCol] ?? '').split(',').map((l) => l.trim()).filter(Boolean).join(', ').slice(0, 300) : ''
 
     if (!name) result.missingName++
-    result.rows.push({ email, name, phone, address, lists })
+    const sourceName = sourceCol >= 0 ? (cells[sourceCol] ?? '').slice(0, 100) : ''
+    result.rows.push({ email, name, phone, address, lists, sourceName })
   }
   return result
 }

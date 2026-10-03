@@ -108,8 +108,9 @@ async function subscribersPage(env: Env, url: URL): Promise<Response> {
 
   const list = url.searchParams.get('list') ?? ''
   const where = `WHERE (? = '' OR status = ?) AND (? = '' OR email LIKE ? ESCAPE '\\' OR name LIKE ? ESCAPE '\\' OR phone LIKE ? ESCAPE '\\')
-    AND (? = '' OR (', ' || lists || ', ') LIKE ? ESCAPE '\\')`
-  const binds = [status, status, q, like, like, like, list, `%, ${escapeLike(list)}, %`]
+    AND (? = '' OR (', ' || lists || ', ') LIKE ? ESCAPE '\\') AND (? = '' OR source_name = ?)`
+  const src = url.searchParams.get('src') ?? ''
+  const binds = [status, status, q, like, like, like, list, `%, ${escapeLike(list)}, %`, src, src]
   const total = (await env.DB.prepare(`SELECT COUNT(*) AS n FROM subscribers ${where}`).bind(...binds).first<{ n: number }>())?.n ?? 0
   const people = (
     await env.DB.prepare(`SELECT * FROM subscribers ${where} ORDER BY id DESC LIMIT ? OFFSET ?`).bind(...binds, PAGE_SIZE, (page - 1) * PAGE_SIZE).all<Subscriber>()
@@ -124,26 +125,30 @@ async function subscribersPage(env: Env, url: URL): Promise<Response> {
   const listOptions = ['', ...[...listCounts.keys()].sort()]
     .map((l) => `<option value="${esc(l)}"${l === list ? ' selected' : ''}>${l ? `${esc(l)} (${listCounts.get(l)})` : 'All lists'}</option>`)
     .join('')
+  const sourceRows = (await env.DB.prepare(`SELECT source_name, COUNT(*) AS n FROM subscribers WHERE source_name != '' GROUP BY source_name ORDER BY n DESC`).all<{ source_name: string; n: number }>()).results
+  const sourceOptions = ['', ...sourceRows.map((r) => r.source_name)]
+    .map((v) => `<option value="${esc(v)}"${v === src ? ' selected' : ''}>${v ? `${esc(v)} (${sourceRows.find((r) => r.source_name === v)?.n})` : 'All sources'}</option>`)
+    .join('')
   const rows = people.length
     ? people
         .map(
-          (s) => `<tr><td>${s.name ? esc(s.name) : '<span class="muted">(no name)</span>'}<br><span class="muted">${esc(s.email)}</span></td><td>${esc(s.phone)}</td><td class="muted">${esc(s.address)}</td><td class="muted">${esc(s.lists)}</td><td><span class="pill ${s.status}">${s.status}</span></td><td>${formatDate(s.created_at)}</td>
+          (s) => `<tr><td>${s.name ? esc(s.name) : '<span class="muted">(no name)</span>'}<br><span class="muted">${esc(s.email)}</span></td><td>${esc(s.phone)}</td><td class="muted">${esc(s.address)}</td><td class="muted">${esc(s.lists)}</td><td class="muted">${esc(s.source_name)}</td><td><span class="pill ${s.status}">${s.status}</span></td><td>${formatDate(s.created_at)}</td>
           <td><form method="post" action="/admin/subscribers/${s.id}/delete" style="margin:0"><button class="link" type="submit">Delete</button></form></td></tr>`,
         )
         .join('')
-    : '<tr><td colspan="7" class="muted">No subscribers match.</td></tr>'
+    : '<tr><td colspan="8" class="muted">No subscribers match.</td></tr>'
 
   const pages = Math.max(1, Math.ceil(total / PAGE_SIZE))
-  const query = (p: number) => `/admin/subscribers?status=${encodeURIComponent(status)}&list=${encodeURIComponent(list)}&q=${encodeURIComponent(q)}&page=${p}`
+  const query = (p: number) => `/admin/subscribers?status=${encodeURIComponent(status)}&list=${encodeURIComponent(list)}&src=${encodeURIComponent(src)}&q=${encodeURIComponent(q)}&page=${p}`
   const pager = `<p class="muted">${total} people · page ${page} of ${pages} ${page > 1 ? `· <a href="${query(page - 1)}">Previous</a>` : ''} ${page < pages ? `· <a href="${query(page + 1)}">Next</a>` : ''}</p>`
 
   return adminPage(
     'Subscribers',
     `<h1>Subscribers</h1>
     <form method="get" class="row" style="margin-bottom:14px"><input type="search" name="q" value="${esc(q)}" placeholder="Search name, email or phone" style="max-width:280px">
-      <select name="status" style="max-width:170px">${options}</select><select name="list" style="max-width:260px">${listOptions}</select><button type="submit" class="secondary">Filter</button>
-      <a class="btn secondary" href="/admin/subscribers.csv?status=${encodeURIComponent(status)}&list=${encodeURIComponent(list)}">Export CSV</a><a class="btn" href="/admin/import">Add or import</a></form>
-    <div class="card"><table><tr><th>Name / email</th><th>Phone</th><th>Address</th><th>Lists</th><th>Status</th><th>Joined</th><th></th></tr>${rows}</table>${pager}</div>`,
+      <select name="status" style="max-width:170px">${options}</select><select name="list" style="max-width:260px">${listOptions}</select><select name="src" style="max-width:200px">${sourceOptions}</select><button type="submit" class="secondary">Filter</button>
+      <a class="btn secondary" href="/admin/subscribers.csv?status=${encodeURIComponent(status)}&list=${encodeURIComponent(list)}&src=${encodeURIComponent(src)}">Export CSV</a><a class="btn" href="/admin/import">Add or import</a></form>
+    <div class="card"><table><tr><th>Name / email</th><th>Phone</th><th>Address</th><th>Lists</th><th>Source</th><th>Status</th><th>Joined</th><th></th></tr>${rows}</table>${pager}</div>`,
     flashFrom(url),
   )
 }
@@ -157,17 +162,18 @@ function csvCell(value: string): string {
 async function exportCsv(env: Env, url: URL): Promise<Response> {
   const status = url.searchParams.get('status') ?? ''
   const list = url.searchParams.get('list') ?? ''
+  const src = url.searchParams.get('src') ?? ''
   const rows = (
     await env.DB.prepare(
-      `SELECT email, name, phone, address, lists, status, created_at FROM subscribers
-       WHERE (? = '' OR status = ?) AND (? = '' OR (', ' || lists || ', ') LIKE ? ESCAPE '\\') ORDER BY id`,
+      `SELECT email, name, phone, address, lists, source_name, status, created_at FROM subscribers
+       WHERE (? = '' OR status = ?) AND (? = '' OR (', ' || lists || ', ') LIKE ? ESCAPE '\\') AND (? = '' OR source_name = ?) ORDER BY id`,
     )
-      .bind(status, status, list, `%, ${escapeLike(list)}, %`)
+      .bind(status, status, list, `%, ${escapeLike(list)}, %`, src, src)
       .all<Subscriber>()
   ).results
   const lines = [
-    'email,name,phone,address,lists,status,joined',
-    ...rows.map((r) => [r.email, r.name, r.phone, r.address, r.lists, r.status, formatDate(r.created_at)].map(csvCell).join(',')),
+    'email,name,phone,address,lists,source,status,joined',
+    ...rows.map((r) => [r.email, r.name, r.phone, r.address, r.lists, r.source_name, r.status, formatDate(r.created_at)].map(csvCell).join(',')),
   ]
   return new Response(lines.join('\n'), {
     headers: { 'Content-Type': 'text/csv; charset=utf-8', 'Content-Disposition': 'attachment; filename="subscribers.csv"', 'Cache-Control': 'no-store' },
@@ -210,19 +216,20 @@ async function addPeople(env: Env, people: ImportRow[], source: string): Promise
   const countBefore = (await env.DB.prepare('SELECT COUNT(*) AS n FROM subscribers').first<{ n: number }>())?.n ?? 0
   const timestamp = now()
   const upsert = env.DB.prepare(
-    `INSERT INTO subscribers (email, name, phone, address, lists, status, token, source, created_at, confirmed_at)
-     VALUES (?, ?, ?, ?, ?, 'confirmed', ?, ?, ?, ?)
+    `INSERT INTO subscribers (email, name, phone, address, lists, source_name, status, token, source, created_at, confirmed_at)
+     VALUES (?, ?, ?, ?, ?, ?, 'confirmed', ?, ?, ?, ?)
      ON CONFLICT (email) DO UPDATE SET
        confirmed_at = CASE WHEN subscribers.status = 'pending' THEN excluded.confirmed_at ELSE subscribers.confirmed_at END,
        status = CASE WHEN subscribers.status = 'pending' THEN 'confirmed' ELSE subscribers.status END,
        name = CASE WHEN subscribers.name = '' THEN excluded.name ELSE subscribers.name END,
        phone = CASE WHEN subscribers.phone = '' THEN excluded.phone ELSE subscribers.phone END,
        address = CASE WHEN subscribers.address = '' THEN excluded.address ELSE subscribers.address END,
-       lists = CASE WHEN subscribers.lists = '' THEN excluded.lists ELSE subscribers.lists END`,
+       lists = CASE WHEN subscribers.lists = '' THEN excluded.lists ELSE subscribers.lists END,
+       source_name = CASE WHEN subscribers.source_name = '' THEN excluded.source_name ELSE subscribers.source_name END`,
   )
   for (let i = 0; i < people.length; i += IMPORT_CHUNK) {
     await env.DB.batch(
-      people.slice(i, i + IMPORT_CHUNK).map((p) => upsert.bind(p.email, p.name, p.phone, p.address, p.lists, randomToken(), source, timestamp, timestamp)),
+      people.slice(i, i + IMPORT_CHUNK).map((p) => upsert.bind(p.email, p.name, p.phone, p.address, p.lists, p.sourceName, randomToken(), source, timestamp, timestamp)),
     )
   }
   const countAfter = (await env.DB.prepare('SELECT COUNT(*) AS n FROM subscribers').first<{ n: number }>())?.n ?? 0
@@ -237,7 +244,7 @@ async function addSubscriber(request: Request, env: Env): Promise<Response> {
   if (!name) return redirect('/admin/import', 'Please enter a name.', 'err')
   if (!email) return redirect('/admin/import', 'That email address is not valid.', 'err')
   if (form.consent !== 'yes') return redirect('/admin/import', 'Please confirm you have permission to email this person.', 'err')
-  const { added } = await addPeople(env, [{ email, name, phone: (form.phone ?? '').trim().slice(0, 40), address: (form.address ?? '').trim().slice(0, 300), lists: 'Added manually' }], 'manual')
+  const { added } = await addPeople(env, [{ email, name, phone: (form.phone ?? '').trim().slice(0, 40), address: (form.address ?? '').trim().slice(0, 300), lists: 'Added manually', sourceName: 'Added manually' }], 'manual')
   return redirect('/admin/import', added ? `Added ${email}.` : `${email} was already on file, so nothing was re-subscribed.`)
 }
 

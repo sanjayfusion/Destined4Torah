@@ -87,8 +87,8 @@ export async function handleSubscribe(request: Request, env: Env): Promise<Respo
   } else {
     const token = randomToken()
     await env.DB.prepare(
-      `INSERT INTO subscribers (email, name, phone, address, lists, status, token, source, created_at, confirmation_sent_at)
-       VALUES (?, ?, ?, ?, 'Website signup', 'pending', ?, 'website', ?, ?)`,
+      `INSERT INTO subscribers (email, name, phone, address, lists, source_name, status, token, source, created_at, confirmation_sent_at)
+       VALUES (?, ?, ?, ?, 'Website signup', 'Website signup', 'pending', ?, 'website', ?, ?)`,
     )
       .bind(email, name, phone, address, token, timestamp, timestamp)
       .run()

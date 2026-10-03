@@ -25,6 +25,7 @@ export interface Subscriber {
   phone: string
   address: string
   lists: string
+  source_name: string
   status: 'pending' | 'confirmed' | 'unsubscribed' | 'bounced' | 'complained'
   token: string
   source: string
