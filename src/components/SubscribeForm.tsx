@@ -39,7 +39,7 @@ export function SubscribeForm() {
 
   return (
     <section className="subscribe-card" aria-labelledby="subscribe-heading">
-      <h2 id="subscribe-heading">Get the Daily Planet in your inbox</h2>
+      <h2 id="subscribe-heading">Get Destined4Torah in your inbox</h2>
       <p>Teaching, Torah insights, and updates from Dr. Sanjay Prajapati, delivered by email. Unsubscribe any time.</p>
 
       {status === 'done' ? (
