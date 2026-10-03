@@ -9,7 +9,18 @@ export interface ImportRow {
   sourceName: string
 }
 
+export interface ContactRow {
+  name: string
+  phone: string
+  address: string
+  lists: string
+  sourceName: string
+  smsStatus: 'subscribed' | 'unsubscribed' | ''
+}
+
 export interface ParsedImport {
+  /** Rows with a phone number but no email address. */
+  contacts: ContactRow[]
   rows: ImportRow[]
   /** Rows with an email-column value that is not a valid address. */
   invalid: number
@@ -89,7 +100,7 @@ function firstValue(cells: string[], cols: number[]): string {
  */
 export function parseImport(text: string): ParsedImport {
   const lines = splitRecords(text)
-  const result: ParsedImport = { rows: [], invalid: 0, skipped: 0, noEmail: 0, missingName: 0 }
+  const result: ParsedImport = { rows: [], contacts: [], invalid: 0, skipped: 0, noEmail: 0, missingName: 0 }
   if (lines.length === 0) return result
 
   const first = parseLine(lines[0])
@@ -102,6 +113,7 @@ export function parseImport(text: string): ParsedImport {
   let statusCols: number[] = []
   let listsCol = -1
   let sourceCol = -1
+  let smsStatusCol = -1
 
   if (hasHeader) {
     emailCol = first.findIndex((c) => /e-?mail/i.test(c) && !/status|permission|list|opt/i.test(c))
@@ -125,6 +137,7 @@ export function parseImport(text: string): ParsedImport {
       country: indexes(first, (h) => /^country\b/i.test(h)),
     }
     listsCol = first.findIndex((c) => /(e-?mail\s*)?lists?$/i.test(c))
+    smsStatusCol = first.findIndex((c) => /sms\s*status/i.test(c))
     sourceCol = first.findIndex((c) => /^source(\s*name)?$/i.test(c))
     statusCols = indexes(first, (h) => /status|permission/i.test(h) && !/sms|phone|text/i.test(h))
   }
@@ -139,9 +152,24 @@ export function parseImport(text: string): ParsedImport {
       continue
     }
 
+    const name = nameCols
+      .map((i) => cells[i] ?? '')
+      .filter(Boolean)
+      .join(' ')
+      .slice(0, 100)
+    const phone = firstValue(cells, phoneCols).slice(0, 40)
+    const place = [firstValue(cells, addressCols.street), [firstValue(cells, addressCols.city), [firstValue(cells, addressCols.state), firstValue(cells, addressCols.zip)].filter(Boolean).join(' ')].filter(Boolean).join(', '), firstValue(cells, addressCols.country)]
+    const address = place.filter(Boolean).join(', ').slice(0, 300)
+    const lists = listsCol >= 0 ? (cells[listsCol] ?? '').split(',').map((l) => l.trim()).filter(Boolean).join(', ').slice(0, 300) : ''
+    const sourceName = sourceCol >= 0 ? (cells[sourceCol] ?? '').slice(0, 100) : ''
+
     const rawEmail = cells[emailCol] ?? ''
     if (!rawEmail) {
       result.noEmail++
+      if (phone) {
+        const sms = smsStatusCol >= 0 ? (cells[smsStatusCol] ?? '').toLowerCase() : ''
+        result.contacts.push({ name, phone, address, lists, sourceName, smsStatus: sms.includes('unsub') ? 'unsubscribed' : sms.includes('subscribed') ? 'subscribed' : '' })
+      }
       continue
     }
     const email = normalizeEmail(rawEmail)
@@ -152,19 +180,7 @@ export function parseImport(text: string): ParsedImport {
     if (seen.has(email)) continue
     seen.add(email)
 
-    const name = nameCols
-      .map((i) => cells[i] ?? '')
-      .filter(Boolean)
-      .join(' ')
-      .slice(0, 100)
-    const phone = firstValue(cells, phoneCols).slice(0, 40)
-    const place = [firstValue(cells, addressCols.street), [firstValue(cells, addressCols.city), [firstValue(cells, addressCols.state), firstValue(cells, addressCols.zip)].filter(Boolean).join(' ')].filter(Boolean).join(', '), firstValue(cells, addressCols.country)]
-    const address = place.filter(Boolean).join(', ').slice(0, 300)
-
-    const lists = listsCol >= 0 ? (cells[listsCol] ?? '').split(',').map((l) => l.trim()).filter(Boolean).join(', ').slice(0, 300) : ''
-
     if (!name) result.missingName++
-    const sourceName = sourceCol >= 0 ? (cells[sourceCol] ?? '').slice(0, 100) : ''
     result.rows.push({ email, name, phone, address, lists, sourceName })
   }
   return result
