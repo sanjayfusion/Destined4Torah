@@ -63,8 +63,11 @@ export function HolidayCountdownTicker() {
   // Re-scanned fresh on every tick, so once this holiday passes, the next
   // one takes its place automatically — no separate "remove it" step needed.
   const nextHoliday = findUpcomingHolidays(ROLLING_WINDOW_MONTHS)[0]
+  const holidayInProgress = nextHoliday !== undefined && nextHoliday.start.getTime() <= Date.now()
   const holidayMessage = nextHoliday
-    ? `${formatCountdown(nextHoliday.start)} until ${nextHoliday.name} — ${nextHoliday.hebrewDate} · ${formatDateLabel(nextHoliday.start)} sunset to ${formatDateLabel(nextHoliday.end)} sunset`
+    ? holidayInProgress
+      ? `${nextHoliday.name} is underway — ${nextHoliday.hebrewDate} · ends ${formatDateLabel(nextHoliday.end)} sunset`
+      : `${formatCountdown(nextHoliday.start)} until ${nextHoliday.name} — ${nextHoliday.hebrewDate} · ${formatDateLabel(nextHoliday.start)} sunset to ${formatDateLabel(nextHoliday.end)} sunset`
     : null
 
   const items = [dateMessage, holidayMessage].filter((item): item is string => item !== null)
