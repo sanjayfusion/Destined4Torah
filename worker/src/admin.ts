@@ -1,7 +1,7 @@
 import { checkPassword, clearSessionCookie, createSessionCookie, isAuthenticated, sameOrigin } from './auth'
-import { parseImport, type ImportRow } from './csv'
+import { parseImport, type ContactRow, type ImportRow } from './csv'
 import { bannerFor, emailConfigured, mailingAddress, renderCampaign, sendBatch, type Banner } from './email'
-import type { Campaign, Env, Subscriber } from './env'
+import type { Campaign, Contact, Env, Subscriber } from './env'
 import { esc, htmlResponse } from './html'
 import { detectImageType, storeImage, toDataUri } from './images'
 import { processQueue } from './sender'
@@ -25,7 +25,7 @@ function flashFrom(url: URL): Flash {
 
 function adminPage(title: string, body: string, flash: Flash = null, extraHead = ''): Response {
   const nav = `<nav class="top"><strong>Daily Planet mail</strong>
-    <a href="/admin">Dashboard</a><a href="/admin/subscribers">Subscribers</a><a href="/admin/campaigns">Emails</a>
+    <a href="/admin">Dashboard</a><a href="/admin/subscribers">Subscribers</a><a href="/admin/contacts">Contacts (no email)</a><a href="/admin/campaigns">Emails</a>
     <form method="post" action="/admin/logout"><button class="link" type="submit">Log out</button></form></nav>`
   const notice = flash ? `<div class="${flash.kind}">${esc(flash.text)}</div>` : ''
   return htmlResponse(title, `<div class="wrap">${nav}${notice}${body}</div>${extraHead}`)
@@ -276,6 +276,116 @@ async function importSubscribers(request: Request, env: Env): Promise<Response> 
   return redirect('/admin/subscribers', `Imported. ${notes.filter(Boolean).join(' ')}`)
 }
 
+// ---------- contacts without email ----------
+
+function phoneKey(phone: string): string {
+  const digits = phone.replace(/\D/g, '')
+  return digits.length > 10 ? digits.slice(-10) : digits
+}
+
+async function addContacts(env: Env, contacts: ContactRow[]): Promise<{ added: number; existing: number }> {
+  const usable = contacts.filter((c) => phoneKey(c.phone))
+  if (usable.length === 0) return { added: 0, existing: 0 }
+  const countBefore = (await env.DB.prepare('SELECT COUNT(*) AS n FROM contacts').first<{ n: number }>())?.n ?? 0
+  const timestamp = now()
+  const upsert = env.DB.prepare(
+    `INSERT INTO contacts (name, phone, phone_key, address, lists, source_name, sms_status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+     ON CONFLICT (phone_key) DO UPDATE SET
+       name = CASE WHEN contacts.name = '' THEN excluded.name ELSE contacts.name END,
+       address = CASE WHEN contacts.address = '' THEN excluded.address ELSE contacts.address END,
+       lists = CASE WHEN contacts.lists = '' THEN excluded.lists ELSE contacts.lists END,
+       source_name = CASE WHEN contacts.source_name = '' THEN excluded.source_name ELSE contacts.source_name END,
+       sms_status = CASE WHEN contacts.sms_status = '' THEN excluded.sms_status ELSE contacts.sms_status END`,
+  )
+  for (let i = 0; i < usable.length; i += IMPORT_CHUNK) {
+    await env.DB.batch(usable.slice(i, i + IMPORT_CHUNK).map((c) => upsert.bind(c.name, c.phone, phoneKey(c.phone), c.address, c.lists, c.sourceName, c.smsStatus, timestamp)))
+  }
+  const countAfter = (await env.DB.prepare('SELECT COUNT(*) AS n FROM contacts').first<{ n: number }>())?.n ?? 0
+  return { added: countAfter - countBefore, existing: usable.length - (countAfter - countBefore) }
+}
+
+async function contactsPage(env: Env, url: URL): Promise<Response> {
+  const q = (url.searchParams.get('q') ?? '').trim()
+  const list = url.searchParams.get('list') ?? ''
+  const sms = url.searchParams.get('sms') ?? ''
+  const src = url.searchParams.get('src') ?? ''
+  const page = Math.max(1, Number.parseInt(url.searchParams.get('page') ?? '1', 10) || 1)
+  const like = `%${escapeLike(q)}%`
+  const where = `WHERE (? = '' OR name LIKE ? ESCAPE '\\' OR phone LIKE ? ESCAPE '\\' OR address LIKE ? ESCAPE '\\')
+    AND (? = '' OR (', ' || lists || ', ') LIKE ? ESCAPE '\\') AND (? = '' OR sms_status = ?) AND (? = '' OR source_name = ?)`
+  const binds = [q, like, like, like, list, `%, ${escapeLike(list)}, %`, sms, sms, src, src]
+  const total = (await env.DB.prepare(`SELECT COUNT(*) AS n FROM contacts ${where}`).bind(...binds).first<{ n: number }>())?.n ?? 0
+  const people = (await env.DB.prepare(`SELECT * FROM contacts ${where} ORDER BY name COLLATE NOCASE LIMIT ? OFFSET ?`).bind(...binds, PAGE_SIZE, (page - 1) * PAGE_SIZE).all<Contact>()).results
+
+  const listCounts = new Map<string, number>()
+  for (const r of (await env.DB.prepare(`SELECT lists, COUNT(*) AS n FROM contacts WHERE lists != '' GROUP BY lists`).all<{ lists: string; n: number }>()).results) {
+    for (const name of r.lists.split(', ')) listCounts.set(name, (listCounts.get(name) ?? 0) + r.n)
+  }
+  const sourceRows = (await env.DB.prepare(`SELECT source_name, COUNT(*) AS n FROM contacts WHERE source_name != '' GROUP BY source_name ORDER BY n DESC`).all<{ source_name: string; n: number }>()).results
+  const option = (value: string, label: string, current: string) => `<option value="${esc(value)}"${value === current ? ' selected' : ''}>${esc(label)}</option>`
+  const listOptions = [option('', 'All lists', list), ...[...listCounts.keys()].sort().map((l) => option(l, `${l} (${listCounts.get(l)})`, list))].join('')
+  const sourceOptions = [option('', 'All sources', src), ...sourceRows.map((r) => option(r.source_name, `${r.source_name} (${r.n})`, src))].join('')
+  const smsOptions = [option('', 'All text statuses', sms), option('subscribed', 'Subscribed to texts', sms), option('unsubscribed', 'Opted out of texts', sms)].join('')
+
+  const rows = people.length
+    ? people
+        .map(
+          (c) => `<tr><td>${c.name ? esc(c.name) : '<span class="muted">(no name)</span>'}</td><td>${esc(c.phone)}</td><td class="muted">${esc(c.address)}</td><td class="muted">${esc(c.lists)}</td><td class="muted">${esc(c.source_name)}</td>
+          <td>${c.sms_status ? `<span class="pill ${c.sms_status === 'subscribed' ? 'confirmed' : 'unsubscribed'}">${c.sms_status === 'subscribed' ? 'texts ok' : 'opted out'}</span>` : ''}</td>
+          <td><form method="post" action="/admin/contacts/${c.id}/delete" style="margin:0"><button class="link" type="submit">Delete</button></form></td></tr>`,
+        )
+        .join('')
+    : '<tr><td colspan="7" class="muted">No contacts match.</td></tr>'
+  const pages = Math.max(1, Math.ceil(total / PAGE_SIZE))
+  const query = (p: number) => `/admin/contacts?q=${encodeURIComponent(q)}&list=${encodeURIComponent(list)}&sms=${encodeURIComponent(sms)}&src=${encodeURIComponent(src)}&page=${p}`
+  const pager = `<p class="muted">${total} contacts · page ${page} of ${pages} ${page > 1 ? `· <a href="${query(page - 1)}">Previous</a>` : ''} ${page < pages ? `· <a href="${query(page + 1)}">Next</a>` : ''}</p>`
+
+  return adminPage(
+    'Contacts without email',
+    `<h1>Contacts (no email)</h1>
+    <p class="muted">People you have a phone number for but no email address. They are kept here, separate from your email list, so they can never be emailed.</p>
+    <form method="get" class="row" style="margin-bottom:14px"><input type="search" name="q" value="${esc(q)}" placeholder="Search name, phone or address" style="max-width:280px">
+      <select name="list" style="max-width:240px">${listOptions}</select><select name="src" style="max-width:200px">${sourceOptions}</select><select name="sms" style="max-width:200px">${smsOptions}</select>
+      <button type="submit" class="secondary">Filter</button><a class="btn secondary" href="/admin/contacts.csv?q=${encodeURIComponent(q)}&list=${encodeURIComponent(list)}&sms=${encodeURIComponent(sms)}&src=${encodeURIComponent(src)}">Export CSV</a></form>
+    <div class="card"><table><tr><th>Name</th><th>Phone</th><th>Address</th><th>Lists</th><th>Source</th><th>Texts</th><th></th></tr>${rows}</table>${pager}</div>
+    <div class="card"><h2>Import contacts without email</h2>
+      <p class="muted">Upload a Constant Contact export. Only the people who have a phone number but no email address are added here; everyone with an email goes through <a href="/admin/import">Add or import</a> instead. Anyone already here (same phone number) is not duplicated.</p>
+      <form method="post" action="/admin/contacts/import" enctype="multipart/form-data"><input name="file" type="file" accept=".csv,text/csv,text/plain" required>
+      <div class="actions"><button type="submit">Import</button></div></form></div>`,
+    flashFrom(url),
+  )
+}
+
+async function exportContacts(env: Env, url: URL): Promise<Response> {
+  const q = (url.searchParams.get('q') ?? '').trim()
+  const list = url.searchParams.get('list') ?? ''
+  const sms = url.searchParams.get('sms') ?? ''
+  const src = url.searchParams.get('src') ?? ''
+  const like = `%${escapeLike(q)}%`
+  const rows = (
+    await env.DB.prepare(
+      `SELECT * FROM contacts WHERE (? = '' OR name LIKE ? ESCAPE '\\' OR phone LIKE ? ESCAPE '\\' OR address LIKE ? ESCAPE '\\')
+       AND (? = '' OR (', ' || lists || ', ') LIKE ? ESCAPE '\\') AND (? = '' OR sms_status = ?) AND (? = '' OR source_name = ?) ORDER BY name COLLATE NOCASE`,
+    )
+      .bind(q, like, like, like, list, `%, ${escapeLike(list)}, %`, sms, sms, src, src)
+      .all<Contact>()
+  ).results
+  const lines = ['name,phone,address,lists,source,text_status', ...rows.map((c) => [c.name, c.phone, c.address, c.lists, c.source_name, c.sms_status].map(csvCell).join(','))]
+  return new Response(lines.join('\n'), {
+    headers: { 'Content-Type': 'text/csv; charset=utf-8', 'Content-Disposition': 'attachment; filename="contacts-no-email.csv"', 'Cache-Control': 'no-store' },
+  })
+}
+
+async function importContacts(request: Request, env: Env): Promise<Response> {
+  const file = (await request.formData()).get('file')
+  if (!(file instanceof File) || file.size === 0) return redirect('/admin/contacts', 'Choose a CSV file first.', 'err')
+  if (file.size > MAX_IMPORT_BYTES) return redirect('/admin/contacts', 'That file is too large (2 MB limit).', 'err')
+  const parsed = parseImport(await file.text())
+  if (parsed.contacts.length === 0) return redirect('/admin/contacts', 'No contacts with a phone number and no email address were found in that file.', 'err')
+  const { added, existing } = await addContacts(env, parsed.contacts)
+  return redirect('/admin/contacts', `Imported. ${parsed.contacts.length} contacts had a phone number but no email: ${added} new, ${existing} already here.`)
+}
+
 // ---------- campaigns ----------
 
 async function campaignsPage(env: Env, url: URL): Promise<Response> {
@@ -450,6 +560,14 @@ export async function handleAdmin(request: Request, env: Env, ctx: ExecutionCont
 
   if (path === '/admin/subscribers') return subscribersPage(env, url)
   if (path === '/admin/subscribers.csv') return exportCsv(env, url)
+  if (path === '/admin/contacts') return contactsPage(env, url)
+  if (path === '/admin/contacts.csv') return exportContacts(env, url)
+  if (path === '/admin/contacts/import' && post) return importContacts(request, env)
+  const deleteContact = /^\/admin\/contacts\/(\d+)\/delete$/.exec(path)
+  if (deleteContact && post) {
+    await env.DB.prepare('DELETE FROM contacts WHERE id = ?').bind(Number(deleteContact[1])).run()
+    return redirect('/admin/contacts', 'Contact deleted.')
+  }
   if (path === '/admin/import') return importPage(url)
   if (path === '/admin/subscribers/add' && post) return addSubscriber(request, env)
   if (path === '/admin/subscribers/import' && post) return importSubscribers(request, env)

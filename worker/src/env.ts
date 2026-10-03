@@ -48,3 +48,15 @@ export interface Campaign {
   updated_at: number
   sent_at: number | null
 }
+
+export interface Contact {
+  id: number
+  name: string
+  phone: string
+  phone_key: string
+  address: string
+  lists: string
+  source_name: string
+  sms_status: 'subscribed' | 'unsubscribed' | ''
+  created_at: number
+}
