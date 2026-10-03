@@ -4,6 +4,7 @@ import { hmacHex, now, safeEqual } from './util'
 const SESSION_SECONDS = 7 * 24 * 60 * 60
 
 export function checkPassword(env: Env, input: string): Promise<boolean> {
+  if (!input) return Promise.resolve(false)
   return safeEqual(input, env.ADMIN_PASSWORD)
 }
 

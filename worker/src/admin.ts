@@ -367,6 +367,11 @@ export async function handleAdmin(request: Request, env: Env, ctx: ExecutionCont
   const path = url.pathname.replace(/\/+$/, '') || '/'
   const post = request.method === 'POST'
 
+  // Never run the admin area without real secrets: an unset password would otherwise match an empty login.
+  if (!env.ADMIN_PASSWORD || env.ADMIN_PASSWORD.length < 8 || !env.SESSION_SECRET || env.SESSION_SECRET.length < 16) {
+    return htmlResponse('Admin not set up', '<div class="wrap narrow"><div class="card"><h1>Admin not set up</h1><p>Set the ADMIN_PASSWORD (at least 8 characters) and SESSION_SECRET secrets, then reload. See the setup guide.</p></div></div>', 503)
+  }
+
   if (path === '/admin/login') return login(request, env)
   if (!(await isAuthenticated(request, env))) return redirect('/admin/login')
   if (post && !sameOrigin(request)) return new Response('Forbidden', { status: 403 })
