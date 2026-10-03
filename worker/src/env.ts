@@ -58,5 +58,6 @@ export interface Contact {
   lists: string
   source_name: string
   sms_status: 'subscribed' | 'unsubscribed' | ''
+  last_texted_at: number | null
   created_at: number
 }
