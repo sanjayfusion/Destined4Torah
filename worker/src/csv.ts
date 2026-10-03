@@ -5,6 +5,7 @@ export interface ImportRow {
   name: string
   phone: string
   address: string
+  lists: string
 }
 
 export interface ParsedImport {
@@ -98,6 +99,7 @@ export function parseImport(text: string): ParsedImport {
   let phoneCols: number[] = []
   let addressCols: { street: number[]; city: number[]; state: number[]; zip: number[]; country: number[] } = { street: [], city: [], state: [], zip: [], country: [] }
   let statusCols: number[] = []
+  let listsCol = -1
 
   if (hasHeader) {
     emailCol = first.findIndex((c) => /e-?mail/i.test(c) && !/status|permission|list|opt/i.test(c))
@@ -120,6 +122,7 @@ export function parseImport(text: string): ParsedImport {
       zip: indexes(first, (h) => /zip|postal/i.test(h)),
       country: indexes(first, (h) => /^country\b/i.test(h)),
     }
+    listsCol = first.findIndex((c) => /(e-?mail\s*)?lists?$/i.test(c))
     statusCols = indexes(first, (h) => /status|permission/i.test(h) && !/sms|phone|text/i.test(h))
   }
 
@@ -155,8 +158,10 @@ export function parseImport(text: string): ParsedImport {
     const place = [firstValue(cells, addressCols.street), [firstValue(cells, addressCols.city), [firstValue(cells, addressCols.state), firstValue(cells, addressCols.zip)].filter(Boolean).join(' ')].filter(Boolean).join(', '), firstValue(cells, addressCols.country)]
     const address = place.filter(Boolean).join(', ').slice(0, 300)
 
+    const lists = listsCol >= 0 ? (cells[listsCol] ?? '').split(',').map((l) => l.trim()).filter(Boolean).join(', ').slice(0, 300) : ''
+
     if (!name) result.missingName++
-    result.rows.push({ email, name, phone, address })
+    result.rows.push({ email, name, phone, address, lists })
   }
   return result
 }
