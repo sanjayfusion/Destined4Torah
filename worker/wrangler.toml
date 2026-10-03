@@ -1,0 +1,31 @@
+name = "d4t-mail"
+main = "src/index.ts"
+compatibility_date = "2025-09-01"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "d4t-mail"
+# Replace with the id printed by `wrangler d1 create d4t-mail` (see README.md).
+database_id = "REPLACE_WITH_D1_DATABASE_ID"
+
+# Drains the send queue once a minute.
+[triggers]
+crons = ["* * * * *"]
+
+[vars]
+SITE_URL = "https://app.destined4torah.com"
+# Origins allowed to call the public subscribe endpoint from a browser.
+ALLOWED_ORIGINS = "https://app.destined4torah.com,http://localhost:5173"
+# Public URL of this worker, with no trailing slash. Used in email links.
+# Set after the first deploy (see README.md).
+WORKER_URL = "http://localhost:8787"
+FROM_NAME = "The Destined4Torah Daily Planet"
+# Must be an address on a domain verified with your sending service,
+# for example newsletter@mail.destined4torah.com.
+FROM_EMAIL = "newsletter@example.com"
+REPLY_TO = ""
+# Required by CAN-SPAM: a valid postal address shown in every email.
+# Sending is blocked while this is empty.
+MAILING_ADDRESS = ""
+# Emails sent per minute (max 100 per batch call).
+SEND_BATCH_SIZE = "100"

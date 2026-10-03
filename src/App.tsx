@@ -5,6 +5,7 @@ import { BookNav } from './components/BookNav'
 import { HolidayCountdownTicker } from './components/HolidayCountdownTicker'
 import { NewsTicker } from './components/NewsTicker'
 import { Reader } from './components/Reader'
+import { SubscribeForm } from './components/SubscribeForm'
 import { WeeklyParsha } from './components/WeeklyParsha'
 import { fetchNewTestamentChapter } from './lib/bibleApi'
 import { ALL_BOOKS } from './data/books'
@@ -174,6 +175,8 @@ function App() {
             )}
           </main>
         </div>
+
+        <SubscribeForm />
       </div>
     </>
   )

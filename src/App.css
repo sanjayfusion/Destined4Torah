@@ -1102,3 +1102,92 @@
 .sefaria-credit a {
   color: var(--accent);
 }
+
+/* Email signup */
+
+.subscribe-card {
+  margin-top: 36px;
+  padding: 28px 32px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: var(--shadow-card);
+  text-align: center;
+}
+
+.subscribe-card h2 {
+  margin: 0 0 8px;
+  font-size: 22px;
+}
+
+.subscribe-card > p {
+  max-width: 520px;
+  margin: 0 auto 18px;
+  font-size: 15px;
+}
+
+.subscribe-form {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+.subscribe-input {
+  flex: 1 1 180px;
+  min-width: 0;
+  padding: 11px 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 15px;
+}
+
+.subscribe-input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+/* Honeypot: invisible to people, tempting to bots. */
+.subscribe-trap {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
+.subscribe-button {
+  padding: 11px 24px;
+  border: none;
+  border-radius: 10px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.subscribe-button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.subscribe-message {
+  width: 100%;
+  margin: 4px 0 0;
+  font-size: 14px;
+}
+
+.subscribe-message.success {
+  margin: 0;
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.subscribe-message.error {
+  color: #b3352b;
+}
