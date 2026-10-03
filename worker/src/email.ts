@@ -77,18 +77,23 @@ interface Layout {
   bodyHtml: string
   footerHtml: string
   banner?: Banner
+  /** Show the author's photo below the message (newsletters only). */
+  authorPhoto?: boolean
 }
 
-function layout({ env, subject, bodyHtml, footerHtml, banner }: Layout): string {
+function layout({ env, subject, bodyHtml, footerHtml, banner, authorPhoto }: Layout): string {
   const logo = `<p style="margin:0 0 22px;text-align:center"><a href="${esc(env.SITE_URL)}"><img src="${esc(env.WORKER_URL)}/assets/logo.png" width="360" alt="Destined4Torah" style="max-width:100%;height:auto;border:0"></a></p>`
   const bannerHtml = banner
     ? `<p style="margin:0 0 24px;text-align:center"><img src="${esc(banner.src)}" alt="${esc(banner.alt)}" width="536" style="width:100%;max-width:536px;height:auto;border:0;border-radius:4px"></p>`
+    : ''
+  const photoHtml = authorPhoto
+    ? `<p style="margin:28px 0 0;text-align:center"><img src="${esc(env.WORKER_URL)}/assets/author.jpg" width="260" height="260" alt="Dr. Sanjay Prajapati" style="width:260px;max-width:100%;height:auto;border:0;border-radius:12px"></p>`
     : ''
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(subject)}</title></head>
 <body style="margin:0;padding:0;background:#f4f1ea">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f4f1ea"><tr><td align="center" style="padding:24px 12px">
 <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%">
-<tr><td style="background:#ffffff;border:1px solid #e6e2d8;border-radius:12px;padding:30px 32px;font:16px/1.6 -apple-system,'Segoe UI',Roboto,Arial,sans-serif;color:#3b3544">${logo}${bannerHtml}${bodyHtml}</td></tr>
+<tr><td style="background:#ffffff;border:1px solid #e6e2d8;border-radius:12px;padding:30px 32px;font:16px/1.6 -apple-system,'Segoe UI',Roboto,Arial,sans-serif;color:#3b3544">${logo}${bannerHtml}${bodyHtml}${photoHtml}</td></tr>
 <tr><td style="padding:18px 12px 0;font:12px/1.6 Arial,sans-serif;color:#7a7285;text-align:center">${footerHtml}</td></tr>
 </table></td></tr></table></body></html>`
 }
@@ -106,7 +111,7 @@ export function renderCampaign(env: Env, subject: string, markdown: string, unsu
   const footerHtml = `You are receiving this because you subscribed at ${esc(env.SITE_URL.replace(/^https?:\/\//, ''))}.<br>
 <a href="${esc(unsubscribeUrl)}" style="color:#7a7285">Unsubscribe</a><br>${addressHtml(env)}`
   const text = `${markdownToText(markdown)}\n\n--\nYou are receiving this because you subscribed at ${env.SITE_URL}.\nUnsubscribe: ${unsubscribeUrl}\n${mailingAddress(env)}`
-  return { html: layout({ env, subject, bodyHtml: markdownToHtml(markdown), footerHtml, banner }), text }
+  return { html: layout({ env, subject, bodyHtml: markdownToHtml(markdown), footerHtml, banner, authorPhoto: true }), text }
 }
 
 export function renderConfirmation(env: Env, name: string, confirmUrl: string): { subject: string; html: string; text: string } {
