@@ -25,7 +25,7 @@ function flashFrom(url: URL): Flash {
 
 function adminPage(title: string, body: string, flash: Flash = null, extraHead = ''): Response {
   const nav = `<nav class="top"><strong>Daily Planet mail</strong>
-    <a href="/admin">Dashboard</a><a href="/admin/subscribers">Subscribers</a><a href="/admin/contacts">Contacts (no email)</a><a href="/admin/campaigns">Emails</a>
+    <a href="/admin">Dashboard</a><a href="/admin/subscribers">Subscribers</a><a href="/admin/contacts">Contacts (no email)</a><a href="/admin/texts">Texts</a><a href="/admin/campaigns">Emails</a>
     <form method="post" action="/admin/logout"><button class="link" type="submit">Log out</button></form></nav>`
   const notice = flash ? `<div class="${flash.kind}">${esc(flash.text)}</div>` : ''
   return htmlResponse(title, `<div class="wrap">${nav}${notice}${body}</div>${extraHead}`)
@@ -386,6 +386,96 @@ async function importContacts(request: Request, env: Env): Promise<Response> {
   return redirect('/admin/contacts', `Imported. ${parsed.contacts.length} contacts had a phone number but no email: ${added} new, ${existing} already here.`)
 }
 
+// ---------- texts helper ----------
+
+const TITLES = /^(dr|mr|mrs|ms|miss|rev|reverend|pastor|evangelist|judge|minister|bishop|apostle|prophet|prophetess|elder|deacon|sister|brother)\.?\s+/i
+
+function firstName(name: string): string {
+  return name.replace(TITLES, '').trim().split(/\s+/)[0] ?? ''
+}
+
+/** A number that texting apps understand: +1XXXXXXXXXX for US numbers. */
+function smsNumber(phone: string, key: string): string {
+  if (key.length === 10) return `+1${key}`
+  const digits = phone.replace(/\D/g, '')
+  return digits ? `+${digits}` : ''
+}
+
+function textsParams(url: URL) {
+  const hasMessage = url.searchParams.has('message')
+  return {
+    message: url.searchParams.get('message') ?? 'Shalom {name}, ',
+    addStop: !hasMessage || url.searchParams.get('stop') === '1',
+    list: url.searchParams.get('list') ?? '',
+    all: url.searchParams.get('all') === '1',
+  }
+}
+
+const STOP_LINE = ' Reply STOP to opt out.'
+
+async function textsPage(env: Env, url: URL): Promise<Response> {
+  const { message, addStop, list, all } = textsParams(url)
+  const eligible = (await env.DB.prepare(`SELECT * FROM contacts WHERE sms_status = 'subscribed' ORDER BY name COLLATE NOCASE`).all<Contact>()).results
+  const optedOut = (await env.DB.prepare(`SELECT COUNT(*) AS n FROM contacts WHERE sms_status = 'unsubscribed'`).first<{ n: number }>())?.n ?? 0
+  const unknown = (await env.DB.prepare(`SELECT COUNT(*) AS n FROM contacts WHERE sms_status = ''`).first<{ n: number }>())?.n ?? 0
+
+  const listCounts = new Map<string, number>()
+  for (const c of eligible) for (const l of c.lists ? c.lists.split(', ') : []) listCounts.set(l, (listCounts.get(l) ?? 0) + 1)
+  const listOptions = ['', ...[...listCounts.keys()].sort()]
+    .map((l) => `<option value="${esc(l)}"${l === list ? ' selected' : ''}>${l ? `${esc(l)} (${listCounts.get(l)})` : 'All lists'}</option>`)
+    .join('')
+
+  const inList = eligible.filter((c) => !list || c.lists.split(', ').includes(list))
+  const remaining = inList.filter((c) => !c.last_texted_at)
+  const shown = all ? inList : remaining
+
+  const keep = `<input type="hidden" name="message" value="${esc(message)}"><input type="hidden" name="stop" value="${addStop ? '1' : '0'}"><input type="hidden" name="list" value="${esc(list)}"><input type="hidden" name="all" value="${all ? '1' : '0'}">`
+  const rows = shown.length
+    ? shown
+        .map((c) => {
+          const body = message.replace(/\{name\}/gi, firstName(c.name) || 'friend').trimEnd() + (addStop ? STOP_LINE : '')
+          const number = smsNumber(c.phone, c.phone_key)
+          const textLink = number ? `<a class="btn" href="${esc(`sms:${number}?&body=${encodeURIComponent(body)}`)}">Text</a>` : '<span class="muted">no number</span>'
+          return `<tr><td>${c.name ? esc(c.name) : '<span class="muted">(no name)</span>'}</td><td>${esc(c.phone)}</td>
+          <td>${c.last_texted_at ? `<span class="pill sent">texted ${esc(formatDate(c.last_texted_at).slice(0, 10))}</span>` : '<span class="muted">not yet</span>'}</td>
+          <td><div class="row">${textLink}
+            <form method="post" action="/admin/texts/${c.id}/sent" style="margin:0">${keep}<button class="secondary" type="submit">Mark sent</button></form>
+            <form method="post" action="/admin/texts/${c.id}/optout" style="margin:0">${keep}<button class="link" type="submit">Opted out</button></form></div></td></tr>`
+        })
+        .join('')
+    : `<tr><td colspan="4" class="muted">${inList.length ? 'Everyone in this group has been texted. Start a new round below to text them again.' : 'No contacts with text consent in this group.'}</td></tr>`
+
+  const example = shown[0] ? message.replace(/\{name\}/gi, firstName(shown[0].name) || 'friend').trimEnd() + (addStop ? STOP_LINE : '') : ''
+  return adminPage(
+    'Texts',
+    `<h1>Texts</h1>
+    <div class="card"><p class="muted">Free, one-to-one texting from your own phone. Write your message, then tap <strong>Text</strong> next to each person: it opens your messaging app with their number and message ready, and you press send. Only people who agreed to receive texts are listed. If someone replies STOP, click <strong>Opted out</strong> and they are removed.</p>
+    <form method="get"><label for="message">Your message (use {name} for their first name)</label><textarea id="message" name="message" style="min-height:90px;font-family:inherit">${esc(message)}</textarea>
+      <label><input type="checkbox" name="stop" value="1"${addStop ? ' checked' : ''}> Add "Reply STOP to opt out." to the end (recommended)</label>
+      <label for="list">Who</label><select id="list" name="list" style="max-width:320px">${listOptions}</select>
+      <label><input type="checkbox" name="all" value="1"${all ? ' checked' : ''}> Also show people I have already texted this round</label>
+      <div class="actions"><button type="submit">Update list</button></div></form>
+      ${example ? `<p class="muted" style="margin-top:14px">Preview: <em>${esc(example)}</em></p>` : ''}</div>
+    <div class="card"><p class="muted">${inList.length} can be texted${list ? ` in "${esc(list)}"` : ''} · ${remaining.length} not yet texted this round · ${optedOut} opted out${unknown ? ` · ${unknown} with unknown consent (never listed)` : ''}</p>
+    <table><tr><th>Name</th><th>Phone</th><th>This round</th><th></th></tr>${rows}</table>
+    <form method="post" action="/admin/texts/reset" style="margin-top:14px">${keep}<button class="secondary" type="submit">Start a new round (clear all "texted")</button></form></div>`,
+    flashFrom(url),
+  )
+}
+
+function textsBack(form: Record<string, string>): string {
+  const params = new URLSearchParams({ message: form.message ?? '', stop: form.stop ?? '1', list: form.list ?? '', all: form.all ?? '0' })
+  return `/admin/texts?${params.toString()}`
+}
+
+async function textsAction(request: Request, env: Env, action: string, id: number | null): Promise<Response> {
+  const form = await formData(request)
+  if (action === 'sent' && id !== null) await env.DB.prepare('UPDATE contacts SET last_texted_at = ? WHERE id = ?').bind(now(), id).run()
+  else if (action === 'optout' && id !== null) await env.DB.prepare(`UPDATE contacts SET sms_status = 'unsubscribed' WHERE id = ?`).bind(id).run()
+  else if (action === 'reset') await env.DB.prepare('UPDATE contacts SET last_texted_at = NULL').run()
+  return redirect(textsBack(form))
+}
+
 // ---------- campaigns ----------
 
 async function campaignsPage(env: Env, url: URL): Promise<Response> {
@@ -568,6 +658,9 @@ export async function handleAdmin(request: Request, env: Env, ctx: ExecutionCont
     await env.DB.prepare('DELETE FROM contacts WHERE id = ?').bind(Number(deleteContact[1])).run()
     return redirect('/admin/contacts', 'Contact deleted.')
   }
+  if (path === '/admin/texts') return textsPage(env, url)
+  const textsMatch = /^\/admin\/texts\/(?:(\d+)\/(sent|optout)|(reset))$/.exec(path)
+  if (textsMatch && post) return textsAction(request, env, textsMatch[2] ?? textsMatch[3], textsMatch[1] ? Number(textsMatch[1]) : null)
   if (path === '/admin/import') return importPage(url)
   if (path === '/admin/subscribers/add' && post) return addSubscriber(request, env)
   if (path === '/admin/subscribers/import' && post) return importSubscribers(request, env)
