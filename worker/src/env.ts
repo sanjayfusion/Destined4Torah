@@ -1,5 +1,6 @@
 export interface Env {
   DB: D1Database
+  IMAGES: KVNamespace
 
   // Secrets (set with `wrangler secret put`, or .dev.vars locally)
   ADMIN_PASSWORD: string
@@ -41,6 +42,8 @@ export interface Campaign {
   body: string
   status: 'draft' | 'sending' | 'sent'
   total_recipients: number
+  banner_image: string
+  banner_alt: string
   created_at: number
   updated_at: number
   sent_at: number | null

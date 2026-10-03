@@ -26,3 +26,8 @@ REPLY_TO = ""
 # variable, so it stays out of this public repo: `wrangler secret put MAILING_ADDRESS`.
 # Emails sent per minute (max 100 per batch call).
 SEND_BATCH_SIZE = "100"
+
+# Banner images uploaded in the admin are stored here.
+[[kv_namespaces]]
+binding = "IMAGES"
+id = "3c13752f4ebd47028fa05aac4f1b7950"

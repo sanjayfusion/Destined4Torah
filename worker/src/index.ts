@@ -1,5 +1,6 @@
 import { handleAdmin } from './admin'
 import type { Env } from './env'
+import { serveImage, serveLogo } from './images'
 import { handleConfirm, handleSubscribe, handleSubscribeOptions, handleUnsubscribe } from './public'
 import { processQueue } from './sender'
 import { now } from './util'
@@ -13,6 +14,9 @@ async function route(request: Request, env: Env, ctx: ExecutionContext): Promise
     if (request.method === 'POST') return handleSubscribe(request, env)
     return new Response('Method not allowed', { status: 405 })
   }
+  const image = /^\/img\/([a-f0-9]{48})$/.exec(pathname)
+  if (image && request.method === 'GET') return serveImage(env, image[1])
+  if (pathname === '/assets/logo.png' && request.method === 'GET') return serveLogo()
   if (pathname === '/confirm' && request.method === 'GET') return handleConfirm(request, env)
   if (pathname === '/unsubscribe' && (request.method === 'GET' || request.method === 'POST')) return handleUnsubscribe(request, env)
   if (pathname === '/webhooks/resend' && request.method === 'POST') return handleResendWebhook(request, env)
