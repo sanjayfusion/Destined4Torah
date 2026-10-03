@@ -6,6 +6,7 @@ export interface Env {
   SESSION_SECRET: string
   RESEND_API_KEY?: string
   RESEND_WEBHOOK_SECRET?: string
+  MAILING_ADDRESS?: string
 
   // Plain config (wrangler.toml [vars])
   SITE_URL: string
@@ -14,7 +15,6 @@ export interface Env {
   FROM_NAME: string
   FROM_EMAIL: string
   REPLY_TO?: string
-  MAILING_ADDRESS: string
   SEND_BATCH_SIZE?: string
 }
 

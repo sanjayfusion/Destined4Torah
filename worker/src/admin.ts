@@ -1,6 +1,6 @@
 import { checkPassword, clearSessionCookie, createSessionCookie, isAuthenticated, sameOrigin } from './auth'
 import { parseImport } from './csv'
-import { emailConfigured, renderCampaign, sendBatch } from './email'
+import { emailConfigured, mailingAddress, renderCampaign, sendBatch } from './email'
 import type { Campaign, Env, Subscriber } from './env'
 import { esc, htmlResponse } from './html'
 import { processQueue } from './sender'
@@ -33,7 +33,7 @@ function adminPage(title: string, body: string, flash: Flash = null, extraHead =
 function warnings(env: Env): string {
   const items: string[] = []
   if (!emailConfigured(env)) items.push('Email sending is in <strong>test mode</strong> (no sending-service key is set), so emails are logged instead of delivered.')
-  if (!env.MAILING_ADDRESS.trim()) items.push('Add your <strong>mailing address</strong> (MAILING_ADDRESS). It is legally required in every email, and sending to your list is blocked until it is set.')
+  if (!mailingAddress(env)) items.push('Add your <strong>mailing address</strong> (MAILING_ADDRESS). It is legally required in every email, and sending to your list is blocked until it is set.')
   if (env.FROM_EMAIL.endsWith('@example.com')) items.push('<strong>FROM_EMAIL</strong> is still the placeholder. Set it to an address on your verified sending domain.')
   if (env.WORKER_URL.includes('localhost')) items.push('<strong>WORKER_URL</strong> points to localhost, so links in emails (confirm and unsubscribe) will not work for subscribers.')
   return items.map((i) => `<div class="warn">${i}</div>`).join('')
@@ -300,7 +300,7 @@ async function campaignReport(env: Env, campaign: Campaign, url: URL): Promise<R
 
 async function sendConfirmPage(env: Env, campaign: Campaign, url: URL): Promise<Response> {
   const confirmed = (await env.DB.prepare(`SELECT COUNT(*) AS n FROM subscribers WHERE status = 'confirmed'`).first<{ n: number }>())?.n ?? 0
-  const blocked = !env.MAILING_ADDRESS.trim() ? 'Add your mailing address (MAILING_ADDRESS) before sending. It is required by law in every email.' : confirmed === 0 ? 'There are no confirmed subscribers to send to yet.' : ''
+  const blocked = !mailingAddress(env) ? 'Add your mailing address (MAILING_ADDRESS) before sending. It is required by law in every email.' : confirmed === 0 ? 'There are no confirmed subscribers to send to yet.' : ''
   return adminPage(
     'Send email',
     `${warnings(env)}<h1>Send to everyone?</h1><div class="card">
@@ -342,7 +342,7 @@ async function saveCampaign(request: Request, env: Env, id: number | null): Prom
 }
 
 async function sendCampaign(env: Env, ctx: ExecutionContext, id: number): Promise<Response> {
-  if (!env.MAILING_ADDRESS.trim()) return redirect(`/admin/campaigns/${id}/send`, 'Add your mailing address before sending.', 'err')
+  if (!mailingAddress(env)) return redirect(`/admin/campaigns/${id}/send`, 'Add your mailing address before sending.', 'err')
 
   // Queue every confirmed subscriber and flip to "sending" in one transaction.
   const results = await env.DB.batch([

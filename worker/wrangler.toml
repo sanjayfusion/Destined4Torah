@@ -20,12 +20,10 @@ ALLOWED_ORIGINS = "https://app.destined4torah.com,http://localhost:5173"
 # Set after the first deploy (see README.md).
 WORKER_URL = "http://localhost:8787"
 FROM_NAME = "The Destined4Torah Daily Planet"
-# Must be an address on a domain verified with your sending service,
-# for example newsletter@mail.destined4torah.com.
-FROM_EMAIL = "newsletter@example.com"
+# Must be an address on a domain verified with your sending service.
+FROM_EMAIL = "newsletter@mail.destined4torah.com"
 REPLY_TO = ""
-# Required by CAN-SPAM: a valid postal address shown in every email.
-# Sending is blocked while this is empty.
-MAILING_ADDRESS = ""
+# MAILING_ADDRESS (required by CAN-SPAM, shown in every email) is a secret, not a
+# variable, so it stays out of this public repo: `wrangler secret put MAILING_ADDRESS`.
 # Emails sent per minute (max 100 per batch call).
 SEND_BATCH_SIZE = "100"

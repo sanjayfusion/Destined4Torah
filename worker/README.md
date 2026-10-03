@@ -50,7 +50,8 @@ Set these under `[vars]`:
 
 - `FROM_EMAIL`: e.g. `newsletter@mail.destined4torah.com` (must be on the domain you verified)
 - `REPLY_TO`: where replies should go (e.g. your regular email)
-- `MAILING_ADDRESS`: your postal address. **Required by law (CAN-SPAM)** and sending is blocked without it.
+
+`MAILING_ADDRESS` (your postal address, **required by law under CAN-SPAM**; sending is blocked without it) is set as a secret in the next step, so it isn't published in this public repository.
 
 ### 4. Set the secrets
 
@@ -60,6 +61,7 @@ Run each command and type or paste the value when prompted (they are stored encr
 npx wrangler secret put ADMIN_PASSWORD      # choose a long, unique password
 npx wrangler secret put SESSION_SECRET      # any long random string, e.g. output of: openssl rand -hex 32
 npx wrangler secret put RESEND_API_KEY      # from Resend
+npx wrangler secret put MAILING_ADDRESS     # e.g. 123 Main St, City, ST 12345 (a PO box is fine)
 ```
 
 ### 5. Deploy

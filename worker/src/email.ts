@@ -13,6 +13,10 @@ export interface Message {
 
 export type SendResult = { ok: true } | { ok: false; error: string; retryable: boolean }
 
+export function mailingAddress(env: Env): string {
+  return (env.MAILING_ADDRESS ?? '').trim()
+}
+
 export function emailConfigured(env: Env): boolean {
   return Boolean(env.RESEND_API_KEY)
 }
@@ -81,13 +85,13 @@ function layout({ env, subject, bodyHtml, footerHtml }: Layout): string {
 }
 
 function addressHtml(env: Env): string {
-  return env.MAILING_ADDRESS ? esc(env.MAILING_ADDRESS).replace(/\n/g, '<br>') : ''
+  return mailingAddress(env) ? esc(mailingAddress(env)).replace(/\n/g, '<br>') : ''
 }
 
 export function renderCampaign(env: Env, subject: string, markdown: string, unsubscribeUrl: string): { html: string; text: string } {
   const footerHtml = `You are receiving this because you subscribed at ${esc(env.SITE_URL.replace(/^https?:\/\//, ''))}.<br>
 <a href="${esc(unsubscribeUrl)}" style="color:#7a7285">Unsubscribe</a><br>${addressHtml(env)}`
-  const text = `${markdownToText(markdown)}\n\n--\nYou are receiving this because you subscribed at ${env.SITE_URL}.\nUnsubscribe: ${unsubscribeUrl}\n${env.MAILING_ADDRESS}`
+  const text = `${markdownToText(markdown)}\n\n--\nYou are receiving this because you subscribed at ${env.SITE_URL}.\nUnsubscribe: ${unsubscribeUrl}\n${mailingAddress(env)}`
   return { html: layout({ env, subject, bodyHtml: markdownToHtml(markdown), footerHtml }), text }
 }
 
@@ -101,7 +105,7 @@ export function renderConfirmation(env: Env, name: string, confirmUrl: string): 
   return {
     subject: `Please confirm your subscription to ${env.FROM_NAME}`,
     html: layout({ env, subject: 'Confirm your subscription', bodyHtml, footerHtml }),
-    text: `${name ? `Hi ${name},` : 'Hello,'}\n\nPlease confirm that you'd like to receive ${env.FROM_NAME} by email:\n${confirmUrl}\n\nIf you didn't ask for this, you can ignore this email.\n\n${env.MAILING_ADDRESS}`,
+    text: `${name ? `Hi ${name},` : 'Hello,'}\n\nPlease confirm that you'd like to receive ${env.FROM_NAME} by email:\n${confirmUrl}\n\nIf you didn't ask for this, you can ignore this email.\n\n${mailingAddress(env)}`,
   }
 }
 
