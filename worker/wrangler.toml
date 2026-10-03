@@ -17,7 +17,7 @@ SITE_URL = "https://app.destined4torah.com"
 ALLOWED_ORIGINS = "https://app.destined4torah.com,http://localhost:5173"
 # Public URL of this worker, with no trailing slash. Used in email links.
 # Set after the first deploy (see README.md).
-WORKER_URL = "http://localhost:8787"
+WORKER_URL = "https://d4t-mail.d4t-mail.workers.dev"
 FROM_NAME = "The Destined4Torah Daily Planet"
 # Must be an address on a domain verified with your sending service.
 FROM_EMAIL = "newsletter@mail.destined4torah.com"
