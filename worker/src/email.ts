@@ -66,6 +66,12 @@ export async function sendBatch(env: Env, messages: Message[], idempotencyKey?: 
   return { ok: false, error: `Resend ${response.status}: ${detail}`, retryable: response.status >= 500 || response.status === 429 }
 }
 
+/**
+ * Mail apps cache email images by address, so a changed logo or photo would keep
+ * showing the old one. Bump this number whenever either image is replaced.
+ */
+const ASSET_VERSION = '2'
+
 export interface Banner {
   src: string
   alt: string
@@ -82,12 +88,12 @@ interface Layout {
 }
 
 function layout({ env, subject, bodyHtml, footerHtml, banner, authorPhoto }: Layout): string {
-  const logo = `<p style="margin:0 0 22px;text-align:center"><a href="${esc(env.SITE_URL)}"><img src="${esc(env.WORKER_URL)}/assets/logo.png" width="360" alt="Destined4Torah" style="max-width:100%;height:auto;border:0"></a></p>`
+  const logo = `<p style="margin:0 0 22px;text-align:center"><a href="${esc(env.SITE_URL)}"><img src="${esc(env.WORKER_URL)}/assets/logo.png?v=${ASSET_VERSION}" width="360" alt="Destined4Torah" style="max-width:100%;height:auto;border:0"></a></p>`
   const bannerHtml = banner
     ? `<p style="margin:0 0 24px;text-align:center"><img src="${esc(banner.src)}" alt="${esc(banner.alt)}" width="536" style="width:100%;max-width:536px;height:auto;border:0;border-radius:4px"></p>`
     : ''
   const photoHtml = authorPhoto
-    ? `<p style="margin:28px 0 0;text-align:center"><img src="${esc(env.WORKER_URL)}/assets/author.jpg" width="260" height="260" alt="Dr. Sanjay Prajapati" style="width:260px;max-width:100%;height:auto;border:0;border-radius:12px"></p>`
+    ? `<p style="margin:28px 0 0;text-align:center"><img src="${esc(env.WORKER_URL)}/assets/author.jpg?v=${ASSET_VERSION}" width="260" height="260" alt="Dr. Sanjay Prajapati" style="width:260px;max-width:100%;height:auto;border:0;border-radius:12px"></p>`
     : ''
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(subject)}</title></head>
 <body style="margin:0;padding:0;background:#f4f1ea">
