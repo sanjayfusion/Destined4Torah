@@ -43,7 +43,7 @@ async function sendConfirmation(env: Env, subscriber: Pick<Subscriber, 'email' |
 
 export async function handleSubscribe(request: Request, env: Env): Promise<Response> {
   const ip = clientIp(request)
-  if (await tooManyRequests(env.DB, `subscribe:${ip}`, 5, 3600)) {
+  if (await tooManyRequests(env.DB, `subscribe:${ip}`, 20, 3600)) {
     return jsonResponse(request, env, { ok: false, error: 'Too many attempts. Please try again later.' }, 429)
   }
   await recordRequest(env.DB, `subscribe:${ip}`)
@@ -64,6 +64,7 @@ export async function handleSubscribe(request: Request, env: Env): Promise<Respo
   if (!name) return jsonResponse(request, env, { ok: false, error: 'Please enter your name.' }, 400)
   const phone = String(body.phone ?? '').trim().slice(0, 40)
   const address = String(body.address ?? '').trim().slice(0, 300)
+  const sourceLabel = body.via === 'qr' ? 'QR code' : 'Website signup'
 
   const existing = await env.DB.prepare('SELECT * FROM subscribers WHERE email = ?').bind(email).first<Subscriber>()
   const timestamp = now()
@@ -88,9 +89,9 @@ export async function handleSubscribe(request: Request, env: Env): Promise<Respo
     const token = randomToken()
     await env.DB.prepare(
       `INSERT INTO subscribers (email, name, phone, address, lists, source_name, status, token, source, created_at, confirmation_sent_at)
-       VALUES (?, ?, ?, ?, 'Website signup', 'Website signup', 'pending', ?, 'website', ?, ?)`,
+       VALUES (?, ?, ?, ?, ?, ?, 'pending', ?, 'website', ?, ?)`,
     )
-      .bind(email, name, phone, address, token, timestamp, timestamp)
+      .bind(email, name, phone, address, sourceLabel, sourceLabel, token, timestamp, timestamp)
       .run()
     target = { email, name, token }
   }
@@ -180,4 +181,34 @@ export async function handlePreferences(request: Request, env: Env): Promise<Res
 
   await env.DB.prepare('UPDATE subscribers SET name = ?, phone = ?, address = ? WHERE id = ?').bind(name, phone, address, subscriber.id).run()
   return messagePage('Details updated', `Thank you, ${esc(name)}. Your details have been saved. <a href="${esc(env.SITE_URL)}">Return to the website</a>.`)
+}
+
+function joinForm(env: Env, values: { name?: string; email?: string; phone?: string; address?: string } = {}, error = ''): Response {
+  const field = (label: string, name: string, value: string | undefined, extra = '', type = 'text') =>
+    `<label for="${name}">${label}</label><input type="${type}" id="${name}" name="${name}" value="${esc(value ?? '')}" ${extra}>`
+  const form = `<form method="post" action="/join">
+    ${error ? `<div class="err">${esc(error)}</div>` : ''}
+    ${field('Name', 'name', values.name, 'required maxlength="100" autocomplete="name"')}
+    ${field('Email address', 'email', values.email, 'required maxlength="200" autocomplete="email" inputmode="email"', 'email')}
+    ${field('Phone (optional)', 'phone', values.phone, 'maxlength="40" autocomplete="tel"')}
+    ${field('Mailing address (optional)', 'address', values.address, 'maxlength="300" autocomplete="street-address"')}
+    <div style="position:absolute;left:-9999px" aria-hidden="true"><label for="company">Company</label><input type="text" id="company" name="company" tabindex="-1" autocomplete="off"></div>
+    <input type="hidden" name="via" value="qr">
+    <div class="actions"><button type="submit" style="width:100%">Sign me up</button></div>
+    <p class="muted" style="margin:14px 0 0">We'll email you a link to confirm. You can unsubscribe at any time.</p>
+  </form>`
+  const logo = `<p style="text-align:center;margin:0 0 6px"><img src="${esc(env.WORKER_URL)}/assets/logo.png" alt="Destined4Torah" width="280" style="max-width:100%;height:auto"></p>`
+  return htmlResponse('Join Destined4Torah', `<div class="wrap narrow"><div class="card">${logo}<h1 style="text-align:center;font-size:24px">Get Destined4Torah in your inbox</h1><p class="muted" style="text-align:center">Teaching and updates from Dr. Sanjay Prajapati.</p>${form}</div></div>`)
+}
+
+/** A simple signup page for the QR code: same double opt-in as the website form. */
+export async function handleJoin(request: Request, env: Env): Promise<Response> {
+  if (request.method === 'GET') return joinForm(env)
+
+  const values = await readBody(request.clone()).catch(() => ({}) as Record<string, unknown>)
+  const typed = { name: String(values.name ?? ''), email: String(values.email ?? ''), phone: String(values.phone ?? ''), address: String(values.address ?? '') }
+  const response = await handleSubscribe(request, env)
+  const result = (await response.json().catch(() => ({ ok: false, error: 'Something went wrong. Please try again.' }))) as { ok: boolean; error?: string }
+  if (!result.ok) return joinForm(env, typed, result.error ?? 'Something went wrong. Please try again.')
+  return messagePage('Check your email', `We sent a confirmation link to <strong>${esc(typed.email.trim())}</strong>. Open it and tap the button to finish subscribing. If you don't see it, check your spam folder.`)
 }

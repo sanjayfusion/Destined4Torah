@@ -8,6 +8,8 @@ export interface Env {
   SESSION_SECRET: string
   RESEND_API_KEY?: string
   RESEND_WEBHOOK_SECRET?: string
+  /** Only for local testing against a fake sending service. */
+  RESEND_API_URL?: string
   MAILING_ADDRESS?: string
 
   // Plain config (wrangler.toml [vars])

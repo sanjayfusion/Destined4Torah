@@ -5,7 +5,7 @@ import { bannerFor, emailConfigured, mailingAddress, renderCampaign, sendBatch, 
 import type { Campaign, Contact, Env, Subscriber } from './env'
 import { esc, htmlResponse } from './html'
 import { detectImageType, storeImage, toDataUri } from './images'
-import { processQueue } from './sender'
+import { processQueue, QUOTA_PAUSE_KEY } from './sender'
 import { clientIp, formatDate, normalizeEmail, now, randomToken, recordRequest, tooManyRequests } from './util'
 
 const PAGE_SIZE = 50
@@ -566,6 +566,7 @@ async function campaignReport(env: Env, campaign: Campaign, url: URL): Promise<R
   )
   const failure = await env.DB.prepare(`SELECT error FROM deliveries WHERE campaign_id = ? AND status = 'failed' AND error IS NOT NULL LIMIT 1`).bind(campaign.id).first<{ error: string }>()
   const stat = (label: string, n: number | undefined) => `<div class="stat"><b>${n ?? 0}</b><span class="muted">${label}</span></div>`
+  const paused = campaign.status === 'sending' && (await tooManyRequests(env.DB, QUOTA_PAUSE_KEY, 1, 3600))
   const refresh = campaign.status === 'sending' ? '<meta http-equiv="refresh" content="10">' : ''
   const who = async (type: string, label: string) => {
     const people = (
@@ -587,7 +588,9 @@ async function campaignReport(env: Env, campaign: Campaign, url: URL): Promise<R
     campaign.subject,
     `<h1>${esc(campaign.subject)}</h1><p><span class="pill ${campaign.status}">${campaign.status}</span> <span class="muted">${formatDate(campaign.sent_at ?? campaign.created_at)}</span></p>
     ${campaign.status === 'sending' ? '<div class="ok">Sending in the background. Large lists go out over several minutes. This page refreshes itself.</div>' : ''}
+    ${paused ? '<div class="warn">Paused: your sending service says its daily or monthly limit has been reached. The remaining emails will go out automatically once the limit resets (checked every hour), or right away if you upgrade the plan.</div>' : ''}
     ${failure ? `<div class="err">Some emails failed: ${esc(failure.error)}</div>` : ''}
+    ${(delivery.failed ?? 0) > 0 ? `<form method="post" action="/admin/campaigns/${campaign.id}/retry" style="margin:0 0 14px"><button type="submit" class="secondary">Retry ${delivery.failed} failed emails</button></form>` : ''}
     <div class="stats">${stat('Recipients', campaign.total_recipients)}${stat('Sent', delivery.sent)}${stat('Waiting', (delivery.pending ?? 0) + (delivery.sending ?? 0))}${stat('Failed', delivery.failed)}${stat('Skipped (opted out)', delivery.skipped)}</div>
     <h2>Results</h2><div class="stats">${stat('Delivered', events.delivered)}${stat('Opened', events.opened)}${stat('Clicked', events.clicked)}${stat('Bounced', events.bounced)}${stat('Spam complaints', events.complained)}</div>
     <p class="muted">Delivered, opened and clicked counts come from your sending service and appear once its webhook is connected (see the setup guide). Opens are a guide only: some mail apps, such as Apple Mail, load images automatically, which can count an open that never happened. Clicks are the more reliable signal.</p>
@@ -808,7 +811,7 @@ export async function handleAdmin(request: Request, env: Env, ctx: ExecutionCont
     })
   }
 
-  const campaignMatch = /^\/admin\/campaigns\/(\d+)(?:\/(send|delete|ai\/run|ai\/apply))?$/.exec(path)
+  const campaignMatch = /^\/admin\/campaigns\/(\d+)(?:\/(send|delete|retry|ai\/run|ai\/apply))?$/.exec(path)
   if (campaignMatch) {
     const id = Number(campaignMatch[1])
     const action = campaignMatch[2]
@@ -818,6 +821,16 @@ export async function handleAdmin(request: Request, env: Env, ctx: ExecutionCont
     if (action === 'delete' && post) {
       if (campaign.status === 'draft') await env.DB.prepare('DELETE FROM campaigns WHERE id = ?').bind(id).run()
       return redirect('/admin/campaigns', campaign.status === 'draft' ? 'Draft deleted.' : 'Sent emails cannot be deleted.', campaign.status === 'draft' ? 'ok' : 'err')
+    }
+    if (action === 'retry' && post) {
+      // Put emails that failed back in the queue (for example after a sending-limit problem).
+      const requeued = await env.DB.prepare(`UPDATE deliveries SET status = 'pending', attempts = 0, claimed_at = NULL, error = NULL WHERE campaign_id = ? AND status = 'failed'`).bind(id).run()
+      if (requeued.meta.changes > 0) {
+        await env.DB.prepare(`UPDATE campaigns SET status = 'sending' WHERE id = ? AND status = 'sent'`).bind(id).run()
+        await env.DB.prepare('DELETE FROM rate_limits WHERE key = ?').bind(QUOTA_PAUSE_KEY).run()
+        ctx.waitUntil(processQueue(env))
+      }
+      return redirect(`/admin/campaigns/${id}`, requeued.meta.changes > 0 ? `${requeued.meta.changes} emails put back in the queue.` : 'Nothing to retry.')
     }
     if (action === 'ai/run' && post) {
       const aiForm = await formData(request)
