@@ -1,9 +1,12 @@
 import { bannerFor, renderCampaign, sendBatch, unsubscribeHeaders, unsubscribeUrl, type Message } from './email'
 import type { Campaign, Env } from './env'
-import { now, sha256Hex } from './util'
+import { now, recordRequest, sha256Hex, tooManyRequests } from './util'
 
 const MAX_ATTEMPTS = 3
 const STALE_CLAIM_SECONDS = 10 * 60
+// After the sending service says the daily or monthly quota is used up, wait this long before trying again.
+const QUOTA_PAUSE_SECONDS = 60 * 60
+export const QUOTA_PAUSE_KEY = 'send-paused'
 
 interface Claimed {
   id: number
@@ -42,6 +45,7 @@ export async function processQueue(env: Env): Promise<number> {
 
   const campaign = await env.DB.prepare(`SELECT * FROM campaigns WHERE status = 'sending' ORDER BY id LIMIT 1`).first<Campaign>()
   if (!campaign) return 0
+  if (await tooManyRequests(env.DB, QUOTA_PAUSE_KEY, 1, QUOTA_PAUSE_SECONDS)) return 0
 
   const batchSize = Math.min(100, Math.max(1, Number.parseInt(env.SEND_BATCH_SIZE ?? '100', 10) || 100))
 
@@ -95,7 +99,7 @@ export async function processQueue(env: Env): Promise<number> {
   }
 
   if (toSend.length) {
-    const key = `c${campaign.id}-${(await sha256Hex(toSend.map((t) => t.claim.id).join(','))).slice(0, 40)}`
+    const key = `c${campaign.id}-${(await sha256Hex(`${toSend.map((t) => t.claim.id).join(',')}@${Math.floor(now() / 3600)}`)).slice(0, 40)}`
     const result = await sendBatch(env, toSend.map((t) => t.message), key)
     const ids = idList(toSend.map((t) => t.claim.id))
 
@@ -103,6 +107,12 @@ export async function processQueue(env: Env): Promise<number> {
       await env.DB.prepare(`UPDATE deliveries SET status = 'sent', sent_at = ?, claimed_at = NULL, error = NULL WHERE id IN (${ids})`).bind(now()).run()
     } else {
       console.error('Batch send failed:', result.error)
+      if (result.quota) {
+        // Not the recipients' fault: put them back in the queue and wait for the quota to reset.
+        await env.DB.prepare(`UPDATE deliveries SET status = 'pending', claimed_at = NULL, attempts = MAX(attempts - 1, 0), error = ? WHERE id IN (${ids})`).bind(result.error).run()
+        await recordRequest(env.DB, QUOTA_PAUSE_KEY)
+        return 0
+      }
       const retry = toSend.filter((t) => result.retryable && t.claim.attempts < MAX_ATTEMPTS).map((t) => t.claim.id)
       const fail = toSend.filter((t) => !retry.includes(t.claim.id)).map((t) => t.claim.id)
       if (retry.length) {

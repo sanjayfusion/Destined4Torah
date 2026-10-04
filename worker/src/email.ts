@@ -11,7 +11,7 @@ export interface Message {
   tags?: { name: string; value: string }[]
 }
 
-export type SendResult = { ok: true } | { ok: false; error: string; retryable: boolean }
+export type SendResult = { ok: true } | { ok: false; error: string; retryable: boolean; quota?: boolean }
 
 export function mailingAddress(env: Env): string {
   return (env.MAILING_ADDRESS ?? '').trim()
@@ -48,7 +48,7 @@ export async function sendBatch(env: Env, messages: Message[], idempotencyKey?: 
 
   let response: Response
   try {
-    response = await fetch('https://api.resend.com/emails/batch', {
+    response = await fetch(`${env.RESEND_API_URL || 'https://api.resend.com'}/emails/batch`, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${env.RESEND_API_KEY}`,
@@ -63,7 +63,8 @@ export async function sendBatch(env: Env, messages: Message[], idempotencyKey?: 
 
   if (response.ok) return { ok: true }
   const detail = (await response.text()).slice(0, 300)
-  return { ok: false, error: `Resend ${response.status}: ${detail}`, retryable: response.status >= 500 || response.status === 429 }
+  const quota = response.status === 429 && /quota/i.test(detail)
+  return { ok: false, error: `Resend ${response.status}: ${detail}`, retryable: response.status >= 500 || response.status === 429, quota }
 }
 
 /**
