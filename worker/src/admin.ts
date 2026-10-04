@@ -1,5 +1,6 @@
 import { checkPassword, clearSessionCookie, createSessionCookie, isAuthenticated, sameOrigin } from './auth'
 import { parseImport, type ContactRow, type ImportRow } from './csv'
+import { draftFromNotes, improveBody, suggestSubjects } from './ai'
 import { bannerFor, emailConfigured, mailingAddress, renderCampaign, sendBatch, type Banner } from './email'
 import type { Campaign, Contact, Env, Subscriber } from './env'
 import { esc, htmlResponse } from './html'
@@ -531,6 +532,15 @@ function composeForm(env: Env, campaign: Campaign | null, url: URL): Response {
       <label for="banner_alt">Describe the image (optional, for screen readers)</label><input id="banner_alt" name="banner_alt" type="text" maxlength="200" value="${esc(campaign?.banner_alt ?? '')}">
       <label for="body">Your newsletter (appears below the banner, after an automatic "Dear [name],")</label><textarea id="body" name="body" required>${esc(campaign?.body ?? STARTER_BODY)}</textarea>
       <p class="muted">Formatting: <code># Heading</code>, <code>**bold**</code>, <code>*italic*</code>, <code>[text](https://link)</code>, <code>![alt](https://image-url)</code>, <code>- list</code>, <code>&gt; quote</code>, <code>---</code> line. An unsubscribe link and your mailing address are added automatically.</p>
+      <div class="card" style="background:#fbf8f1;margin:18px 0 6px"><strong>AI writing helper</strong>
+        <p class="muted" style="margin:6px 0 0">Suggestions only. Nothing changes until you choose "Use this". AI can make mistakes, especially with Scripture references and facts, so read and edit before sending.</p>
+        <label for="notes">Notes for a first draft (optional): a few lines about what this email should say</label>
+        <textarea id="notes" name="notes" style="min-height:90px;font-family:inherit" placeholder="Example: This week's parashah is Bereshit. Theme: new beginnings. Mention that the study site now has interlinear Hebrew."></textarea>
+        <div class="actions">
+          <button type="submit" name="do" value="ai_subjects" class="secondary">Suggest subject lines</button>
+          <button type="submit" name="do" value="ai_improve" class="secondary">Improve my message</button>
+          <button type="submit" name="do" value="ai_draft" class="secondary">Write a draft from my notes</button>
+        </div></div>
       <label for="to">Send a test to</label><input id="to" name="to" type="email" placeholder="you@example.com">
       <div class="actions">
         <button type="submit" name="do" value="save">Save draft</button>
@@ -606,10 +616,15 @@ async function sendConfirmPage(env: Env, campaign: Campaign, url: URL): Promise<
 async function saveCampaign(request: Request, env: Env, id: number | null): Promise<Response> {
   const raw = await request.formData()
   const form = Object.fromEntries([...raw.entries()].map(([k, v]) => [k, typeof v === 'string' ? v : '']))
-  const subject = (form.subject ?? '').trim().slice(0, 200)
-  const body = form.body ?? ''
+  let subject = (form.subject ?? '').trim().slice(0, 200)
+  let body = form.body ?? ''
   const timestamp = now()
   const back = id ? `/admin/campaigns/${id}` : '/admin/campaigns/new'
+  const mode = form.do ?? ''
+  if (mode === 'ai_draft') {
+    if (!subject) subject = 'New email'
+    if (!body.trim()) body = STARTER_BODY
+  }
   if (!subject || !body.trim()) return redirect(back, 'A subject and a message are both required.', 'err')
 
   // Keep the current banner unless it is removed or a new file is chosen.
@@ -637,6 +652,7 @@ async function saveCampaign(request: Request, env: Env, id: number | null): Prom
   }
 
   const page = `/admin/campaigns/${campaignId}`
+  if (mode.startsWith('ai_')) return runAi(env, campaignId as number, mode, form.notes ?? '')
   if (form.do === 'review') return redirect(`${page}/send`)
   if (form.do === 'test') {
     const to = normalizeEmail(form.to ?? '')
@@ -647,6 +663,68 @@ async function saveCampaign(request: Request, env: Env, id: number | null): Prom
     return result.ok ? redirect(page, `Saved. Test email sent to ${to}.`) : redirect(page, `Saved, but the test failed: ${result.error}`, 'err')
   }
   return redirect(page, 'Draft saved.')
+}
+
+// ---------- AI writing helper ----------
+
+const AI_LIMIT_PER_HOUR = 40
+
+function aiPage(id: number, title: string, intro: string, body: string): Response {
+  return adminPage(
+    title,
+    `<h1>${esc(title)}</h1><p class="muted">${intro}</p>${body}
+    <div class="actions"><a class="btn secondary" href="/admin/campaigns/${id}">Back to the editor</a></div>`,
+  )
+}
+
+async function runAi(env: Env, id: number, mode: string, notes: string): Promise<Response> {
+  const campaign = await loadCampaign(env, id)
+  if (!campaign || campaign.status !== 'draft') return redirect('/admin/campaigns', 'That email can no longer be edited.', 'err')
+  if (await tooManyRequests(env.DB, 'ai', AI_LIMIT_PER_HOUR, 3600)) {
+    return redirect(`/admin/campaigns/${id}`, 'You have used the AI helper a lot this hour. Please try again later.', 'err')
+  }
+  await recordRequest(env.DB, 'ai')
+
+  const apply = (kind: 'subject' | 'body', value: string, label: string) =>
+    `<form method="post" action="/admin/campaigns/${id}/ai/apply" style="margin:0"><input type="hidden" name="kind" value="${kind}"><input type="hidden" name="value" value="${esc(value)}"><button type="submit">${label}</button></form>`
+  const again = `<form method="post" action="/admin/campaigns/${id}/ai/run" style="margin:0"><input type="hidden" name="mode" value="${esc(mode)}"><input type="hidden" name="notes" value="${esc(notes)}"><button type="submit" class="secondary">Try again</button></form>`
+
+  try {
+    if (mode === 'ai_subjects') {
+      const options = await suggestSubjects(env, campaign.subject, campaign.body)
+      if (options.length === 0) throw new Error('empty')
+      const items = options.map((o) => `<div class="card row" style="justify-content:space-between"><span>${esc(o)}</span>${apply('subject', o, 'Use this subject')}</div>`).join('')
+      return aiPage(id, 'Subject line ideas', 'Pick one to use as your subject, or go back and keep your own.', `${items}<div class="actions">${again}</div>`)
+    }
+    if (mode === 'ai_improve') {
+      const better = await improveBody(env, campaign.subject, campaign.body)
+      if (!better) throw new Error('empty')
+      const pre = (text: string) => `<pre style="white-space:pre-wrap;font:14px/1.5 ui-monospace,Menlo,monospace;margin:8px 0 0">${esc(text)}</pre>`
+      return aiPage(
+        id,
+        'Improved message',
+        'Compare the two versions. "Use this version" replaces your message with the improved one.',
+        `<div class="card"><strong>Suggested</strong>${pre(better)}</div><div class="card"><strong>Your current message</strong>${pre(campaign.body)}</div>
+        <div class="actions">${apply('body', better, 'Use this version')}${again}</div>`,
+      )
+    }
+    if (mode === 'ai_draft') {
+      if (!notes.trim()) return redirect(`/admin/campaigns/${id}`, 'Add a few notes first, then ask for a draft.', 'err')
+      const draft = await draftFromNotes(env, campaign.subject, notes)
+      if (!draft) throw new Error('empty')
+      return aiPage(
+        id,
+        'First draft',
+        'Read it carefully, especially any Scripture references. "Use this draft" replaces your message with it.',
+        `<div class="card"><pre style="white-space:pre-wrap;font:14px/1.5 ui-monospace,Menlo,monospace;margin:0">${esc(draft)}</pre></div>
+        <div class="actions">${apply('body', draft, 'Use this draft')}${again}</div>`,
+      )
+    }
+  } catch (error) {
+    console.error('AI helper failed:', error)
+    return redirect(`/admin/campaigns/${id}`, 'The AI helper is not available right now (it may be out of free uses for today). Please try again later.', 'err')
+  }
+  return redirect(`/admin/campaigns/${id}`)
 }
 
 async function sendCampaign(env: Env, ctx: ExecutionContext, id: number): Promise<Response> {
@@ -730,7 +808,7 @@ export async function handleAdmin(request: Request, env: Env, ctx: ExecutionCont
     })
   }
 
-  const campaignMatch = /^\/admin\/campaigns\/(\d+)(?:\/(send|delete))?$/.exec(path)
+  const campaignMatch = /^\/admin\/campaigns\/(\d+)(?:\/(send|delete|ai\/run|ai\/apply))?$/.exec(path)
   if (campaignMatch) {
     const id = Number(campaignMatch[1])
     const action = campaignMatch[2]
@@ -740,6 +818,23 @@ export async function handleAdmin(request: Request, env: Env, ctx: ExecutionCont
     if (action === 'delete' && post) {
       if (campaign.status === 'draft') await env.DB.prepare('DELETE FROM campaigns WHERE id = ?').bind(id).run()
       return redirect('/admin/campaigns', campaign.status === 'draft' ? 'Draft deleted.' : 'Sent emails cannot be deleted.', campaign.status === 'draft' ? 'ok' : 'err')
+    }
+    if (action === 'ai/run' && post) {
+      const aiForm = await formData(request)
+      return runAi(env, id, aiForm.mode ?? '', aiForm.notes ?? '')
+    }
+    if (action === 'ai/apply' && post) {
+      const aiForm = await formData(request)
+      const value = aiForm.value ?? ''
+      if (aiForm.kind === 'subject' && value.trim()) {
+        await env.DB.prepare(`UPDATE campaigns SET subject = ?, updated_at = ? WHERE id = ? AND status = 'draft'`).bind(value.trim().slice(0, 200), now(), id).run()
+        return redirect(`/admin/campaigns/${id}`, 'Subject updated.')
+      }
+      if (aiForm.kind === 'body' && value.trim()) {
+        await env.DB.prepare(`UPDATE campaigns SET body = ?, updated_at = ? WHERE id = ? AND status = 'draft'`).bind(value, now(), id).run()
+        return redirect(`/admin/campaigns/${id}`, 'Message updated.')
+      }
+      return redirect(`/admin/campaigns/${id}`)
     }
     if (action === 'send') {
       if (campaign.status !== 'draft') return redirect(`/admin/campaigns/${id}`)

@@ -31,3 +31,7 @@ SEND_BATCH_SIZE = "100"
 [[kv_namespaces]]
 binding = "IMAGES"
 id = "3c13752f4ebd47028fa05aac4f1b7950"
+
+# Cloudflare's built-in AI, used by the subject-line and message helpers.
+[ai]
+binding = "AI"
