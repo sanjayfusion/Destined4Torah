@@ -108,6 +108,15 @@ export function SubscribeForm() {
           )}
         </form>
       )}
+
+      {status !== 'done' && (
+        <div className="subscribe-qr">
+          <img src="/join-qr.svg" width={132} height={132} alt="QR code to join the email list from your phone" />
+          <p>
+            <strong>On a computer?</strong> Point your phone camera at this code to sign up from your phone.
+          </p>
+        </div>
+      )}
     </section>
   )
 }
