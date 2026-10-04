@@ -14,6 +14,7 @@ interface Claimed {
 interface Recipient {
   id: number
   email: string
+  name: string
   token: string
   status: string
 }
@@ -61,7 +62,7 @@ export async function processQueue(env: Env): Promise<number> {
   }
 
   const recipients = (
-    await env.DB.prepare(`SELECT id, email, token, status FROM subscribers WHERE id IN (${idList(claimed.map((c) => c.subscriber_id))})`).all<Recipient>()
+    await env.DB.prepare(`SELECT id, email, name, token, status FROM subscribers WHERE id IN (${idList(claimed.map((c) => c.subscriber_id))})`).all<Recipient>()
   ).results
   const bySubscriber = new Map(recipients.map((r) => [r.id, r]))
 
@@ -75,7 +76,7 @@ export async function processQueue(env: Env): Promise<number> {
       continue
     }
     const unsubUrl = unsubscribeUrl(env, recipient.token)
-    const { html, text } = renderCampaign(env, campaign.subject, campaign.body, unsubUrl, bannerFor(env, campaign))
+    const { html, text } = renderCampaign(env, campaign.subject, campaign.body, unsubUrl, bannerFor(env, campaign), recipient.name)
     toSend.push({
       claim,
       message: {

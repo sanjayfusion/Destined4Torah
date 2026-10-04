@@ -491,9 +491,7 @@ async function campaignsPage(env: Env, url: URL): Promise<Response> {
   )
 }
 
-const STARTER_BODY = `Shalom,
-
-Write your newsletter here.`
+const STARTER_BODY = `Write your newsletter here.`
 
 function composeForm(env: Env, campaign: Campaign | null, url: URL): Response {
   const action = campaign ? `/admin/campaigns/${campaign.id}` : '/admin/campaigns'
@@ -507,7 +505,7 @@ function composeForm(env: Env, campaign: Campaign | null, url: URL): Response {
       <input id="banner" name="banner" type="file" accept="image/png,image/jpeg,image/gif,image/webp">
       <input type="hidden" name="existing_banner" value="${esc(campaign?.banner_image ?? '')}">
       <label for="banner_alt">Describe the image (optional, for screen readers)</label><input id="banner_alt" name="banner_alt" type="text" maxlength="200" value="${esc(campaign?.banner_alt ?? '')}">
-      <label for="body">Your newsletter (appears below the banner)</label><textarea id="body" name="body" required>${esc(campaign?.body ?? STARTER_BODY)}</textarea>
+      <label for="body">Your newsletter (appears below the banner, after an automatic "Dear [name],")</label><textarea id="body" name="body" required>${esc(campaign?.body ?? STARTER_BODY)}</textarea>
       <p class="muted">Formatting: <code># Heading</code>, <code>**bold**</code>, <code>*italic*</code>, <code>[text](https://link)</code>, <code>![alt](https://image-url)</code>, <code>- list</code>, <code>&gt; quote</code>, <code>---</code> line. An unsubscribe link and your mailing address are added automatically.</p>
       <label for="to">Send a test to</label><input id="to" name="to" type="email" placeholder="you@example.com">
       <div class="actions">
@@ -544,7 +542,7 @@ async function campaignReport(env: Env, campaign: Campaign, url: URL): Promise<R
     <div class="stats">${stat('Recipients', campaign.total_recipients)}${stat('Sent', delivery.sent)}${stat('Waiting', (delivery.pending ?? 0) + (delivery.sending ?? 0))}${stat('Failed', delivery.failed)}${stat('Skipped (opted out)', delivery.skipped)}</div>
     <h2>Results</h2><div class="stats">${stat('Delivered', events.delivered)}${stat('Opened', events.opened)}${stat('Clicked', events.clicked)}${stat('Bounced', events.bounced)}${stat('Spam complaints', events.complained)}</div>
     <p class="muted">Delivered, opened and clicked counts come from your sending service and appear once its webhook is connected (see the setup guide).</p>
-    <h2>Message</h2><div class="card"><iframe title="Email preview" sandbox srcdoc="${esc(renderCampaign(env, campaign.subject, campaign.body, '#', bannerFor(env, campaign)).html)}" style="width:100%;height:520px;border:0"></iframe></div>`,
+    <h2>Message</h2><div class="card"><iframe title="Email preview" sandbox srcdoc="${esc(renderCampaign(env, campaign.subject, campaign.body, '#', bannerFor(env, campaign), '[Name]').html)}" style="width:100%;height:520px;border:0"></iframe></div>`,
     flashFrom(url),
     refresh,
   )
@@ -603,7 +601,8 @@ async function saveCampaign(request: Request, env: Env, id: number | null): Prom
   if (form.do === 'test') {
     const to = normalizeEmail(form.to ?? '')
     if (!to) return redirect(page, 'Saved, but enter a valid address to send a test to.', 'err')
-    const { html, text } = renderCampaign(env, `[TEST] ${subject}`, body, `${env.WORKER_URL}/unsubscribe?t=test`, bannerFor(env, { banner_image: bannerImage, banner_alt: bannerAlt }))
+    const known = await env.DB.prepare('SELECT name FROM subscribers WHERE email = ?').bind(to).first<{ name: string }>()
+    const { html, text } = renderCampaign(env, `[TEST] ${subject}`, body, `${env.WORKER_URL}/unsubscribe?t=test`, bannerFor(env, { banner_image: bannerImage, banner_alt: bannerAlt }), known?.name)
     const result = await sendBatch(env, [{ to, subject: `[TEST] ${subject}`, html, text }])
     return result.ok ? redirect(page, `Saved. Test email sent to ${to}.`) : redirect(page, `Saved, but the test failed: ${result.error}`, 'err')
   }
@@ -685,7 +684,7 @@ export async function handleAdmin(request: Request, env: Env, ctx: ExecutionCont
     } else if (/^[a-f0-9]{48}$/.test(form.existing_banner ?? '') && form.remove_banner !== 'yes') {
       banner = bannerFor(env, { banner_image: form.existing_banner, banner_alt: alt })
     }
-    const { html } = renderCampaign(env, form.subject ?? '', form.body ?? '', '#', banner)
+    const { html } = renderCampaign(env, form.subject ?? '', form.body ?? '', '#', banner, '[Name]')
     return new Response(html, {
       headers: { 'Content-Type': 'text/html; charset=utf-8', 'Content-Security-Policy': "default-src 'none'; style-src 'unsafe-inline'; img-src https: data:", 'Cache-Control': 'no-store' },
     })

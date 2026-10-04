@@ -1,4 +1,5 @@
 import type { Env } from './env'
+import { AUTHOR_JPG_BASE64 } from './author'
 import { LOGO_PNG_BASE64 } from './logo'
 import { randomToken } from './util'
 
@@ -40,6 +41,12 @@ let logoBytes: Uint8Array | null = null
 export function serveLogo(): Response {
   logoBytes ??= Uint8Array.from(atob(LOGO_PNG_BASE64), (c) => c.charCodeAt(0))
   return new Response(logoBytes, { headers: { 'Content-Type': 'image/png', 'Cache-Control': 'public, max-age=86400', 'X-Content-Type-Options': 'nosniff' } })
+}
+
+let authorBytes: Uint8Array | null = null
+export function serveAuthor(): Response {
+  authorBytes ??= Uint8Array.from(atob(AUTHOR_JPG_BASE64), (c) => c.charCodeAt(0))
+  return new Response(authorBytes, { headers: { 'Content-Type': 'image/jpeg', 'Cache-Control': 'public, max-age=86400', 'X-Content-Type-Options': 'nosniff' } })
 }
 
 /** For previews of an image that has not been saved yet. */
