@@ -95,11 +95,14 @@ function layout({ env, subject, bodyHtml, footerHtml, banner, authorPhoto }: Lay
   const photoHtml = authorPhoto
     ? `<p style="margin:28px 0 0;text-align:center"><img src="${esc(env.WORKER_URL)}/assets/author.jpg?v=${ASSET_VERSION}" width="260" height="260" alt="Dr. Sanjay Prajapati" style="width:260px;max-width:100%;height:auto;border:0;border-radius:12px"></p>`
     : ''
+  const stingHtml = authorPhoto
+    ? `<p style="margin:28px 0 0;text-align:center"><img src="${esc(env.WORKER_URL)}/assets/sting.png?v=${ASSET_VERSION}" width="536" alt="Destined4Torah" style="width:100%;max-width:536px;height:auto;border:0;border-radius:8px;background:#000000"></p>`
+    : ''
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(subject)}</title></head>
 <body style="margin:0;padding:0;background:#f4f1ea">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f4f1ea"><tr><td align="center" style="padding:24px 12px">
 <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%">
-<tr><td style="background:#ffffff;border:1px solid #e6e2d8;border-radius:12px;padding:30px 32px;font:16px/1.6 -apple-system,'Segoe UI',Roboto,Arial,sans-serif;color:#3b3544">${logo}${bannerHtml}${bodyHtml}${photoHtml}</td></tr>
+<tr><td style="background:#ffffff;border:1px solid #e6e2d8;border-radius:12px;padding:30px 32px;font:16px/1.6 -apple-system,'Segoe UI',Roboto,Arial,sans-serif;color:#3b3544">${logo}${bannerHtml}${bodyHtml}${photoHtml}${stingHtml}</td></tr>
 <tr><td style="padding:18px 12px 0;font:12px/1.6 Arial,sans-serif;color:#7a7285;text-align:center">${footerHtml}</td></tr>
 </table></td></tr></table></body></html>`
 }
@@ -112,9 +115,6 @@ function addressHtml(env: Env): string {
 export function bannerFor(env: Env, campaign: { banner_image: string; banner_alt: string }): Banner | undefined {
   return campaign.banner_image ? { src: `${env.WORKER_URL}/img/${campaign.banner_image}`, alt: campaign.banner_alt } : undefined
 }
-
-/** Shown in every newsletter footer, since opens and link clicks are measured. */
-const PRIVACY_NOTE = 'This email uses a small image and tracked links to measure whether it was opened and clicked.'
 
 /** The name shown in "Dear ...," when someone has none on file. */
 const FALLBACK_NAME = 'friend'
@@ -142,11 +142,11 @@ export function renderCampaign(
   const greetingHtml = `<p style="margin:0 0 16px">Dear ${esc(name)},</p>`
   const bodyHtml = `${headingMd ? markdownToHtml(headingMd) : ''}${greetingHtml}${markdownToHtml(restMd)}`
 
+  const updateUrl = unsubscribeUrl.replace('/unsubscribe?', '/preferences?')
   const footerHtml = `You are receiving this because you subscribed at ${esc(env.SITE_URL.replace(/^https?:\/\//, ''))}.<br>
-${esc(PRIVACY_NOTE)}<br>
-<a href="${esc(unsubscribeUrl)}" style="color:#7a7285">Unsubscribe</a><br>${addressHtml(env)}`
+<a href="${esc(updateUrl)}" style="color:#7a7285">Update your contact details</a> &nbsp;|&nbsp; <a href="${esc(unsubscribeUrl)}" style="color:#7a7285">Unsubscribe</a><br>${addressHtml(env)}`
   const textBody = [headingMd ? markdownToText(headingMd) : '', `Dear ${name},`, markdownToText(restMd)].filter(Boolean).join('\n\n')
-  const text = `${textBody}\n\n--\nYou are receiving this because you subscribed at ${env.SITE_URL}.\n${PRIVACY_NOTE}\nUnsubscribe: ${unsubscribeUrl}\n${mailingAddress(env)}`
+  const text = `${textBody}\n\n--\nYou are receiving this because you subscribed at ${env.SITE_URL}.\nUpdate your contact details: ${updateUrl}\nUnsubscribe: ${unsubscribeUrl}\n${mailingAddress(env)}`
   return { html: layout({ env, subject, bodyHtml, footerHtml, banner, authorPhoto: true }), text }
 }
 

@@ -1,6 +1,7 @@
 export interface Env {
   DB: D1Database
   IMAGES: KVNamespace
+  AI: Ai
 
   // Secrets (set with `wrangler secret put`, or .dev.vars locally)
   ADMIN_PASSWORD: string

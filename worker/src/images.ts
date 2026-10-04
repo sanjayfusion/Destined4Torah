@@ -1,6 +1,7 @@
 import type { Env } from './env'
 import { AUTHOR_JPG_BASE64 } from './author'
 import { LOGO_PNG_BASE64 } from './logo'
+import { STING_PNG_BASE64 } from './sting'
 import { randomToken } from './util'
 
 const MAX_IMAGE_BYTES = 8 * 1024 * 1024
@@ -41,6 +42,12 @@ let logoBytes: Uint8Array | null = null
 export function serveLogo(): Response {
   logoBytes ??= Uint8Array.from(atob(LOGO_PNG_BASE64), (c) => c.charCodeAt(0))
   return new Response(logoBytes, { headers: { 'Content-Type': 'image/png', 'Cache-Control': 'public, max-age=86400', 'X-Content-Type-Options': 'nosniff' } })
+}
+
+let stingBytes: Uint8Array | null = null
+export function serveSting(): Response {
+  stingBytes ??= Uint8Array.from(atob(STING_PNG_BASE64), (c) => c.charCodeAt(0))
+  return new Response(stingBytes, { headers: { 'Content-Type': 'image/png', 'Cache-Control': 'public, max-age=86400', 'X-Content-Type-Options': 'nosniff' } })
 }
 
 let authorBytes: Uint8Array | null = null
