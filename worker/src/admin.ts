@@ -101,6 +101,11 @@ function escapeLike(value: string): string {
   return value.replace(/[\\%_]/g, (c) => `\\${c}`)
 }
 
+// Opens and clicks recorded from the sending service, summed per email address.
+const ENGAGEMENT = `(SELECT LOWER(email) AS ev_email, SUM(type = 'opened') AS opens, SUM(type = 'clicked') AS clicks, MAX(created_at) AS last_engaged
+  FROM events WHERE type IN ('opened', 'clicked') GROUP BY LOWER(email))`
+const ENGAGED_DAYS = 90
+
 async function subscribersPage(env: Env, url: URL): Promise<Response> {
   const status = url.searchParams.get('status') ?? ''
   const q = (url.searchParams.get('q') ?? '').trim()
@@ -111,11 +116,25 @@ async function subscribersPage(env: Env, url: URL): Promise<Response> {
   const where = `WHERE (? = '' OR status = ?) AND (? = '' OR email LIKE ? ESCAPE '\\' OR name LIKE ? ESCAPE '\\' OR phone LIKE ? ESCAPE '\\')
     AND (? = '' OR (', ' || lists || ', ') LIKE ? ESCAPE '\\') AND (? = '' OR source_name = ?)`
   const src = url.searchParams.get('src') ?? ''
-  const binds = [status, status, q, like, like, like, list, `%, ${escapeLike(list)}, %`, src, src]
-  const total = (await env.DB.prepare(`SELECT COUNT(*) AS n FROM subscribers ${where}`).bind(...binds).first<{ n: number }>())?.n ?? 0
+  const eng = url.searchParams.get('eng') ?? ''
+  const engSql =
+    eng === 'engaged' ? 'AND e.last_engaged >= ?' : eng === 'clicked' ? 'AND e.clicks > 0' : eng === 'never' ? "AND status = 'confirmed' AND COALESCE(e.opens, 0) = 0 AND COALESCE(e.clicks, 0) = 0" : ''
+  const binds = [status, status, q, like, like, like, list, `%, ${escapeLike(list)}, %`, src, src, ...(eng === 'engaged' ? [now() - ENGAGED_DAYS * 86400] : [])]
+  const from = `FROM subscribers LEFT JOIN ${ENGAGEMENT} e ON e.ev_email = LOWER(subscribers.email) ${where} ${engSql}`
+  const total = (await env.DB.prepare(`SELECT COUNT(*) AS n ${from}`).bind(...binds).first<{ n: number }>())?.n ?? 0
   const people = (
-    await env.DB.prepare(`SELECT * FROM subscribers ${where} ORDER BY id DESC LIMIT ? OFFSET ?`).bind(...binds, PAGE_SIZE, (page - 1) * PAGE_SIZE).all<Subscriber>()
+    await env.DB.prepare(`SELECT subscribers.*, e.opens, e.clicks, e.last_engaged ${from} ORDER BY subscribers.id DESC LIMIT ? OFFSET ?`)
+      .bind(...binds, PAGE_SIZE, (page - 1) * PAGE_SIZE)
+      .all<Subscriber & { opens: number | null; clicks: number | null; last_engaged: number | null }>()
   ).results
+  const engOptions = [
+    ['', 'Everyone'],
+    ['engaged', `Opened or clicked in the last ${ENGAGED_DAYS} days`],
+    ['clicked', 'Has clicked a link'],
+    ['never', 'Never opened or clicked'],
+  ]
+    .map(([v, label]) => `<option value="${v}"${v === eng ? ' selected' : ''}>${esc(label)}</option>`)
+    .join('')
 
   const options = ['', 'confirmed', 'pending', 'unsubscribed', 'bounced', 'complained']
     .map((s) => `<option value="${s}"${s === status ? ' selected' : ''}>${s || 'All statuses'}</option>`)
@@ -133,23 +152,24 @@ async function subscribersPage(env: Env, url: URL): Promise<Response> {
   const rows = people.length
     ? people
         .map(
-          (s) => `<tr><td>${s.name ? esc(s.name) : '<span class="muted">(no name)</span>'}<br><span class="muted">${esc(s.email)}</span></td><td>${esc(s.phone)}</td><td class="muted">${esc(s.address)}</td><td class="muted">${esc(s.lists)}</td><td class="muted">${esc(s.source_name)}</td><td><span class="pill ${s.status}">${s.status}</span></td><td>${formatDate(s.created_at)}</td>
+          (s) => `<tr><td>${s.name ? esc(s.name) : '<span class="muted">(no name)</span>'}<br><span class="muted">${esc(s.email)}</span></td><td>${esc(s.phone)}</td><td class="muted">${esc(s.address)}</td><td class="muted">${esc(s.lists)}</td><td class="muted">${esc(s.source_name)}</td><td><span class="pill ${s.status}">${s.status}</span></td>
+          <td class="muted">${s.opens || s.clicks ? `${s.opens ?? 0} open${s.opens === 1 ? '' : 's'} · ${s.clicks ?? 0} click${s.clicks === 1 ? '' : 's'}<br>last ${esc(formatDate(s.last_engaged).slice(0, 10))}` : '—'}</td><td>${formatDate(s.created_at)}</td>
           <td><form method="post" action="/admin/subscribers/${s.id}/delete" style="margin:0"><button class="link" type="submit">Delete</button></form></td></tr>`,
         )
         .join('')
-    : '<tr><td colspan="8" class="muted">No subscribers match.</td></tr>'
+    : '<tr><td colspan="9" class="muted">No subscribers match.</td></tr>'
 
   const pages = Math.max(1, Math.ceil(total / PAGE_SIZE))
-  const query = (p: number) => `/admin/subscribers?status=${encodeURIComponent(status)}&list=${encodeURIComponent(list)}&src=${encodeURIComponent(src)}&q=${encodeURIComponent(q)}&page=${p}`
+  const query = (p: number) => `/admin/subscribers?status=${encodeURIComponent(status)}&list=${encodeURIComponent(list)}&src=${encodeURIComponent(src)}&eng=${encodeURIComponent(eng)}&q=${encodeURIComponent(q)}&page=${p}`
   const pager = `<p class="muted">${total} people · page ${page} of ${pages} ${page > 1 ? `· <a href="${query(page - 1)}">Previous</a>` : ''} ${page < pages ? `· <a href="${query(page + 1)}">Next</a>` : ''}</p>`
 
   return adminPage(
     'Subscribers',
     `<h1>Subscribers</h1>
     <form method="get" class="row" style="margin-bottom:14px"><input type="search" name="q" value="${esc(q)}" placeholder="Search name, email or phone" style="max-width:280px">
-      <select name="status" style="max-width:170px">${options}</select><select name="list" style="max-width:260px">${listOptions}</select><select name="src" style="max-width:200px">${sourceOptions}</select><button type="submit" class="secondary">Filter</button>
+      <select name="status" style="max-width:170px">${options}</select><select name="list" style="max-width:260px">${listOptions}</select><select name="src" style="max-width:200px">${sourceOptions}</select><select name="eng" style="max-width:260px">${engOptions}</select><button type="submit" class="secondary">Filter</button>
       <a class="btn secondary" href="/admin/subscribers.csv?status=${encodeURIComponent(status)}&list=${encodeURIComponent(list)}&src=${encodeURIComponent(src)}">Export CSV</a><a class="btn" href="/admin/import">Add or import</a></form>
-    <div class="card"><table><tr><th>Name / email</th><th>Phone</th><th>Address</th><th>Lists</th><th>Source</th><th>Status</th><th>Joined</th><th></th></tr>${rows}</table>${pager}</div>`,
+    <div class="card"><table><tr><th>Name / email</th><th>Phone</th><th>Address</th><th>Lists</th><th>Source</th><th>Status</th><th>Engagement</th><th>Joined</th><th></th></tr>${rows}</table>${pager}</div>`,
     flashFrom(url),
   )
 }
@@ -166,15 +186,19 @@ async function exportCsv(env: Env, url: URL): Promise<Response> {
   const src = url.searchParams.get('src') ?? ''
   const rows = (
     await env.DB.prepare(
-      `SELECT email, name, phone, address, lists, source_name, status, created_at FROM subscribers
-       WHERE (? = '' OR status = ?) AND (? = '' OR (', ' || lists || ', ') LIKE ? ESCAPE '\\') AND (? = '' OR source_name = ?) ORDER BY id`,
+      `SELECT subscribers.email, subscribers.name, subscribers.phone, subscribers.address, subscribers.lists, subscribers.source_name, subscribers.status, subscribers.created_at,
+         e.opens, e.clicks, e.last_engaged
+       FROM subscribers LEFT JOIN ${ENGAGEMENT} e ON e.ev_email = LOWER(subscribers.email)
+       WHERE (? = '' OR status = ?) AND (? = '' OR (', ' || lists || ', ') LIKE ? ESCAPE '\\') AND (? = '' OR source_name = ?) ORDER BY subscribers.id`,
     )
       .bind(status, status, list, `%, ${escapeLike(list)}, %`, src, src)
-      .all<Subscriber>()
+      .all<Subscriber & { opens: number | null; clicks: number | null; last_engaged: number | null }>()
   ).results
   const lines = [
-    'email,name,phone,address,lists,source,status,joined',
-    ...rows.map((r) => [r.email, r.name, r.phone, r.address, r.lists, r.source_name, r.status, formatDate(r.created_at)].map(csvCell).join(',')),
+    'email,name,phone,address,lists,source,status,opens,clicks,last_engaged,joined',
+    ...rows.map((r) =>
+      [r.email, r.name, r.phone, r.address, r.lists, r.source_name, r.status, String(r.opens ?? 0), String(r.clicks ?? 0), formatDate(r.last_engaged), formatDate(r.created_at)].map(csvCell).join(','),
+    ),
   ]
   return new Response(lines.join('\n'), {
     headers: { 'Content-Type': 'text/csv; charset=utf-8', 'Content-Disposition': 'attachment; filename="subscribers.csv"', 'Cache-Control': 'no-store' },
@@ -533,6 +557,21 @@ async function campaignReport(env: Env, campaign: Campaign, url: URL): Promise<R
   const failure = await env.DB.prepare(`SELECT error FROM deliveries WHERE campaign_id = ? AND status = 'failed' AND error IS NOT NULL LIMIT 1`).bind(campaign.id).first<{ error: string }>()
   const stat = (label: string, n: number | undefined) => `<div class="stat"><b>${n ?? 0}</b><span class="muted">${label}</span></div>`
   const refresh = campaign.status === 'sending' ? '<meta http-equiv="refresh" content="10">' : ''
+  const who = async (type: string, label: string) => {
+    const people = (
+      await env.DB.prepare(
+        `SELECT LOWER(e.email) AS email, (SELECT name FROM subscribers WHERE email = e.email) AS name, COUNT(*) AS times
+         FROM events e WHERE e.campaign_id = ? AND e.type = ? GROUP BY LOWER(e.email) ORDER BY times DESC, name LIMIT 300`,
+      )
+        .bind(campaign.id, type)
+        .all<{ email: string; name: string | null; times: number }>()
+    ).results
+    if (people.length === 0) return ''
+    const items = people.map((p) => `<li>${p.name ? `${esc(p.name)} <span class="muted">${esc(p.email)}</span>` : esc(p.email)}${p.times > 1 ? ` <span class="muted">(${p.times}×)</span>` : ''}</li>`).join('')
+    return `<details class="card"><summary><strong>${label} (${people.length})</strong></summary><ul style="margin:10px 0 0;padding-left:20px">${items}</ul></details>`
+  }
+  const openedList = await who('opened', 'Who opened this email')
+  const clickedList = await who('clicked', 'Who clicked a link')
 
   return adminPage(
     campaign.subject,
@@ -541,7 +580,8 @@ async function campaignReport(env: Env, campaign: Campaign, url: URL): Promise<R
     ${failure ? `<div class="err">Some emails failed: ${esc(failure.error)}</div>` : ''}
     <div class="stats">${stat('Recipients', campaign.total_recipients)}${stat('Sent', delivery.sent)}${stat('Waiting', (delivery.pending ?? 0) + (delivery.sending ?? 0))}${stat('Failed', delivery.failed)}${stat('Skipped (opted out)', delivery.skipped)}</div>
     <h2>Results</h2><div class="stats">${stat('Delivered', events.delivered)}${stat('Opened', events.opened)}${stat('Clicked', events.clicked)}${stat('Bounced', events.bounced)}${stat('Spam complaints', events.complained)}</div>
-    <p class="muted">Delivered, opened and clicked counts come from your sending service and appear once its webhook is connected (see the setup guide).</p>
+    <p class="muted">Delivered, opened and clicked counts come from your sending service and appear once its webhook is connected (see the setup guide). Opens are a guide only: some mail apps, such as Apple Mail, load images automatically, which can count an open that never happened. Clicks are the more reliable signal.</p>
+    ${openedList}${clickedList}
     <h2>Message</h2><div class="card"><iframe title="Email preview" sandbox srcdoc="${esc(renderCampaign(env, campaign.subject, campaign.body, '#', bannerFor(env, campaign), '[Name]').html)}" style="width:100%;height:520px;border:0"></iframe></div>`,
     flashFrom(url),
     refresh,
