@@ -70,7 +70,7 @@ export async function sendBatch(env: Env, messages: Message[], idempotencyKey?: 
  * Mail apps cache email images by address, so a changed logo or photo would keep
  * showing the old one. Bump this number whenever either image is replaced.
  */
-const ASSET_VERSION = '2'
+const ASSET_VERSION = '3'
 
 export interface Banner {
   src: string
