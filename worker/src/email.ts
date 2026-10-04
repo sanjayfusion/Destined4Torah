@@ -113,9 +113,6 @@ export function bannerFor(env: Env, campaign: { banner_image: string; banner_alt
   return campaign.banner_image ? { src: `${env.WORKER_URL}/img/${campaign.banner_image}`, alt: campaign.banner_alt } : undefined
 }
 
-/** Shown in every newsletter footer, since opens and link clicks are measured. */
-const PRIVACY_NOTE = 'This email uses a small image and tracked links to measure whether it was opened and clicked.'
-
 /** The name shown in "Dear ...," when someone has none on file. */
 const FALLBACK_NAME = 'friend'
 
@@ -143,10 +140,9 @@ export function renderCampaign(
   const bodyHtml = `${headingMd ? markdownToHtml(headingMd) : ''}${greetingHtml}${markdownToHtml(restMd)}`
 
   const footerHtml = `You are receiving this because you subscribed at ${esc(env.SITE_URL.replace(/^https?:\/\//, ''))}.<br>
-${esc(PRIVACY_NOTE)}<br>
 <a href="${esc(unsubscribeUrl)}" style="color:#7a7285">Unsubscribe</a><br>${addressHtml(env)}`
   const textBody = [headingMd ? markdownToText(headingMd) : '', `Dear ${name},`, markdownToText(restMd)].filter(Boolean).join('\n\n')
-  const text = `${textBody}\n\n--\nYou are receiving this because you subscribed at ${env.SITE_URL}.\n${PRIVACY_NOTE}\nUnsubscribe: ${unsubscribeUrl}\n${mailingAddress(env)}`
+  const text = `${textBody}\n\n--\nYou are receiving this because you subscribed at ${env.SITE_URL}.\nUnsubscribe: ${unsubscribeUrl}\n${mailingAddress(env)}`
   return { html: layout({ env, subject, bodyHtml, footerHtml, banner, authorPhoto: true }), text }
 }
 
