@@ -107,11 +107,37 @@ export function bannerFor(env: Env, campaign: { banner_image: string; banner_alt
   return campaign.banner_image ? { src: `${env.WORKER_URL}/img/${campaign.banner_image}`, alt: campaign.banner_alt } : undefined
 }
 
-export function renderCampaign(env: Env, subject: string, markdown: string, unsubscribeUrl: string, banner?: Banner): { html: string; text: string } {
+/** The name shown in "Dear ...," when someone has none on file. */
+const FALLBACK_NAME = 'friend'
+
+/**
+ * Renders a newsletter. Every newsletter opens with "Dear <name>," for each
+ * recipient. If the message starts with a # headline, the greeting goes right
+ * below it, so the layout reads: banner, headline, "Dear ...,", the message.
+ */
+export function renderCampaign(
+  env: Env,
+  subject: string,
+  markdown: string,
+  unsubscribeUrl: string,
+  banner?: Banner,
+  recipientName?: string,
+): { html: string; text: string } {
+  const name = (recipientName ?? '').trim() || FALLBACK_NAME
+  const lines = markdown.replace(/\r\n?/g, '\n').split('\n')
+  const firstIndex = lines.findIndex((l) => l.trim())
+  const startsWithHeading = firstIndex >= 0 && /^#{1,3}\s+/.test(lines[firstIndex].trim())
+  const headingMd = startsWithHeading ? lines[firstIndex] : ''
+  const restMd = startsWithHeading ? lines.slice(firstIndex + 1).join('\n') : markdown
+
+  const greetingHtml = `<p style="margin:0 0 16px">Dear ${esc(name)},</p>`
+  const bodyHtml = `${headingMd ? markdownToHtml(headingMd) : ''}${greetingHtml}${markdownToHtml(restMd)}`
+
   const footerHtml = `You are receiving this because you subscribed at ${esc(env.SITE_URL.replace(/^https?:\/\//, ''))}.<br>
 <a href="${esc(unsubscribeUrl)}" style="color:#7a7285">Unsubscribe</a><br>${addressHtml(env)}`
-  const text = `${markdownToText(markdown)}\n\n--\nYou are receiving this because you subscribed at ${env.SITE_URL}.\nUnsubscribe: ${unsubscribeUrl}\n${mailingAddress(env)}`
-  return { html: layout({ env, subject, bodyHtml: markdownToHtml(markdown), footerHtml, banner, authorPhoto: true }), text }
+  const textBody = [headingMd ? markdownToText(headingMd) : '', `Dear ${name},`, markdownToText(restMd)].filter(Boolean).join('\n\n')
+  const text = `${textBody}\n\n--\nYou are receiving this because you subscribed at ${env.SITE_URL}.\nUnsubscribe: ${unsubscribeUrl}\n${mailingAddress(env)}`
+  return { html: layout({ env, subject, bodyHtml, footerHtml, banner, authorPhoto: true }), text }
 }
 
 export function renderConfirmation(env: Env, name: string, confirmUrl: string): { subject: string; html: string; text: string } {
