@@ -21,7 +21,7 @@ WORKER_URL = "https://d4t-mail.d4t-mail.workers.dev"
 FROM_NAME = "Destined4Torah"
 # Must be an address on a domain verified with your sending service.
 FROM_EMAIL = "newsletter@mail.destined4torah.com"
-REPLY_TO = ""
+REPLY_TO = "destined4torah@gmail.com"
 # MAILING_ADDRESS (required by CAN-SPAM, shown in every email) is a secret, not a
 # variable, so it stays out of this public repo: `wrangler secret put MAILING_ADDRESS`.
 # Emails sent per minute (max 100 per batch call).
