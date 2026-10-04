@@ -1,7 +1,7 @@
 import { handleAdmin } from './admin'
 import type { Env } from './env'
 import { serveAuthor, serveImage, serveLogo, serveSting } from './images'
-import { handleConfirm, handleSubscribe, handleSubscribeOptions, handleUnsubscribe } from './public'
+import { handleConfirm, handlePreferences, handleSubscribe, handleSubscribeOptions, handleUnsubscribe } from './public'
 import { processQueue } from './sender'
 import { now } from './util'
 import { handleResendWebhook } from './webhook'
@@ -20,6 +20,7 @@ async function route(request: Request, env: Env, ctx: ExecutionContext): Promise
   if (pathname === '/assets/sting.png' && request.method === 'GET') return serveSting()
   if (pathname === '/assets/author.jpg' && request.method === 'GET') return serveAuthor()
   if (pathname === '/confirm' && request.method === 'GET') return handleConfirm(request, env)
+  if (pathname === '/preferences' && (request.method === 'GET' || request.method === 'POST')) return handlePreferences(request, env)
   if (pathname === '/unsubscribe' && (request.method === 'GET' || request.method === 'POST')) return handleUnsubscribe(request, env)
   if (pathname === '/webhooks/resend' && request.method === 'POST') return handleResendWebhook(request, env)
   if (pathname === '/admin' || pathname.startsWith('/admin/')) return handleAdmin(request, env, ctx)

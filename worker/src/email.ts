@@ -142,10 +142,11 @@ export function renderCampaign(
   const greetingHtml = `<p style="margin:0 0 16px">Dear ${esc(name)},</p>`
   const bodyHtml = `${headingMd ? markdownToHtml(headingMd) : ''}${greetingHtml}${markdownToHtml(restMd)}`
 
+  const updateUrl = unsubscribeUrl.replace('/unsubscribe?', '/preferences?')
   const footerHtml = `You are receiving this because you subscribed at ${esc(env.SITE_URL.replace(/^https?:\/\//, ''))}.<br>
-<a href="${esc(unsubscribeUrl)}" style="color:#7a7285">Unsubscribe</a><br>${addressHtml(env)}`
+<a href="${esc(updateUrl)}" style="color:#7a7285">Update your contact details</a> &nbsp;|&nbsp; <a href="${esc(unsubscribeUrl)}" style="color:#7a7285">Unsubscribe</a><br>${addressHtml(env)}`
   const textBody = [headingMd ? markdownToText(headingMd) : '', `Dear ${name},`, markdownToText(restMd)].filter(Boolean).join('\n\n')
-  const text = `${textBody}\n\n--\nYou are receiving this because you subscribed at ${env.SITE_URL}.\nUnsubscribe: ${unsubscribeUrl}\n${mailingAddress(env)}`
+  const text = `${textBody}\n\n--\nYou are receiving this because you subscribed at ${env.SITE_URL}.\nUpdate your contact details: ${updateUrl}\nUnsubscribe: ${unsubscribeUrl}\n${mailingAddress(env)}`
   return { html: layout({ env, subject, bodyHtml, footerHtml, banner, authorPhoto: true }), text }
 }
 

@@ -657,8 +657,8 @@ async function saveCampaign(request: Request, env: Env, id: number | null): Prom
   if (form.do === 'test') {
     const to = normalizeEmail(form.to ?? '')
     if (!to) return redirect(page, 'Saved, but enter a valid address to send a test to.', 'err')
-    const known = await env.DB.prepare('SELECT name FROM subscribers WHERE email = ?').bind(to).first<{ name: string }>()
-    const { html, text } = renderCampaign(env, `[TEST] ${subject}`, body, `${env.WORKER_URL}/unsubscribe?t=test`, bannerFor(env, { banner_image: bannerImage, banner_alt: bannerAlt }), known?.name)
+    const known = await env.DB.prepare('SELECT name, token FROM subscribers WHERE email = ?').bind(to).first<{ name: string; token: string }>()
+    const { html, text } = renderCampaign(env, `[TEST] ${subject}`, body, `${env.WORKER_URL}/unsubscribe?t=${known?.token ?? 'test'}`, bannerFor(env, { banner_image: bannerImage, banner_alt: bannerAlt }), known?.name)
     const result = await sendBatch(env, [{ to, subject: `[TEST] ${subject}`, html, text }])
     return result.ok ? redirect(page, `Saved. Test email sent to ${to}.`) : redirect(page, `Saved, but the test failed: ${result.error}`, 'err')
   }

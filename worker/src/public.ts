@@ -1,6 +1,6 @@
 import { renderConfirmation, sendBatch } from './email'
 import type { Env, Subscriber } from './env'
-import { esc, messagePage } from './html'
+import { esc, htmlResponse, messagePage } from './html'
 import { clientIp, normalizeEmail, now, randomToken, recordRequest, tooManyRequests } from './util'
 
 const CONFIRM_RESEND_COOLDOWN_SECONDS = 10 * 60
@@ -138,4 +138,46 @@ export async function handleUnsubscribe(request: Request, env: Env): Promise<Res
     await env.DB.prepare(`UPDATE subscribers SET status = 'unsubscribed', unsubscribed_at = ? WHERE id = ?`).bind(now(), subscriber.id).run()
   }
   return messagePage("You've been unsubscribed", `You will no longer receive email from ${esc(env.FROM_NAME)}. <a href="${esc(env.SITE_URL)}">Return to the website</a>.`)
+}
+
+function preferencesForm(subscriber: Subscriber, token: string, error = ''): Response {
+  const field = (label: string, name: string, value: string, extra = '') =>
+    `<label for="${name}">${label}</label><input type="text" id="${name}" name="${name}" value="${esc(value)}" ${extra}>`
+  const form = `<form method="post" action="/preferences?t=${encodeURIComponent(token)}">
+    ${error ? `<div class="err">${esc(error)}</div>` : ''}
+    <label>Email address</label><p style="margin:0">${esc(subscriber.email)}</p>
+    <p class="muted" style="margin:4px 0 0">To use a different email address, just reply to any newsletter and I'll change it for you.</p>
+    ${field('Name', 'name', subscriber.name, 'required maxlength="100" autocomplete="name"')}
+    ${field('Phone (optional)', 'phone', subscriber.phone, 'maxlength="40" autocomplete="tel"')}
+    ${field('Mailing address (optional)', 'address', subscriber.address, 'maxlength="300" autocomplete="street-address"')}
+    <div class="actions"><button type="submit">Save my details</button></div>
+  </form>`
+  return htmlResponse('Update your details', `<div class="wrap narrow"><div class="card"><h1>Update your details</h1><p class="muted">Keep your contact details current so I can stay in touch.</p>${form}</div></div>`)
+}
+
+/** Lets a subscriber update their own name, phone and address from the link in every email. */
+export async function handlePreferences(request: Request, env: Env): Promise<Response> {
+  const token = new URL(request.url).searchParams.get('t')
+  const subscriber = await findByToken(env, token)
+  if (!subscriber || !token) return messagePage('Link not valid', 'This link is not valid. Please use the link in your most recent email from Destined4Torah.', 404)
+
+  if (request.method === 'GET') return preferencesForm(subscriber, token)
+
+  const ip = clientIp(request)
+  if (await tooManyRequests(env.DB, `prefs:${ip}`, 30, 3600)) return messagePage('Too many attempts', 'Please try again later.', 429)
+  await recordRequest(env.DB, `prefs:${ip}`)
+
+  let body: Record<string, unknown>
+  try {
+    body = await readBody(request)
+  } catch {
+    return messagePage('Something went wrong', 'Please go back and try again.', 400)
+  }
+  const name = String(body.name ?? '').trim().slice(0, 100)
+  const phone = String(body.phone ?? '').trim().slice(0, 40)
+  const address = String(body.address ?? '').trim().slice(0, 300)
+  if (!name) return preferencesForm({ ...subscriber, name, phone, address }, token, 'Please enter your name.')
+
+  await env.DB.prepare('UPDATE subscribers SET name = ?, phone = ?, address = ? WHERE id = ?').bind(name, phone, address, subscriber.id).run()
+  return messagePage('Details updated', `Thank you, ${esc(name)}. Your details have been saved. <a href="${esc(env.SITE_URL)}">Return to the website</a>.`)
 }
