@@ -56,7 +56,9 @@ export function markdownToHtml(source: string): string {
       const level = heading[1].length
       const size = level === 1 ? 28 : level === 2 ? 22 : 18
       const align = level === 1 ? 'center' : 'left'
-      blocks.push(`<h${level} style="margin:24px 0 12px;font:700 ${size}px/1.25 Arial,Helvetica,sans-serif;color:#1a1522;text-align:${align}">${inline(heading[2])}</h${level}>`)
+      // The main headline gets extra room before the greeting; subheadings stay snug to their text.
+      const bottom = level === 1 ? 22 : 12
+      blocks.push(`<h${level} style="margin:24px 0 ${bottom}px;font:700 ${size}px/1.25 Arial,Helvetica,sans-serif;color:#1a1522;text-align:${align}">${inline(heading[2])}</h${level}>`)
     } else if (/^---+$/.test(trimmed)) {
       flush()
       blocks.push('<hr style="border:0;border-top:1px solid #e6e2d8;margin:22px 0">')
