@@ -601,16 +601,37 @@ async function campaignReport(env: Env, campaign: Campaign, url: URL): Promise<R
   )
 }
 
+/** SQL condition: confirmed people who were sent an earlier email but have not opened or clicked it (or any address with the same name that did). */
+function unopenedFilter(earlierId: number): string {
+  if (!Number.isInteger(earlierId)) throw new Error('Non-integer id')
+  const engaged = `SELECT LOWER(email) FROM events WHERE campaign_id = ${earlierId} AND type IN ('opened', 'clicked')`
+  return `id IN (SELECT subscriber_id FROM deliveries WHERE campaign_id = ${earlierId} AND status = 'sent')
+    AND LOWER(email) NOT IN (${engaged})
+    AND (name = '' OR LOWER(name) NOT IN (SELECT LOWER(s2.name) FROM subscribers s2 WHERE s2.name != '' AND LOWER(s2.email) IN (${engaged})))`
+}
+
 async function sendConfirmPage(env: Env, campaign: Campaign, url: URL): Promise<Response> {
   const confirmed = (await env.DB.prepare(`SELECT COUNT(*) AS n FROM subscribers WHERE status = 'confirmed'`).first<{ n: number }>())?.n ?? 0
-  const blocked = !mailingAddress(env) ? 'Add your mailing address (MAILING_ADDRESS) before sending. It is required by law in every email.' : confirmed === 0 ? 'There are no confirmed subscribers to send to yet.' : ''
+  const earlier = (
+    await env.DB.prepare(`SELECT id, subject FROM campaigns WHERE status = 'sent' AND id != ? ORDER BY id DESC LIMIT 5`).bind(campaign.id).all<{ id: number; subject: string }>()
+  ).results
+  const chosen = earlier.find((c) => String(c.id) === url.searchParams.get('unopened'))
+  const audienceCount = chosen
+    ? ((await env.DB.prepare(`SELECT COUNT(*) AS n FROM subscribers WHERE status = 'confirmed' AND ${unopenedFilter(chosen.id)}`).first<{ n: number }>())?.n ?? 0)
+    : confirmed
+  const blocked = !mailingAddress(env) ? 'Add your mailing address (MAILING_ADDRESS) before sending. It is required by law in every email.' : audienceCount === 0 ? 'There is nobody to send this to.' : ''
+  const choices = earlier.length
+    ? `<p class="muted" style="margin:0 0 6px">Who should get it?</p>
+       <p style="margin:0 0 14px"><a href="/admin/campaigns/${campaign.id}/send">Everyone (${confirmed})</a>${earlier.map((c) => ` &nbsp;|&nbsp; <a href="/admin/campaigns/${campaign.id}/send?unopened=${c.id}">Only people who haven't opened "${esc(c.subject)}"</a>`).join('')}</p>`
+    : ''
   return adminPage(
     'Send email',
-    `${warnings(env)}<h1>Send to everyone?</h1><div class="card">
+    `${warnings(env)}<h1>${chosen ? 'Send to people who have not opened it?' : 'Send to everyone?'}</h1><div class="card">
       <p><strong>${esc(campaign.subject)}</strong></p>
-      <p>This will send to <strong>${confirmed}</strong> confirmed subscribers. It cannot be undone.</p>
+      ${choices}
+      <p>This will send to <strong>${audienceCount}</strong> ${chosen ? `confirmed subscribers who were sent "${esc(chosen.subject)}" but have not opened it or clicked a link` : 'confirmed subscribers'}. It cannot be undone.</p>
       ${blocked ? `<div class="err">${esc(blocked)}</div>` : ''}
-      <form method="post" action="/admin/campaigns/${campaign.id}/send"><div class="actions">
+      <form method="post" action="/admin/campaigns/${campaign.id}/send"><input type="hidden" name="unopened" value="${chosen ? chosen.id : ''}"><div class="actions">
         <button type="submit" class="danger"${blocked ? ' disabled' : ''}>Send now</button><a class="btn secondary" href="/admin/campaigns/${campaign.id}">Back to edit</a></div></form></div>`,
     flashFrom(url),
   )
@@ -730,14 +751,14 @@ async function runAi(env: Env, id: number, mode: string, notes: string): Promise
   return redirect(`/admin/campaigns/${id}`)
 }
 
-async function sendCampaign(env: Env, ctx: ExecutionContext, id: number): Promise<Response> {
+async function sendCampaign(env: Env, ctx: ExecutionContext, id: number, unopenedId = 0): Promise<Response> {
   if (!mailingAddress(env)) return redirect(`/admin/campaigns/${id}/send`, 'Add your mailing address before sending.', 'err')
 
   // Queue every confirmed subscriber and flip to "sending" in one transaction.
   const results = await env.DB.batch([
     env.DB.prepare(
       `INSERT OR IGNORE INTO deliveries (campaign_id, subscriber_id)
-       SELECT ?, id FROM subscribers WHERE status = 'confirmed' AND (SELECT status FROM campaigns WHERE id = ?) = 'draft'`,
+       SELECT ?, id FROM subscribers WHERE status = 'confirmed' AND (SELECT status FROM campaigns WHERE id = ?) = 'draft'${unopenedId ? ` AND ${unopenedFilter(unopenedId)}` : ''}`,
     ).bind(id, id),
     env.DB.prepare(
       `UPDATE campaigns SET status = 'sending', total_recipients = (SELECT COUNT(*) FROM deliveries WHERE campaign_id = ?), updated_at = ? WHERE id = ? AND status = 'draft'`,
@@ -851,7 +872,10 @@ export async function handleAdmin(request: Request, env: Env, ctx: ExecutionCont
     }
     if (action === 'send') {
       if (campaign.status !== 'draft') return redirect(`/admin/campaigns/${id}`)
-      return post ? sendCampaign(env, ctx, id) : sendConfirmPage(env, campaign, url)
+      if (!post) return sendConfirmPage(env, campaign, url)
+      const sendForm = await formData(request)
+      const earlierId = Number(sendForm.unopened)
+      return sendCampaign(env, ctx, id, Number.isInteger(earlierId) && earlierId > 0 ? earlierId : 0)
     }
     if (post) return saveCampaign(request, env, id)
     return campaign.status === 'draft' ? composeForm(env, campaign, url) : campaignReport(env, campaign, url)
