@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import type { SavedPassage } from '../lib/studyProgress'
 import { useReadAloud } from '../hooks/useReadAloud'
 import { fetchChapterCommentary, type CommentaryByVerse } from '../lib/commentary'
 import { fetchParshaByRef, fetchWeeklyParsha, type WeeklyParsha as WeeklyParshaData } from '../lib/sefaria'
@@ -15,9 +16,10 @@ import { VerseCommentary } from './VerseCommentary'
 interface WeeklyParshaProps {
   /** When set, shows this specific parsha instead of the current week's. */
   overrideParsha?: ParshaListEntry | null
+  onReadingLoaded?: (passage: SavedPassage) => void
 }
 
-export function WeeklyParsha({ overrideParsha = null }: WeeklyParshaProps) {
+export function WeeklyParsha({ overrideParsha = null, onReadingLoaded }: WeeklyParshaProps) {
   const [parsha, setParsha] = useState<WeeklyParshaData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -53,6 +55,11 @@ export function WeeklyParsha({ overrideParsha = null }: WeeklyParshaProps) {
       cancelled = true
     }
   }, [overrideParsha])
+
+  useEffect(() => {
+    if (loading || error || !parsha) return
+    onReadingLoaded?.({ view: 'parsha', parsha: overrideParsha ?? { english: parsha.englishName, hebrew: parsha.hebrewName, ref: parsha.ref } })
+  }, [loading, error, parsha, overrideParsha, onReadingLoaded])
 
   useEffect(() => {
     if (!parsha) return

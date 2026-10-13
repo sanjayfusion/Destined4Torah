@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { About } from './components/About'
 import { AllParshiyot } from './components/AllParshiyot'
 import { BookNav } from './components/BookNav'
@@ -11,11 +11,27 @@ import { fetchNewTestamentChapter } from './lib/bibleApi'
 import { ALL_BOOKS } from './data/books'
 import { readPassageRoute, passageUrl, type PassageRoute } from './lib/passageLinks'
 import { fetchChapter, type ChapterText } from './lib/sefaria'
+import { initialStudyRoute, loadStudyProgress, saveStudyProgress, savedPassageLabel, type SavedPassage } from './lib/studyProgress'
 import logo from './assets/logo.png'
 import './App.css'
 
 function App() {
-  const [route, setRoute] = useState<PassageRoute>(() => readPassageRoute(window.location.search))
+  const [savedPassage, setSavedPassage] = useState<SavedPassage | null>(() => {
+    try { return loadStudyProgress(window.localStorage) } catch { return null }
+  })
+  const [route, setRoute] = useState<PassageRoute>(() => initialStudyRoute(window.location.search, savedPassage))
+  const initialRoute = useRef(route)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    if (!['ref', 'parsha', 'view'].some((key) => params.has(key))) {
+      window.history.replaceState(null, '', passageUrl(initialRoute.current, window.location.href))
+    }
+  }, [])
+  const rememberPassage = useCallback((passage: SavedPassage) => {
+    try {
+      if (saveStudyProgress(passage, window.localStorage)) setSavedPassage(passage)
+    } catch { /* The reader still works when local storage is unavailable. */ }
+  }, [])
   const view = route.view
   const selectedParsha = route.view === 'parsha' ? route.parsha ?? null : null
   const selectedBook = route.view === 'book' ? route.book : 'Genesis'
@@ -94,6 +110,12 @@ function App() {
   }, [view, selectedBook, selectedChapter, source, selectedBookInfo?.bookNumber])
 
   useEffect(() => {
+    if (route.view !== 'book' || loading || error || !chapter) return
+    const verseCount = Math.max(chapter.english.length, chapter.hebrew.length)
+    rememberPassage({ ...route, verse: route.verse !== undefined && route.verse <= verseCount ? route.verse : undefined })
+  }, [route, loading, error, chapter, rememberPassage])
+
+  useEffect(() => {
     if (!mobileNavOpen) return
     document.body.style.overflow = 'hidden'
     return () => {
@@ -148,6 +170,12 @@ function App() {
           </div>
         </header>
 
+        {savedPassage && <section className="continue-studying" aria-label="Saved reading">
+          <div><strong>Your last reading</strong><p>{savedPassageLabel(savedPassage)}</p></div>
+          <button type="button" onClick={() => navigate(savedPassage)}>Continue studying</button>
+          <small>Remembered on this device.</small>
+        </section>}
+
         <button type="button" className="mobile-nav-trigger" onClick={() => setMobileNavOpen(true)}>
           <span className="mobile-nav-trigger-label">
             {view === 'book' ? `${selectedBookInfo?.english ?? selectedBook} ${selectedChapter}` : view === 'parsha' ? (selectedParsha?.ref ?? "This Week's Parashah") : view === 'about' ? 'About' : 'All Parshiyot'}
@@ -176,7 +204,7 @@ function App() {
             />
           </div>
           <main className="app-main">
-            {view === 'parsha' && <WeeklyParsha key={selectedParsha?.english ?? "weekly"} overrideParsha={selectedParsha} />}
+            {view === 'parsha' && <WeeklyParsha key={selectedParsha?.english ?? "weekly"} overrideParsha={selectedParsha} onReadingLoaded={rememberPassage} />}
             {view === 'parshiyot-list' && (
               <AllParshiyot
                 onSelect={(parsha) => {

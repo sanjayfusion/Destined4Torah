@@ -1,6 +1,7 @@
 <!doctype html><html lang="en"><meta charset="utf-8"><title>D4T regression checks</title><body><h1>D4T regression checks</h1><pre id="results">Running…</pre><script type="module">
 import { stripTags } from '/src/lib/sefaria.ts'
 import { transliterateHebrew } from '/src/lib/transliterate.ts'
+import { initialStudyRoute, loadStudyProgress, saveStudyProgress, STUDY_PROGRESS_KEY } from '/src/lib/studyProgress.ts'
 import { readPassageRoute, passageUrl } from '/src/lib/passageLinks.ts'
 import { fetchIsraelNews } from '/src/lib/news.ts'
 const results = []
@@ -10,6 +11,25 @@ function check(name, actual, expected) {
 }
 const originalFetch = window.fetch
 try {
+  const memory = new Map()
+  const storage = { getItem: (key) => memory.get(key) ?? null, setItem: (key, value) => memory.set(key, value) }
+  check('first visit has no saved reading', loadStudyProgress(storage), null)
+  saveStudyProgress({view:'book',book:'John',chapter:3,verse:16}, storage)
+  const saved = loadStudyProgress(storage)
+  check('saved verse survives round trip', saved.verse, 16)
+  check('home resumes saved book', initialStudyRoute('', saved).book, 'John')
+  check('shared book overrides saved reading', initialStudyRoute('?ref=Genesis+1', saved).book, 'Genesis')
+  check('shared portion overrides saved reading', initialStudyRoute('?parsha=Noach', saved).parsha.english, 'Noach')
+  check('About does not overwrite reading', saveStudyProgress({view:'about'}, storage), false)
+  check('saved reading survives About', loadStudyProgress(storage).verse, 16)
+  check('invalid shared link does not resume different book', initialStudyRoute('?ref=Bad', saved).view, 'parsha')
+  memory.set(STUDY_PROGRESS_KEY, '{bad')
+  check('corrupt storage is ignored', loadStudyProgress(storage), null)
+  const blockedStorage = { getItem() { throw new Error('blocked') }, setItem() { throw new Error('blocked') } }
+  check('blocked storage reads are safe', loadStudyProgress(blockedStorage), null)
+  check('blocked storage writes are safe', saveStudyProgress({view:'book',book:'John',chapter:3}, blockedStorage), false)
+  saveStudyProgress({view:'parsha',parsha:readPassageRoute('?parsha=Noach').parsha}, storage)
+  check('fixed Torah portion is restored', loadStudyProgress(storage).parsha.english, 'Noach')
   const verseRoute = readPassageRoute('?ref=John+3%3A16')
   check('verse URL restores book', verseRoute.book, 'John')
   check('verse URL restores chapter', verseRoute.chapter, 3)
