@@ -18,6 +18,10 @@ function check(name, actual, expected) {
 const originalFetch = window.fetch
 try {
 
+  check('Subscribe has a direct URL', readPassageRoute('?view=subscribe').view, 'subscribe')
+  check('Subscribe links clear the previous passage query', new URL(passageUrl({view:'subscribe'}, 'https://app.destined4torah.com/?ref=John+3%3A16')).search, '?view=subscribe')
+  check('Subscribe direct link takes precedence over saved reading', initialStudyRoute('?view=subscribe', {view:'book',book:'John',chapter:3,verse:16}).view, 'subscribe')
+
   const approvedGenesis = new Set(['4boXYeN7J58','J1Q_wJsG4rg','hDd1nsURl04','evIg4s9nhd8','EfYOd8mDKT4','UXGHETvEMo0','n1E6XvnVLUQ','QIbFAp35X2s','n0RP3he8auM','bBTYPVTOXEE','bkFK6KadB6Q'])
   const approvedExodus = new Set(['aKjpOAXZnb4','e7e2IeUasmE','a35p0ACus2o','lEMMet3R8nM','QQmgR2SiPcM','9-lwsNITkIU','rg3oPyVJoJQ','3J2i-Lq0Sd4'])
   for (const group of PARSHIYOT_BY_BOOK.filter(g => ['Genesis','Exodus'].includes(g.book))) {
@@ -98,6 +102,7 @@ try {
   check('shared book overrides saved reading', initialStudyRoute('?ref=Genesis+1', saved).book, 'Genesis')
   check('shared portion overrides saved reading', initialStudyRoute('?parsha=Noach', saved).parsha.english, 'Noach')
   check('About does not overwrite reading', saveStudyProgress({view:'about'}, storage), false)
+  check('Subscribe does not overwrite reading', saveStudyProgress({view:'subscribe'}, storage), false)
   check('saved reading survives About', loadStudyProgress(storage).verse, 16)
   check('invalid shared link does not resume different book', initialStudyRoute('?ref=Bad', saved).view, 'parsha')
   memory.set(STUDY_PROGRESS_KEY, '{bad')

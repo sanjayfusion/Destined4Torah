@@ -1295,3 +1295,18 @@
 .kjv-hidden-message { display: none; }
 .reading-preferences[data-english='false'] .kjv-hidden-message { display: block; }
 .reading-preferences[data-english='false'] .kjv-verses { display: none; }
+
+.header-actions { display: flex; justify-content: center; gap: 10px; }
+.subscribe-layout { grid-template-columns: 1fr; }
+.subscribe-page { max-width: 920px; width: 100%; margin: 0 auto; }
+.subscribe-page .subscribe-card { margin-top: 18px; }
+.subscribe-back { margin-top: 0; }
+.about-speaking { margin-top: 24px; padding: 20px; border: 1px solid var(--accent); border-radius: 12px; background: var(--accent-bg); }
+.about-speaking h3 { margin: 0 0 10px; color: var(--accent); }
+.about-speaking a { overflow-wrap: anywhere; }
+@media (max-width: 600px) {
+  .header-actions { grid-column: 1 / -1; }
+  .header-nav > .parsha-toggle:nth-child(3) { grid-column: 1 / -1; }
+  .header-actions > * { flex: 1; }
+  .subscribe-page { min-width: 0; }
+}

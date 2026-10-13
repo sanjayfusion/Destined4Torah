@@ -6,7 +6,7 @@ import { BookNav } from './components/BookNav'
 import { HolidayCountdownTicker } from './components/HolidayCountdownTicker'
 import { NewsTicker } from './components/NewsTicker'
 import { Reader } from './components/Reader'
-import { SubscribeForm } from './components/SubscribeForm'
+import { SubscribePage } from './components/SubscribePage'
 import { WeeklyParsha } from './components/WeeklyParsha'
 import { fetchNewTestamentChapter } from './lib/bibleApi'
 import { ALL_BOOKS } from './data/books'
@@ -21,6 +21,10 @@ function App() {
     try { return loadStudyProgress(window.localStorage) } catch { return null }
   })
   const [route, setRoute] = useState<PassageRoute>(() => initialStudyRoute(window.location.search, savedPassage))
+  const lastReading = useRef<SavedPassage>(route.view === 'book' || route.view === 'parsha' ? route : savedPassage ?? { view: 'parsha' })
+  useEffect(() => {
+    if (route.view === 'book' || route.view === 'parsha') lastReading.current = route
+  }, [route])
   const initialRoute = useRef(route)
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
@@ -160,32 +164,35 @@ function App() {
             >
               About
             </button>
+            <div className="header-actions">
             <a
               href="https://square.link/u/TQ6ubiPe?src=sheet"
               target="_blank"
               rel="noopener noreferrer"
               className="donate-link"
             >
-              Donate
+              Partner with us
             </a>
+            <button type="button" className={view === 'subscribe' ? 'parsha-toggle subscribe-nav active' : 'parsha-toggle subscribe-nav'} aria-current={view === 'subscribe' ? 'page' : undefined} onClick={() => navigate({ view: 'subscribe' })}>Subscribe</button>
+            </div>
           </div>
         </header>
 
-        {savedPassage && <section className="continue-studying" aria-label="Saved reading">
+        {savedPassage && view !== 'subscribe' && <section className="continue-studying" aria-label="Saved reading">
           <div><strong>Your last reading</strong><p>{savedPassageLabel(savedPassage)}</p></div>
           <button type="button" onClick={() => navigate(savedPassage)}>Continue studying</button>
           <small>Remembered on this device.</small>
         </section>}
 
-        <button type="button" className="mobile-nav-trigger" onClick={() => setMobileNavOpen(true)}>
+        {view !== 'subscribe' && <button type="button" className="mobile-nav-trigger" onClick={() => setMobileNavOpen(true)}>
           <span className="mobile-nav-trigger-label">
             {view === 'book' ? `${selectedBookInfo?.english ?? selectedBook} ${selectedChapter}` : view === 'parsha' ? (selectedParsha?.ref ?? "This Week's Parashah") : view === 'about' ? 'About' : 'All Parshiyot'}
           </span>
           <span aria-hidden="true">Browse books ▾</span>
-        </button>
+        </button>}
 
-        <div className="app-body">
-          <div className={mobileNavOpen ? 'book-nav-wrapper open' : 'book-nav-wrapper'}>
+        <div className={view === 'subscribe' ? 'app-body subscribe-layout' : 'app-body'}>
+          {view !== 'subscribe' && <div className={mobileNavOpen ? 'book-nav-wrapper open' : 'book-nav-wrapper'}>
             {mobileNavOpen && (
               <button
                 type="button"
@@ -203,7 +210,7 @@ function App() {
                 navigate({ view: 'book', book, chapter: chap, verse })
               }}
             />
-          </div>
+          </div>}
           <main className="app-main">
             {view === 'parsha' && <WeeklyParsha key={selectedParsha?.english ?? "weekly"} overrideParsha={selectedParsha} onReadingLoaded={rememberPassage} />}
             {view === 'parshiyot-list' && (
@@ -214,6 +221,7 @@ function App() {
               />
             )}
             {view === 'about' && <About />}
+            {view === 'subscribe' && <SubscribePage onBackToReading={() => navigate(lastReading.current)} />}
             {view === 'book' && (
               <Reader
                 chapter={chapter}
@@ -228,7 +236,6 @@ function App() {
           </main>
         </div>
 
-        <SubscribeForm />
       </div>
     </ReadingPreferencesProvider>
   )

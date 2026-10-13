@@ -93,7 +93,11 @@ export function About() {
         <blockquote className="about-motto">
           "The blueprint to your destiny is found in the lives of Biblical figures."
         </blockquote>
-        <p className="about-location">Sanjay and his wife, Bhavna, live in Orange County, CA.</p>
+        <section className="about-speaking" aria-labelledby="speaking-heading">
+          <h3 id="speaking-heading">Speaking engagements</h3>
+          <p>Dr. Sanjay Prajapati is available for speaking engagements at churches, conferences, and Bible-study gatherings. Invite him to share the depths of Scripture in its Jewish context and help your audience discover the blueprint to their destiny.</p>
+          <p>For speaking inquiries, email <a href="mailto:sanjay@destined4torah.com?subject=Speaking%20engagement%20inquiry">sanjay@destined4torah.com</a>.</p>
+        </section>
       </div>
     </article>
   )
