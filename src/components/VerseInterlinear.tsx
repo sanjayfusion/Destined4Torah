@@ -15,12 +15,13 @@ export function VerseInterlinear({ rows, dir = 'ltr' }: VerseInterlinearProps) {
 
   return (
     <div className="verse-interlinear">
-      <button type="button" className="verse-interlinear-toggle" onClick={() => setOpen(!open)}>
+      <button type="button" className="verse-interlinear-toggle" aria-expanded={open} onClick={() => setOpen(!open)}>
         {open ? 'Hide' : 'Show'} interlinear
       </button>
 
       {open && (
         <div className="verse-interlinear-body">
+          <p className="study-help">Definitions cover selected words. “Not yet available” means this word has no entry in our study dictionary.</p>
           <table className="verse-interlinear-table">
             <thead>
               <tr>
@@ -43,7 +44,7 @@ export function VerseInterlinear({ rows, dir = 'ltr' }: VerseInterlinearProps) {
                         {row.definition}
                       </>
                     ) : (
-                      <span className="verse-interlinear-nomatch">&mdash;</span>
+                      <span className="verse-interlinear-nomatch">Not yet available</span>
                     )}
                   </td>
                 </tr>

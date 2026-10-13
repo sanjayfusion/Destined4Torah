@@ -1226,3 +1226,29 @@
     display: none;
   }
 }
+
+/* Study guidance and compact phone reading. */
+.study-help { color: var(--text); font-size: 13px; line-height: 1.6; margin: 0 0 18px; }
+.study-help p { margin: 0 0 6px; }
+.study-help a { color: var(--accent); }
+.subscribe-optional { flex-basis: 100%; text-align: left; }
+.subscribe-optional summary { color: var(--accent); cursor: pointer; padding: 8px 0; }
+.subscribe-optional .subscribe-input { box-sizing: border-box; width: 100%; margin-top: 8px; }
+@media (max-width: 640px) {
+  .app { padding: 20px 12px 48px; }
+  .app-header { margin-bottom: 24px; }
+  .app-logo { height: auto; max-width: 100%; width: 280px; margin-bottom: 4px; }
+  .app-header p { font-size: 14px; margin: 8px 0; }
+  .app-header .header-verse { font-size: 12px; }
+  .header-nav { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .parsha-toggle, .donate-link { margin-top: 6px; padding: 8px 12px; font-size: 13px; }
+  .reader { padding: 20px 14px 28px; }
+  .verse { grid-template-columns: 28px minmax(0, 1fr); column-gap: 8px; }
+  .verse-english, .verse-translit { overflow-wrap: anywhere; }
+  .verse-interlinear-body { padding: 10px 8px; }
+  .subscribe-card { padding: 22px 16px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .news-ticker-content { animation: none; }
+  .news-ticker-track { overflow-x: auto; }
+}

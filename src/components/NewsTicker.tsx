@@ -51,7 +51,10 @@ export function NewsTicker() {
               rel="noopener noreferrer"
               className="news-ticker-item"
             >
-              {item.title}
+              {item.title}{' · '}
+              <time dateTime={item.publishedAt}>
+                {new Date(item.publishedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+              </time>
             </a>
           ))}
         </div>

@@ -7,6 +7,7 @@ import { HebrewVerseText } from './HebrewVerseText'
 import { YouTubeIcon } from './icons'
 import { ParshaDateHeader } from './ParshaDateHeader'
 import { ReadAloudBar } from './ReadAloudBar'
+import { StudyHelp } from './StudyHelp'
 import { TextCredit } from './TextCredit'
 import { VerseCommentary } from './VerseCommentary'
 
@@ -98,6 +99,7 @@ export function WeeklyParsha({ overrideParsha = null }: WeeklyParshaProps) {
         <h2 className="hebrew" dir="rtl">{parsha.hebrewName}</h2>
       </header>
       <p className="parsha-ref">{parsha.ref}</p>
+      <StudyHelp version={parsha.sections[0]?.englishVersion ?? 'Sefaria English translation'} reference={`${parsha.ref.split(' ')[0]} ${parsha.sections.map((section) => section.chapter).join(',')}`} originalLanguage="Hebrew" compareKjv />
 
       {youtubeUrls.length > 0 && (
         <div className="youtube-teaching-links">

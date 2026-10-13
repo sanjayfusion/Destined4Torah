@@ -69,26 +69,29 @@ export function SubscribeForm() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
-          <input
-            type="tel"
-            className="subscribe-input"
-            placeholder="Phone (optional)"
-            aria-label="Phone number (optional)"
-            autoComplete="tel"
-            maxLength={40}
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-          />
-          <input
-            type="text"
-            className="subscribe-input subscribe-input-wide"
-            placeholder="Address (optional)"
-            aria-label="Address (optional)"
-            autoComplete="street-address"
-            maxLength={300}
-            value={address}
-            onChange={(e) => setAddress(e.target.value)}
-          />
+          <details className="subscribe-optional">
+            <summary>Add phone or address (optional)</summary>
+            <input
+              type="tel"
+              className="subscribe-input"
+              placeholder="Phone (optional)"
+              aria-label="Phone number (optional)"
+              autoComplete="tel"
+              maxLength={40}
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+            />
+            <input
+              type="text"
+              className="subscribe-input subscribe-input-wide"
+              placeholder="Address (optional)"
+              aria-label="Address (optional)"
+              autoComplete="street-address"
+              maxLength={300}
+              value={address}
+              onChange={(e) => setAddress(e.target.value)}
+            />
+          </details>
           <input
             type="text"
             className="subscribe-trap"

@@ -1,0 +1,41 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><title>D4T regression checks</title><body><h1>D4T regression checks</h1><pre id="results">Running…</pre><script type="module">
+import { stripTags } from '/src/lib/sefaria.ts'
+import { transliterateHebrew } from '/src/lib/transliterate.ts'
+import { fetchIsraelNews } from '/src/lib/news.ts'
+const results = []
+function check(name, actual, expected) {
+  if (actual !== expected) throw new Error(`${name}: expected ${expected}, received ${actual}`)
+  results.push(`PASS ${name}`)
+}
+const originalFetch = window.fetch
+try {
+  check('poetry line breaks keep words apart', stripTags('Day<br>and night<br/>Shall not cease.'), 'Day and night Shall not cease.')
+  check('footnotes removed, legitimate italics kept', stripTags('May <i>God</i> enlarge<sup>1</sup><i class="footnote">play on Japheth.</i> Japheth'), 'May God enlarge Japheth')
+  check('HTML entities preserved', stripTags('God &amp; man &#8212; &#x201c;peace&#x201d;'), 'God & man — “peace”')
+  check('Noach final patach', transliterateHebrew('נֹ֔חַ'), 'Noach')
+  check('ruach final patach', transliterateHebrew('ר֣וּחַ'), 'Ruach')
+  check('maqaf final patach', transliterateHebrew('נֹחַ־נֹחַ'), 'Noach-noach')
+  check('ordinary initial patach', transliterateHebrew('חַי'), 'Chay')
+  let calls = 0
+  window.fetch = async () => {
+    calls++
+    return { ok: true, json: async () => ({status:'ok',items: calls === 1 ? [{title:'Old',link:'https://example.com/old',pubDate:'2025-06-08 07:55:00'}] : [
+      {title:'Fresh',link:'https://example.com/fresh',pubDate:new Date(Date.now()-3600000).toISOString()},
+      {title:'Undated',link:'https://example.com/undated'},
+      {title:'Future',link:'https://example.com/future',pubDate:new Date(Date.now()+86400000).toISOString()},
+      {title:'Unsafe',link:'javascript:alert(1)',pubDate:new Date(Date.now()-3600000).toISOString()}
+    ]}) }
+  }
+  const items = await fetchIsraelNews()
+  check('stale feed triggers fallback', calls, 2)
+  check('only safe recent dated articles returned', items.length, 1)
+  check('correct fresh article', items[0].title, 'Fresh')
+  window.fetch = async () => ({ok:true,json:async()=>({status:'ok',items:[{title:'Old',link:'https://example.com',pubDate:'2025-06-08 07:55:00'}]})})
+  let rejected = false
+  try { await fetchIsraelNews() } catch { rejected = true }
+  check('all stale feeds rejected', rejected, true)
+  document.getElementById('results').textContent = results.join('\n') + '\nAll checks passed.'
+} catch (error) {
+  document.getElementById('results').textContent = results.join('\n') + '\nFAIL ' + error.message
+} finally { window.fetch = originalFetch }
+</script></body></html>

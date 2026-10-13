@@ -4,30 +4,16 @@ export interface ChapterText {
   english: string[]
   hebrew: string[]
   greek?: string[]
-}
-
-const HTML_ENTITIES: Record<string, string> = {
-  '&nbsp;': ' ',
-  '&thinsp;': ' ',
-  '&ensp;': ' ',
-  '&emsp;': ' ',
-  '&rlm;': '',
-  '&lrm;': '',
-  '&amp;': '&',
-  '&quot;': '"',
-  '&#39;': "'",
+  englishVersion?: string
 }
 
 export function stripTags(value: string): string {
-  return value
-    // Footnote markers/bodies: drop the whole element, not just the tag,
-    // since their text isn't meant to sit inline with the verse.
-    .replace(/<sup\b[^>]*>.*?<\/sup>/gis, '')
-    .replace(/<i\b[^>]*>.*?<\/i>/gis, '')
-    // Any other formatting tags: keep the inner text, drop the tag.
-    .replace(/<[^>]*>/g, '')
-    .replace(/&[a-z]+;|&#\d+;/gi, (entity) => HTML_ENTITIES[entity.toLowerCase()] ?? '')
-    // Sefaria's open/closed-section markers (e.g. {פ} {ס}) in the Hebrew text.
+  const doc = new DOMParser().parseFromString(value, 'text/html')
+  doc.querySelectorAll('sup, .footnote, .footnote-marker, .footnoteAnchor').forEach((element) => element.remove())
+  doc.querySelectorAll('br').forEach((element) => element.replaceWith(' '))
+  doc.querySelectorAll('p, div, li').forEach((element) => element.append(' '))
+  return (doc.body.textContent ?? '')
+    .replace(/[\u200e\u200f]/g, '')
     .replace(/\{[^}]*\}/g, '')
     .replace(/\s+/g, ' ')
     .trim()
@@ -49,6 +35,7 @@ export async function fetchChapter(bookSlug: string, chapter: number): Promise<C
   return {
     ref: data.ref ?? `${bookSlug} ${chapter}`,
     heRef: data.heRef ?? '',
+    englishVersion: data.versionTitle ?? 'English translation from Sefaria',
     english: english.map(stripTags),
     hebrew: hebrew.map(stripTags),
   }
@@ -95,6 +82,7 @@ export interface ParshaSection {
   startVerse: number
   hebrew: string[]
   english: string[]
+  englishVersion?: string
 }
 
 function refToUrlSlug(ref: string): string {
@@ -168,6 +156,7 @@ export async function fetchParshaByRef(entry: NamedParshaRef): Promise<WeeklyPar
       startVerse: sliceStart + 1,
       hebrew: text.hebrew.slice(sliceStart, sliceEnd),
       english: text.english.slice(sliceStart, sliceEnd),
+      englishVersion: text.englishVersion,
     }
   })
 

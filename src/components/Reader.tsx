@@ -6,6 +6,7 @@ import { useReadAloud } from '../hooks/useReadAloud'
 import { GreekVerseText } from './GreekVerseText'
 import { HebrewVerseText } from './HebrewVerseText'
 import { ReadAloudBar } from './ReadAloudBar'
+import { StudyHelp } from './StudyHelp'
 import { TextCredit } from './TextCredit'
 import { VerseCommentary } from './VerseCommentary'
 
@@ -92,6 +93,7 @@ export function Reader({ chapter, loading, error, source, bookSlug, chapterNum, 
         )}
       </header>
 
+      <StudyHelp version={source === 'kjv' ? 'King James Version (KJV)' : chapter.englishVersion ?? 'Sefaria English translation'} reference={`${bookSlug} ${chapterNum}`} originalLanguage={source === 'kjv' ? 'Greek' : 'Hebrew'} compareKjv={source === 'sefaria'} />
       <ReadAloudBar
         texts={chapter.hebrew}
         status={hebrewReadAloud.status}

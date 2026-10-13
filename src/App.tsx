@@ -57,7 +57,7 @@ function App() {
     return () => {
       cancelled = true
     }
-  }, [view, selectedBook, selectedChapter, source])
+  }, [view, selectedBook, selectedChapter, source, selectedBookInfo?.bookNumber])
 
   useEffect(() => {
     if (!mobileNavOpen) return
@@ -117,7 +117,7 @@ function App() {
 
         <button type="button" className="mobile-nav-trigger" onClick={() => setMobileNavOpen(true)}>
           <span className="mobile-nav-trigger-label">
-            {selectedBookInfo?.english ?? selectedBook} {selectedChapter}
+            {view === 'book' ? `${selectedBookInfo?.english ?? selectedBook} ${selectedChapter}` : view === 'parsha' ? (selectedParsha?.ref ?? "This Week's Parashah") : view === 'about' ? 'About' : 'All Parshiyot'}
           </span>
           <span aria-hidden="true">Browse books ▾</span>
         </button>

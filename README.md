@@ -22,3 +22,9 @@ npm run dev
 ```bash
 npm run build
 ```
+
+## Regression checks
+
+Start the development server and open `/tests/regressions.html` in a browser.
+It checks Scripture HTML cleanup, final Hebrew vowel placement, and news freshness
+with deterministic feed fixtures; it does not submit forms or contact subscribers.

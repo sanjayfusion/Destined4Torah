@@ -112,6 +112,11 @@ function transliterateWord(word: string): string {
     }
 
     const isFirstConsonant = result === ''
+    const wordEndsHere = !chars.slice(i).some((char) => CONSONANT_REGEX.test(char) || char === MAQAF) || chars[i] === MAQAF
+    if ((consonant === 'ח' || consonant === 'ע') && vowelMark === 'ַ' && wordEndsHere && result) {
+      result += 'a' + CONSONANTS[consonant]
+      continue
+    }
 
     if (consonant === 'ש') {
       result += hasSinDot ? 's' : 'sh'
