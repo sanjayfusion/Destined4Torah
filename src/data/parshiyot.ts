@@ -22,7 +22,7 @@ export const PARSHIYOT_BY_BOOK: TorahBookParshiyot[] = [
     book: 'Genesis',
     parshiyot: [
       { english: 'Bereshit', hebrew: 'בְּרֵאשִׁית', ref: 'Genesis 1:1-6:8' },
-      { english: 'Noach', hebrew: 'נֹחַ', ref: 'Genesis 6:9-11:32' },
+      { english: 'Noach', hebrew: 'נֹחַ', ref: 'Genesis 6:9-11:32', youtubeUrls: ['https://www.youtube.com/watch?v=J1Q_wJsG4rg'] },
       { english: 'Lech Lecha', hebrew: 'לֶךְ־לְךָ', ref: 'Genesis 12:1-17:27' },
       { english: 'Vayera', hebrew: 'וַיֵּרָא', ref: 'Genesis 18:1-22:24' },
       { english: 'Chayei Sarah', hebrew: 'חַיֵּי שָׂרָה', ref: 'Genesis 23:1-25:18' },
