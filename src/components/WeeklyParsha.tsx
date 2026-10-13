@@ -93,7 +93,8 @@ export function WeeklyParsha({ overrideParsha = null, onReadingLoaded }: WeeklyP
     return null
   }
 
-  const youtubeUrls = overrideParsha?.youtubeUrls ?? findParshaEntry(parsha.englishName)?.youtubeUrls ?? []
+  const teachingEntry = overrideParsha ?? findParshaEntry(parsha.englishName)
+  const youtubeUrls = teachingEntry?.youtubeUrls ?? []
 
   return (
     <article className="reader">
@@ -115,7 +116,7 @@ export function WeeklyParsha({ overrideParsha = null, onReadingLoaded }: WeeklyP
           {youtubeUrls.map((url, i) => (
             <a key={url} href={url} target="_blank" rel="noopener noreferrer" className="youtube-teaching-link">
               <YouTubeIcon className="social-icon" />
-              Watch Sanjay's teaching{youtubeUrls.length > 1 ? ` (Part ${i + 1})` : ''}
+              {teachingEntry?.youtubeTitles?.[i] ? `Watch: ${teachingEntry.youtubeTitles[i]}` : "Watch Sanjay's teaching"}
             </a>
           ))}
         </div>

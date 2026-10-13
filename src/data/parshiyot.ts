@@ -4,6 +4,8 @@ export interface ParshaListEntry {
   ref: string
   /** Links to Sanjay's YouTube teaching(s) on this parasha — sometimes more than one part. */
   youtubeUrls?: string[]
+  /** Actual video titles; separate teachings are not necessarily consecutive parts. */
+  youtubeTitles?: string[]
 }
 
 export interface TorahBookParshiyot {
@@ -21,18 +23,18 @@ export const PARSHIYOT_BY_BOOK: TorahBookParshiyot[] = [
   {
     book: 'Genesis',
     parshiyot: [
-      { english: 'Bereshit', hebrew: 'בְּרֵאשִׁית', ref: 'Genesis 1:1-6:8' },
-      { english: 'Noach', hebrew: 'נֹחַ', ref: 'Genesis 6:9-11:32', youtubeUrls: ['https://www.youtube.com/watch?v=J1Q_wJsG4rg'] },
-      { english: 'Lech Lecha', hebrew: 'לֶךְ־לְךָ', ref: 'Genesis 12:1-17:27' },
-      { english: 'Vayera', hebrew: 'וַיֵּרָא', ref: 'Genesis 18:1-22:24' },
-      { english: 'Chayei Sarah', hebrew: 'חַיֵּי שָׂרָה', ref: 'Genesis 23:1-25:18' },
-      { english: 'Toldot', hebrew: 'תּוֹלְדֹת', ref: 'Genesis 25:19-28:9' },
-      { english: 'Vayetzei', hebrew: 'וַיֵּצֵא', ref: 'Genesis 28:10-32:3' },
-      { english: 'Vayishlach', hebrew: 'וַיִּשְׁלַח', ref: 'Genesis 32:4-36:43' },
-      { english: 'Vayeshev', hebrew: 'וַיֵּשֶׁב', ref: 'Genesis 37:1-40:23' },
-      { english: 'Miketz', hebrew: 'מִקֵּץ', ref: 'Genesis 41:1-44:17' },
-      { english: 'Vayigash', hebrew: 'וַיִּגַּשׁ', ref: 'Genesis 44:18-47:27' },
-      { english: 'Vayechi', hebrew: 'וַיְחִי', ref: 'Genesis 47:28-50:26' },
+      { english: 'Bereshit', hebrew: 'בְּרֵאשִׁית', ref: 'Genesis 1:1-6:8', youtubeUrls: ["https://www.youtube.com/watch?v=4boXYeN7J58", "https://www.youtube.com/watch?v=5Gt2mqBhN7o"], youtubeTitles: ["Let there be Light", "The Finished Work"] },
+      { english: 'Noach', hebrew: 'נֹחַ', ref: 'Genesis 6:9-11:32', youtubeUrls: ["https://www.youtube.com/watch?v=J1Q_wJsG4rg", "https://www.youtube.com/watch?v=rLUEhCwaHrw"], youtubeTitles: ["The Light in the Ark", "Make For Yourself An Ark"] },
+      { english: 'Lech Lecha', hebrew: 'לֶךְ־לְךָ', ref: 'Genesis 12:1-17:27', youtubeUrls: ["https://www.youtube.com/watch?v=hDd1nsURl04", "https://www.youtube.com/watch?v=FL4pFvb3dSs"], youtubeTitles: ["Be the Light", "Go to Yourself"] },
+      { english: 'Vayera', hebrew: 'וַיֵּרָא', ref: 'Genesis 18:1-22:24', youtubeUrls: ["https://www.youtube.com/watch?v=evIg4s9nhd8", "https://www.youtube.com/watch?v=q-U4YzchJ7k"], youtubeTitles: ["Immersed in the Light", "And He Appeared"] },
+      { english: 'Chayei Sarah', hebrew: 'חַיֵּי שָׂרָה', ref: 'Genesis 23:1-25:18', youtubeUrls: ["https://www.youtube.com/watch?v=T8hVfubgE0I"], youtubeTitles: ["The World to Come"] },
+      { english: 'Toldot', hebrew: 'תּוֹלְדֹת', ref: 'Genesis 25:19-28:9', youtubeUrls: ["https://www.youtube.com/watch?v=eAx7P_asQbg"], youtubeTitles: ["Generations"] },
+      { english: 'Vayetzei', hebrew: 'וַיֵּצֵא', ref: 'Genesis 28:10-32:3', youtubeUrls: ["https://www.youtube.com/watch?v=8sVcqPs5zAY"], youtubeTitles: ["And He Went Out"] },
+      { english: 'Vayishlach', hebrew: 'וַיִּשְׁלַח', ref: 'Genesis 32:4-36:43', youtubeUrls: ["https://www.youtube.com/watch?v=XHLKnGEeIys"], youtubeTitles: ["And He Sent — Angels at your Disposal"] },
+      { english: 'Vayeshev', hebrew: 'וַיֵּשֶׁב', ref: 'Genesis 37:1-40:23', youtubeUrls: ["https://www.youtube.com/watch?v=QIbFAp35X2s", "https://www.youtube.com/watch?v=9n-q7vcQ9do"], youtubeTitles: ["Coat of Light", "Mentored for the Anointing"] },
+      { english: 'Miketz', hebrew: 'מִקֵּץ', ref: 'Genesis 41:1-44:17', youtubeUrls: ["https://www.youtube.com/watch?v=n0RP3he8auM", "https://www.youtube.com/watch?v=l68nxYG8w3s"], youtubeTitles: ["Light at the End of the Tunnel", "Living the Dream"] },
+      { english: 'Vayigash', hebrew: 'וַיִּגַּשׁ', ref: 'Genesis 44:18-47:27', youtubeUrls: ["https://www.youtube.com/watch?v=bBTYPVTOXEE", "https://www.youtube.com/watch?v=nGTb4hORNko"], youtubeTitles: ["Approaching the Light", "Pride, Prejudice, & Torah"] },
+      { english: 'Vayechi', hebrew: 'וַיְחִי', ref: 'Genesis 47:28-50:26', youtubeUrls: ["https://www.youtube.com/watch?v=bkFK6KadB6Q", "https://www.youtube.com/watch?v=1cBOilEiKQ4"], youtubeTitles: ["Live in the Light", "Unprecedented Changes of Messianic Proportions"] },
     ],
   },
   {
@@ -42,18 +44,19 @@ export const PARSHIYOT_BY_BOOK: TorahBookParshiyot[] = [
         english: 'Shemot',
         hebrew: 'שְׁמוֹת',
         ref: 'Exodus 1:1-6:1',
-        youtubeUrls: ['https://www.youtube.com/live/WHbIZQqDKGs', 'https://www.youtube.com/live/yW1Vnpe-uIw'],
+        youtubeUrls: ["https://www.youtube.com/watch?v=WHbIZQqDKGs", "https://www.youtube.com/watch?v=yW1Vnpe-uIw", "https://www.youtube.com/watch?v=z4TpU_ov1cg", "https://www.youtube.com/watch?v=iUw1zjnpZqA"],
+        youtubeTitles: ["Let there be Light in your Ark", "Filled With Light", "The Hidden Light of Divine Purpose", "In a Blaze of FIre"],
       },
-      { english: 'Vaera', hebrew: 'וָאֵרָא', ref: 'Exodus 6:2-9:35' },
-      { english: 'Bo', hebrew: 'בֹּא', ref: 'Exodus 10:1-13:16' },
-      { english: 'Beshalach', hebrew: 'בְּשַׁלַּח', ref: 'Exodus 13:17-17:16' },
-      { english: 'Yitro', hebrew: 'יִתְרוֹ', ref: 'Exodus 18:1-20:23' },
-      { english: 'Mishpatim', hebrew: 'מִשְׁפָּטִים', ref: 'Exodus 21:1-24:18' },
-      { english: 'Terumah', hebrew: 'תְּרוּמָה', ref: 'Exodus 25:1-27:19' },
-      { english: 'Tetzaveh', hebrew: 'תְּצַוֶּה', ref: 'Exodus 27:20-30:10' },
-      { english: 'Ki Tisa', hebrew: 'כִּי תִשָּׂא', ref: 'Exodus 30:11-34:35' },
-      { english: 'Vayakhel', hebrew: 'וַיַּקְהֵל', ref: 'Exodus 35:1-38:20' },
-      { english: 'Pekudei', hebrew: 'פְקוּדֵי', ref: 'Exodus 38:21-40:38' },
+      { english: 'Vaera', hebrew: 'וָאֵרָא', ref: 'Exodus 6:2-9:35', youtubeUrls: ["https://www.youtube.com/watch?v=e7e2IeUasmE"], youtubeTitles: ["Let there be Light in the Name (Part 2)"] },
+      { english: 'Bo', hebrew: 'בֹּא', ref: 'Exodus 10:1-13:16', youtubeUrls: ["https://www.youtube.com/watch?v=BdrzI2KMttc", "https://www.youtube.com/watch?v=N-uu-nDwWgQ"], youtubeTitles: ["2019-02-22 The Rippling Effect of Time", "The Rippling Effects of Time"] },
+      { english: 'Beshalach', hebrew: 'בְּשַׁלַּח', ref: 'Exodus 13:17-17:16', youtubeUrls: ["https://www.youtube.com/watch?v=_YW9eQp_I0M", "https://www.youtube.com/watch?v=lEMMet3R8nM"], youtubeTitles: ["Revealing the Light", "Revealing the Light"] },
+      { english: 'Yitro', hebrew: 'יִתְרוֹ', ref: 'Exodus 18:1-20:23', youtubeUrls: ["https://www.youtube.com/watch?v=AzJO_5_tsnk", "https://www.youtube.com/watch?v=uJjS0mYizDs"], youtubeTitles: ["Receiving the Light", "Receiving the Light"] },
+      { english: 'Mishpatim', hebrew: 'מִשְׁפָּטִים', ref: 'Exodus 21:1-24:18', youtubeUrls: ["https://www.youtube.com/watch?v=QQmgR2SiPcM"], youtubeTitles: ["God's Guiding Light"] },
+      { english: 'Terumah', hebrew: 'תְּרוּמָה', ref: 'Exodus 25:1-27:19', youtubeUrls: ["https://www.youtube.com/watch?v=xgjy-PbNQFo", "https://www.youtube.com/watch?v=9-lwsNITkIU"], youtubeTitles: ["Make Me a Sanctuary", "Make Me a Sanctuary"] },
+      { english: 'Tetzaveh', hebrew: 'תְּצַוֶּה', ref: 'Exodus 27:20-30:10', youtubeUrls: ["https://www.youtube.com/watch?v=3ByakZQRe1g", "https://www.youtube.com/watch?v=rg3oPyVJoJQ"], youtubeTitles: ["The Connection Between the Oil and the Light", "The Connection Between the Oil and the Light"] },
+      { english: 'Ki Tisa', hebrew: 'כִּי תִשָּׂא', ref: 'Exodus 30:11-34:35', youtubeUrls: ["https://www.youtube.com/watch?v=kQvmPg0ChAc", "https://www.youtube.com/watch?v=3J2i-Lq0Sd4"], youtubeTitles: ["The Light in the Attributes of God’s Mercy", "The Light in the Attributes of God's Mercy"] },
+      { english: 'Vayakhel', hebrew: 'וַיַּקְהֵל', ref: 'Exodus 35:1-38:20', youtubeUrls: ["https://www.youtube.com/watch?v=MC-KU48xa7g"], youtubeTitles: ["The Tabernacle of Jewelry"] },
+      { english: 'Pekudei', hebrew: 'פְקוּדֵי', ref: 'Exodus 38:21-40:38', youtubeUrls: ["https://www.youtube.com/watch?v=MC-KU48xa7g"], youtubeTitles: ["The Tabernacle of Jewelry"] },
     ],
   },
   {
@@ -112,8 +115,25 @@ export const PARSHIYOT_BY_BOOK: TorahBookParshiyot[] = [
  */
 export function findParshaEntry(englishName: string): ParshaListEntry | undefined {
   for (const group of PARSHIYOT_BY_BOOK) {
-    const match = group.parshiyot.find((parsha) => parsha.english === englishName)
-    if (match) return match
+    const exact = group.parshiyot.find((parsha) => parsha.english === englishName)
+    if (exact) return exact
+    const parts = englishName.split('-')
+    if (parts.length !== 2) continue
+    const index = group.parshiyot.findIndex((entry) => entry.english === parts[0])
+    const first = group.parshiyot[index]
+    const second = group.parshiyot[index + 1]
+    if (!first || second?.english !== parts[1]) continue
+    const videos = new Map<string, string>()
+    for (const entry of [first, second]) {
+      entry.youtubeUrls?.forEach((url, i) => videos.set(url, entry.youtubeTitles?.[i] ?? "Sanjay's teaching"))
+    }
+    return {
+      english: englishName,
+      hebrew: `${first.hebrew}־${second.hebrew}`,
+      ref: `${first.ref.split('-')[0]}-${second.ref.split('-')[1]}`,
+      youtubeUrls: [...videos.keys()],
+      youtubeTitles: [...videos.values()],
+    }
   }
   return undefined
 }
