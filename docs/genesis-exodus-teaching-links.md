@@ -1,6 +1,6 @@
 # Genesis and Exodus teaching links
 
-All 23 portions have confirmed teaching links. 39 portion-to-video links (38 distinct videos).
+All 23 portions have confirmed teaching links. 38 portion-to-video links (37 distinct videos).
 
 Verified against public metadata from @destined4torah. Vaera and Mishpatim were confirmed using video transcripts. The Vayakhel/Pekudei video explicitly covers both portions. Existing Shemot links retained.
 
@@ -9,7 +9,6 @@ Verified against public metadata from @destined4torah. Vaera and Mishpatim were 
 ### Bereshit
 
 - [Let there be Light](https://www.youtube.com/watch?v=4boXYeN7J58)
-- [The Finished Work](https://www.youtube.com/watch?v=5Gt2mqBhN7o)
 
 ### Noach
 

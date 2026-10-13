@@ -23,7 +23,7 @@ export const PARSHIYOT_BY_BOOK: TorahBookParshiyot[] = [
   {
     book: 'Genesis',
     parshiyot: [
-      { english: 'Bereshit', hebrew: 'בְּרֵאשִׁית', ref: 'Genesis 1:1-6:8', youtubeUrls: ["https://www.youtube.com/watch?v=4boXYeN7J58", "https://www.youtube.com/watch?v=5Gt2mqBhN7o"], youtubeTitles: ["Let there be Light", "The Finished Work"] },
+      { english: 'Bereshit', hebrew: 'בְּרֵאשִׁית', ref: 'Genesis 1:1-6:8', youtubeUrls: ["https://www.youtube.com/watch?v=4boXYeN7J58"], youtubeTitles: ["Let there be Light"] },
       { english: 'Noach', hebrew: 'נֹחַ', ref: 'Genesis 6:9-11:32', youtubeUrls: ["https://www.youtube.com/watch?v=J1Q_wJsG4rg"], youtubeTitles: ["The Light in the Ark"] },
       { english: 'Lech Lecha', hebrew: 'לֶךְ־לְךָ', ref: 'Genesis 12:1-17:27', youtubeUrls: ["https://www.youtube.com/watch?v=hDd1nsURl04", "https://www.youtube.com/watch?v=FL4pFvb3dSs"], youtubeTitles: ["Be the Light", "Go to Yourself"] },
       { english: 'Vayera', hebrew: 'וַיֵּרָא', ref: 'Genesis 18:1-22:24', youtubeUrls: ["https://www.youtube.com/watch?v=evIg4s9nhd8", "https://www.youtube.com/watch?v=q-U4YzchJ7k"], youtubeTitles: ["Immersed in the Light", "And He Appeared"] },
