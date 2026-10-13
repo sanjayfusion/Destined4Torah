@@ -1,6 +1,6 @@
 # Genesis and Exodus teaching links
 
-All 23 portions have confirmed teaching links. 40 portion-to-video links (39 distinct videos).
+All 23 portions have confirmed teaching links. 39 portion-to-video links (38 distinct videos).
 
 Verified against public metadata from @destined4torah. Vaera and Mishpatim were confirmed using video transcripts. The Vayakhel/Pekudei video explicitly covers both portions. Existing Shemot links retained.
 
@@ -14,7 +14,6 @@ Verified against public metadata from @destined4torah. Vaera and Mishpatim were 
 ### Noach
 
 - [The Light in the Ark](https://www.youtube.com/watch?v=J1Q_wJsG4rg)
-- [Make For Yourself An Ark](https://www.youtube.com/watch?v=rLUEhCwaHrw)
 
 ### Lech Lecha
 
