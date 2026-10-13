@@ -1,12 +1,13 @@
 interface TextCreditProps {
-  source: 'sefaria' | 'kjv'
+  source: 'sefaria' | 'kjv' | 'bible-api'
+  translation?: string
 }
 
-export function TextCredit({ source }: TextCreditProps) {
-  if (source === 'kjv') {
+export function TextCredit({ source, translation }: TextCreditProps) {
+  if (source !== 'sefaria') {
     return (
       <p className="sefaria-credit">
-        King James Version text (public domain) via{' '}
+        {translation ?? 'King James Version'} text via{' '}
         <a href="https://bible-api.com" target="_blank" rel="noopener noreferrer">
           bible-api.com
         </a>

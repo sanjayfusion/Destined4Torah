@@ -1,5 +1,5 @@
 <!doctype html><html lang="en"><meta charset="utf-8"><title>D4T regression checks</title><body><h1>D4T regression checks</h1><pre id="results">Running…</pre><script type="module">
-import { stripTags } from '/src/lib/sefaria.ts'
+import { stripTags, fetchChapter, JPS_1917_VERSION } from '/src/lib/sefaria.ts'
 import { transliterateHebrew } from '/src/lib/transliterate.ts'
 import { PARSHIYOT_BY_BOOK, findParshaEntry } from '/src/data/parshiyot.ts'
 import { initialStudyRoute, loadStudyProgress, saveStudyProgress, STUDY_PROGRESS_KEY } from '/src/lib/studyProgress.ts'
@@ -9,7 +9,7 @@ import { findStrongsMatch } from '/src/lib/hebrewWords.ts'
 import { findGreekStrongsMatch } from '/src/lib/greekWords.ts'
 import { parseReadingPreferences } from '/src/lib/readingPreferences.ts'
 import { kjvChapterCount } from '/src/lib/kjvNumbering.ts'
-import { fetchKjvChapter } from '/src/lib/bibleApi.ts'
+import { fetchKjvChapter, fetchBibleTranslationChapter } from '/src/lib/bibleApi.ts'
 const results = []
 function check(name, actual, expected) {
   if (actual !== expected) throw new Error(`${name}: expected ${expected}, received ${actual}`)
@@ -38,7 +38,7 @@ try {
   let kjvUrl = ''
   window.fetch = async (url) => {
     kjvCalls++; kjvUrl = String(url)
-    return { ok:true, json:async () => ({verses:[{book_name:'Jude',chapter:1,verse:1,text:'  Jude,  the servant  '},{book_name:'Jude',chapter:1,verse:2,text:'Mercy'}]}) }
+    return { ok:true, json:async () => ({translation_id:'kjv',verses:[{book_name:'Jude',chapter:1,verse:1,text:'  Jude,  the servant  '},{book_name:'Jude',chapter:1,verse:2,text:'Mercy'}]}) }
   }
   const kjv = await fetchKjvChapter('Jude', 1)
   check('KJV single-chapter request asks for full chapter', kjvUrl.includes('single_chapter_book_matching=indifferent'), true)
@@ -55,6 +55,30 @@ try {
   kjvRejected = false
   try { await fetchKjvChapter('Joel',3) } catch { kjvRejected = true }
   check('empty KJV response rejected', kjvRejected, true)
+  window.fetch = originalFetch
+
+  let requestedUrl = ''
+  window.fetch = async url => {
+    requestedUrl = String(url)
+    return {ok:true,json:async () => ({ref:'Genesis 1', versionTitle:JPS_1917_VERSION, text:['In the beginning God created'], he:['בראשית']})}
+  }
+  const traditional = await fetchChapter('Genesis',1)
+  check('JPS 1917 explicitly requested', new URL(requestedUrl).searchParams.get('ven'), JPS_1917_VERSION)
+  check('traditional translation label', traditional.englishVersion, 'JPS 1917 (traditional translation)')
+  window.fetch = async () => ({ok:true,json:async () => ({versionTitle:'Other edition',text:['wrong'],he:['בראשית']})})
+  let mismatchRejected = false
+  try { await fetchChapter('Genesis',1) } catch { mismatchRejected = true }
+  check('alternate JPS edition is never silently substituted', mismatchRejected, true)
+  window.fetch = async url => ({ok:true,json:async () => ({translation_id:new URL(url).searchParams.get('translation'),verses:[{chapter:1,verse:1,text:'ASV translation'}]})})
+  const asv = await fetchBibleTranslationChapter('Jude',1,'asv')
+  check('translation cache separates ASV from KJV', asv[0].text, 'ASV translation')
+  mismatchRejected = false
+  try { await fetchBibleTranslationChapter('Genesis',1,'ylt') } catch { mismatchRejected = true }
+  check('NT-only translation rejected for Old Testament', mismatchRejected, true)
+  window.fetch = async () => ({ok:true,json:async () => ({translation_id:'web',verses:[{chapter:1,verse:1,text:'Wrong translation'}]})})
+  mismatchRejected = false
+  try { await fetchBibleTranslationChapter('Genesis',1,'asv') } catch { mismatchRejected = true }
+  check('wrong comparison translation rejected', mismatchRejected, true)
   window.fetch = originalFetch
   for (const group of PARSHIYOT_BY_BOOK.filter((group) => ['Genesis', 'Exodus'].includes(group.book))) {
     for (const entry of group.parshiyot) {

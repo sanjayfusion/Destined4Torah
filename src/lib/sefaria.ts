@@ -19,8 +19,10 @@ export function stripTags(value: string): string {
     .trim()
 }
 
+export const JPS_1917_VERSION = 'The Holy Scriptures: A New Translation (JPS 1917)'
+
 export async function fetchChapter(bookSlug: string, chapter: number): Promise<ChapterText> {
-  const url = `https://www.sefaria.org/api/texts/${bookSlug}.${chapter}?context=0&commentary=0`
+  const url = `https://www.sefaria.org/api/texts/${bookSlug}.${chapter}?context=0&commentary=0&ven=${encodeURIComponent(JPS_1917_VERSION)}`
   const response = await fetch(url)
 
   if (!response.ok) {
@@ -28,6 +30,9 @@ export async function fetchChapter(bookSlug: string, chapter: number): Promise<C
   }
 
   const data = await response.json()
+  if (data.error || data.versionTitle !== JPS_1917_VERSION) {
+    throw new Error('The requested JPS 1917 translation is not available for this chapter.')
+  }
 
   const english: string[] = Array.isArray(data.text) ? data.text : [data.text].filter(Boolean)
   const hebrew: string[] = Array.isArray(data.he) ? data.he : [data.he].filter(Boolean)
@@ -35,7 +40,7 @@ export async function fetchChapter(bookSlug: string, chapter: number): Promise<C
   return {
     ref: data.ref ?? `${bookSlug} ${chapter}`,
     heRef: data.heRef ?? '',
-    englishVersion: data.versionTitle ?? 'English translation from Sefaria',
+    englishVersion: 'JPS 1917 (traditional translation)',
     english: english.map(stripTags),
     hebrew: hebrew.map(stripTags),
   }
