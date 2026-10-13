@@ -1,3 +1,4 @@
+import { ReadingPreferencesProvider } from './components/ReadingControls'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { About } from './components/About'
 import { AllParshiyot } from './components/AllParshiyot'
@@ -124,7 +125,7 @@ function App() {
   }, [mobileNavOpen])
 
   return (
-    <>
+    <ReadingPreferencesProvider>
       <NewsTicker />
       <HolidayCountdownTicker />
       <div className="app">
@@ -229,7 +230,7 @@ function App() {
 
         <SubscribeForm />
       </div>
-    </>
+    </ReadingPreferencesProvider>
   )
 }
 

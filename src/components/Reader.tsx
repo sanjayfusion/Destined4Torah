@@ -1,3 +1,5 @@
+import { ReadingControls } from './ReadingControls'
+import { KjvPanel } from './KjvPanel'
 import { useEffect, useState } from 'react'
 import { fetchChapterCommentary, fetchNTCommentary, type CommentaryByVerse } from '../lib/commentary'
 import { ALL_BOOKS } from '../data/books'
@@ -96,7 +98,9 @@ export function Reader({ chapter, loading, error, source, bookSlug, chapterNum, 
 
       <CopyPassageLink route={{ view: 'book', book: bookSlug, chapter: chapterNum }} label="Copy chapter link" />
       {targetVerse && targetVerse.verse > verseCount && <p role="status" className="study-help">Verse {targetVerse.verse} is not in this chapter. Showing the full chapter.</p>}
-      <StudyHelp version={source === 'kjv' ? 'King James Version (KJV)' : chapter.englishVersion ?? 'Sefaria English translation'} reference={`${bookSlug} ${chapterNum}`} originalLanguage={source === 'kjv' ? 'Greek' : 'Hebrew'} compareKjv={source === 'sefaria'} />
+      <ReadingControls originalLanguage={source === 'kjv' ? 'Greek' : 'Hebrew'} />
+      {source === 'sefaria' && <KjvPanel book={bookSlug} chapter={chapterNum} />}
+      <StudyHelp version={source === 'kjv' ? 'King James Version (KJV)' : chapter.englishVersion ?? 'Sefaria English translation'} originalLanguage={source === 'kjv' ? 'Greek' : 'Hebrew'} compareKjv={source === 'sefaria'} />
       <ReadAloudBar
         texts={chapter.hebrew}
         status={hebrewReadAloud.status}
@@ -125,6 +129,7 @@ export function Reader({ chapter, loading, error, source, bookSlug, chapterNum, 
             <span className="verse-number">{i + 1}</span>
             {chapter.hebrew[i] && (
               <HebrewVerseText
+                book={bookSlug}
                 text={chapter.hebrew[i]}
                 highlightCharIndex={hebrewReadAloud.currentIndex === i ? hebrewReadAloud.currentCharIndex : null}
               />

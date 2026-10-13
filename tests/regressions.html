@@ -5,6 +5,11 @@ import { PARSHIYOT_BY_BOOK, findParshaEntry } from '/src/data/parshiyot.ts'
 import { initialStudyRoute, loadStudyProgress, saveStudyProgress, STUDY_PROGRESS_KEY } from '/src/lib/studyProgress.ts'
 import { readPassageRoute, passageUrl } from '/src/lib/passageLinks.ts'
 import { fetchIsraelNews } from '/src/lib/news.ts'
+import { findStrongsMatch } from '/src/lib/hebrewWords.ts'
+import { findGreekStrongsMatch } from '/src/lib/greekWords.ts'
+import { parseReadingPreferences } from '/src/lib/readingPreferences.ts'
+import { kjvChapterCount } from '/src/lib/kjvNumbering.ts'
+import { fetchKjvChapter } from '/src/lib/bibleApi.ts'
 const results = []
 function check(name, actual, expected) {
   if (actual !== expected) throw new Error(`${name}: expected ${expected}, received ${actual}`)
@@ -12,14 +17,53 @@ function check(name, actual, expected) {
 }
 const originalFetch = window.fetch
 try {
+
+  const approvedGenesis = new Set(['4boXYeN7J58','J1Q_wJsG4rg','hDd1nsURl04','evIg4s9nhd8','EfYOd8mDKT4','UXGHETvEMo0','n1E6XvnVLUQ','QIbFAp35X2s','n0RP3he8auM','bBTYPVTOXEE','bkFK6KadB6Q'])
+  const approvedExodus = new Set(['aKjpOAXZnb4','e7e2IeUasmE','a35p0ACus2o','lEMMet3R8nM','QQmgR2SiPcM','9-lwsNITkIU','rg3oPyVJoJQ','3J2i-Lq0Sd4'])
+  for (const group of PARSHIYOT_BY_BOOK.filter(g => ['Genesis','Exodus'].includes(g.book))) {
+    const approved = group.book === 'Genesis' ? approvedGenesis : approvedExodus
+    check(`${group.book} uses only approved playlist videos`, group.parshiyot.flatMap(p => p.youtubeUrls ?? []).every(url => approved.has(new URL(url).searchParams.get('v'))), true)
+  }
+  check('Hebrew added noun is sourced', findStrongsMatch('אֶבֶן').strongs, 'H68')
+  check('Hebrew attached prefix preserves word', findStrongsMatch('בְּאֶבֶן').strongs, 'H68')
+  check('Hebrew arbitrary suffix is not a root match', findStrongsMatch('טטטאבן'), undefined)
+  check('Greek added word is sourced', findGreekStrongsMatch('ἡμέρα').strongs, 'G2250')
+  check('accented Greek lemma normalizes', findGreekStrongsMatch('γῆ').strongs, 'G1093')
+  check('bad preferences reset', parseReadingPreferences('oops').size, 1)
+  check('all-hidden preferences reset', parseReadingPreferences(JSON.stringify({size:1,english:false,original:false,transliteration:false})).english, true)
+  check('large persisted size restored', parseReadingPreferences(JSON.stringify({size:1.5,english:false,original:true,transliteration:true})).size, 1.5)
+  check('KJV Joel has three chapters', kjvChapterCount('Joel'), 3)
+  check('KJV Malachi has four chapters', kjvChapterCount('Malachi'), 4)
+  let kjvCalls = 0
+  let kjvUrl = ''
+  window.fetch = async (url) => {
+    kjvCalls++; kjvUrl = String(url)
+    return { ok:true, json:async () => ({verses:[{book_name:'Jude',chapter:1,verse:1,text:'  Jude,  the servant  '},{book_name:'Jude',chapter:1,verse:2,text:'Mercy'}]}) }
+  }
+  const kjv = await fetchKjvChapter('Jude', 1)
+  check('KJV single-chapter request asks for full chapter', kjvUrl.includes('single_chapter_book_matching=indifferent'), true)
+  check('KJV requests explicit translation', kjvUrl.includes('translation=kjv'), true)
+  check('KJV preserves returned verse numbers', kjv[1].verse, 2)
+  check('KJV cleans whitespace', kjv[0].text, 'Jude, the servant')
+  await fetchKjvChapter('Jude',1)
+  check('KJV cache avoids duplicate requests', kjvCalls, 1)
+  window.fetch = async () => ({ok:false,status:503})
+  let kjvRejected = false
+  try { await fetchKjvChapter('Joel',3) } catch { kjvRejected = true }
+  check('KJV failure propagates for retry UI', kjvRejected, true)
+  window.fetch = async () => ({ok:true,json:async () => ({verses:[]})})
+  kjvRejected = false
+  try { await fetchKjvChapter('Joel',3) } catch { kjvRejected = true }
+  check('empty KJV response rejected', kjvRejected, true)
+  window.fetch = originalFetch
   for (const group of PARSHIYOT_BY_BOOK.filter((group) => ['Genesis', 'Exodus'].includes(group.book))) {
     for (const entry of group.parshiyot) {
-      check(`${entry.english} has teaching links`, Boolean(entry.youtubeUrls?.length), true)
+      if (!entry.youtubeUrls?.length) { check(`${entry.english} intentionally has no playlist episode`, ['Toldot','Vayetzei','Yitro','Vayakhel','Pekudei'].includes(entry.english), true); continue }
       check(`${entry.english} has matching video titles`, entry.youtubeTitles?.length, entry.youtubeUrls?.length)
       check(`${entry.english} uses valid YouTube watch URLs`, entry.youtubeUrls.every((url) => /^https:\/\/www\.youtube\.com\/watch\?v=[A-Za-z0-9_-]{11}$/.test(url)), true)
     }
   }
-  check('combined portions deduplicate the shared teaching', findParshaEntry('Vayakhel-Pekudei').youtubeUrls.length, 1)
+  check('combined portions have no outside-playlist teaching', (findParshaEntry('Vayakhel-Pekudei').youtubeUrls ?? []).length, 0)
   const memory = new Map()
   const storage = { getItem: (key) => memory.get(key) ?? null, setItem: (key, value) => memory.set(key, value) }
   check('first visit has no saved reading', loadStudyProgress(storage), null)

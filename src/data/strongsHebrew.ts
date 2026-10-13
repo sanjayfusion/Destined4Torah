@@ -1,3 +1,4 @@
+import { VERIFIED_DEFINITIONS, ADDITIONAL_WORDS } from './verifiedHebrew'
 export interface StrongsEntry {
   strongs: string
   hebrew: string
@@ -303,4 +304,10 @@ export const STRONGS_HEBREW: Record<string, StrongsEntry> = {
   פרעה: { strongs: 'H6547', hebrew: 'פַּרְעֹה', transliteration: 'Par\'oh', definition: 'Pharaoh' },
   מצרים: { strongs: 'H4714', hebrew: 'מִצְרַיִם', transliteration: 'Mitzrayim', definition: 'Egypt' },
   כנען: { strongs: 'H3667', hebrew: 'כְּנַעַן', transliteration: 'Kena\'an', definition: 'Canaan' },
+}
+
+// Retain existing lookup keys while sourcing definitions from Strong’s entries.
+Object.assign(STRONGS_HEBREW, ADDITIONAL_WORDS)
+for (const entry of Object.values(STRONGS_HEBREW)) {
+  if (VERIFIED_DEFINITIONS[entry.strongs]) entry.definition = VERIFIED_DEFINITIONS[entry.strongs]
 }

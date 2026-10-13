@@ -1266,3 +1266,32 @@
 .continue-studying p { margin: 4px 0 0; }
 .continue-studying button { margin-left: auto; border: 1px solid var(--accent); background: var(--accent); color: var(--bg); border-radius: 20px; padding: 9px 14px; cursor: pointer; font-weight: 600; }
 .continue-studying small { flex-basis: 100%; color: var(--text); font-size: 12px; }
+
+/* Study preferences apply to Scripture text only. */
+.reading-preferences[data-english='false'] .reader .verse-english { display: none; }
+.reading-preferences[data-original='false'] .reader .verse-hebrew,
+.reading-preferences[data-original='false'] .reader .verse-greek,
+.reading-preferences[data-original='false'] .reader .verse-interlinear,
+.reading-preferences[data-original='false'] .reader .strongs-popover { display: none; }
+.reading-preferences[data-transliteration='false'] .reader .verse-translit { display: none; }
+.reader .verse-english { font-size: calc(16px * var(--reading-scale, 1)); }
+.reader .verse-hebrew { font-size: calc(24px * var(--reading-scale, 1)); }
+.reader .verse-greek { font-size: calc(17px * var(--reading-scale, 1)); }
+.reader .verse-translit { font-size: calc(14px * var(--reading-scale, 1)); }
+.reading-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 18px; margin: 16px 0; padding: 12px; border: 1px solid var(--border); border-radius: 10px; }
+.reading-controls label, .kjv-selectors label { display: flex; align-items: center; gap: 7px; }
+.reading-controls input { accent-color: var(--accent); }
+.reading-controls small { flex-basis: 100%; }
+.reading-controls legend, .study-label { color: var(--accent); font-weight: 600; }
+.reading-controls select, .kjv-selectors select { max-width: 100%; color: var(--text); background: var(--accent-bg); border: 1px solid var(--border); padding: 8px; border-radius: 6px; }
+.kjv-panel { margin: 16px 0; padding: 14px; border: 1px solid var(--accent); border-radius: 10px; }
+.kjv-selectors { display: flex; flex-wrap: wrap; gap: 16px; margin: 16px 0; }
+.kjv-verses { list-style: none; padding: 0; max-height: 65vh; overflow-y: auto; }
+.kjv-verses li { display: grid; grid-template-columns: 45px 1fr; gap: 12px; margin: 14px 0; }
+.kjv-toggle { padding: 8px 12px; }
+.dictionary-source { font-size: 12px; }
+.teaching-insight { border-top: 1px solid var(--border); margin-top: 12px; padding-top: 4px; }
+
+.kjv-hidden-message { display: none; }
+.reading-preferences[data-english='false'] .kjv-hidden-message { display: block; }
+.reading-preferences[data-english='false'] .kjv-verses { display: none; }

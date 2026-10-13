@@ -1,3 +1,4 @@
+import { DictionaryDetails } from './DictionaryDetails'
 import { useState } from 'react'
 import { tokenizeHebrewVerse } from '../lib/hebrewWords'
 import { buildHebrewInterlinear } from '../lib/interlinear'
@@ -7,10 +8,11 @@ import { VerseInterlinear } from './VerseInterlinear'
 
 interface HebrewVerseTextProps {
   text: string
+  book?: string
   highlightCharIndex?: number | null
 }
 
-export function HebrewVerseText({ text, highlightCharIndex = null }: HebrewVerseTextProps) {
+export function HebrewVerseText({ text, book, highlightCharIndex = null }: HebrewVerseTextProps) {
   const [activeIndex, setActiveIndex] = useState<number | null>(null)
   const tokens = tokenizeHebrewVerse(text)
   const active = activeIndex !== null ? tokens[activeIndex] : undefined
@@ -54,7 +56,7 @@ export function HebrewVerseText({ text, highlightCharIndex = null }: HebrewVerse
           <p className="strongs-popover-translit">
             {active.entry.transliteration} &middot; {active.entry.strongs}
           </p>
-          <p className="strongs-popover-def">{active.entry.definition}</p>
+          <DictionaryDetails book={book} strongs={active.entry.strongs} definition={active.entry.definition} />
         </div>
       )}
 

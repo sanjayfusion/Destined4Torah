@@ -1,3 +1,4 @@
+import { dictionarySourceUrl } from '../lib/dictionarySource'
 import { useState } from 'react'
 import type { InterlinearRow } from '../lib/interlinear'
 
@@ -21,13 +22,13 @@ export function VerseInterlinear({ rows, dir = 'ltr' }: VerseInterlinearProps) {
 
       {open && (
         <div className="verse-interlinear-body">
-          <p className="study-help">Definitions cover selected words. “Not yet available” means this word has no entry in our study dictionary.</p>
+          <p className="study-help">Dictionary definitions cover selected words and are possible matches, not verse-specific translations. “Not yet available” means this word has no entry in our study dictionary.</p>
           <table className="verse-interlinear-table">
             <thead>
               <tr>
                 <th>Word</th>
                 <th>Transliteration</th>
-                <th>Strong's &amp; Meaning</th>
+                <th>Dictionary definition</th>
               </tr>
             </thead>
             <tbody>
@@ -40,7 +41,7 @@ export function VerseInterlinear({ rows, dir = 'ltr' }: VerseInterlinearProps) {
                   <td className="verse-interlinear-strongs">
                     {row.strongs ? (
                       <>
-                        <span className="verse-interlinear-strongs-num">{row.strongs}</span>{' '}
+                        <a className="verse-interlinear-strongs-num" href={dictionarySourceUrl(row.strongs)} target="_blank" rel="noopener noreferrer">Strong’s {row.strongs}</a>{' '}
                         {row.definition}
                       </>
                     ) : (

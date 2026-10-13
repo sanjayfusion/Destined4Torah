@@ -1,3 +1,4 @@
+import { VERIFIED_DEFINITIONS, ADDITIONAL_WORDS } from './verifiedGreek'
 export interface GreekStrongsEntry {
   strongs: string
   greek: string
@@ -185,4 +186,11 @@ export const STRONGS_GREEK: Record<string, GreekStrongsEntry> = {
   ιωανν: { strongs: 'G2491', greek: 'Ἰωάννης', transliteration: 'Ioannes', definition: 'John' },
   μωσ: { strongs: 'G3475', greek: 'Μωσῆς', transliteration: 'Moses', definition: 'Moses (Greek form of the Hebrew name)' },
   δαβιδ: { strongs: 'G1138', greek: 'Δαβίδ', transliteration: 'David', definition: 'David' },
+}
+
+// Retain existing lookup keys while sourcing definitions from Strong’s entries.
+export const GREEK_STEM_KEYS = Object.keys(STRONGS_GREEK)
+Object.assign(STRONGS_GREEK, ADDITIONAL_WORDS)
+for (const entry of Object.values(STRONGS_GREEK)) {
+  if (VERIFIED_DEFINITIONS[entry.strongs]) entry.definition = VERIFIED_DEFINITIONS[entry.strongs]
 }

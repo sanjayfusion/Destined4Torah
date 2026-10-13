@@ -1,4 +1,4 @@
-import { STRONGS_GREEK, type GreekStrongsEntry } from '../data/strongsGreek'
+import { STRONGS_GREEK, GREEK_STEM_KEYS, type GreekStrongsEntry } from '../data/strongsGreek'
 
 const GREEK_DIACRITICS_REGEX = /[̀-ͯ᾽-῿]/g
 const NON_GREEK_LETTER_REGEX = /[^a-zα-ω]/gi
@@ -12,11 +12,13 @@ function normalize(word: string): string {
     .replace(NON_GREEK_LETTER_REGEX, '')
 }
 
-const DICTIONARY_KEYS = Object.keys(STRONGS_GREEK).sort((a, b) => b.length - a.length)
+const DICTIONARY_KEYS = GREEK_STEM_KEYS.sort((a, b) => b.length - a.length)
 
 export function findGreekStrongsMatch(word: string): GreekStrongsEntry | undefined {
   const stripped = normalize(word)
   if (!stripped) return undefined
+
+  if (STRONGS_GREEK[stripped]) return STRONGS_GREEK[stripped]
 
   // Greek declension changes word endings, not beginnings, so match on the
   // stem: the longest dictionary key that the word starts with.

@@ -1,10 +1,12 @@
 # Genesis and Exodus teaching links
 
-All 23 portions have confirmed teaching links. 38 portion-to-video links (37 distinct videos).
+Genesis uses only the user-approved Let there be Light playlist:
+https://www.youtube.com/playlist?list=PL_ZorrcDyKnMyIEQDGTKYLqxQbujFu-jG
 
-Verified against public metadata from @destined4torah. Vaera and Mishpatim were confirmed using video transcripts. The Vayakhel/Pekudei video explicitly covers both portions. Existing Shemot links retained.
+Exodus uses only the user-approved Let there be Light in the Ark playlist:
+https://www.youtube.com/playlist?list=PL_ZorrcDyKnOBDcKXL-aabHVI0annjYm3
 
-## Mapping
+Verified from YouTube playlist membership and episode descriptions. Chayei Sarah, Vayishlach, Shemot and Bo also checked against transcripts. Genesis has 11 teaching videos across 10 portions; Exodus has 8 across 8 portions. The Exodus promotional video is not a portion teaching. No outside videos are used to fill gaps.
 
 ### Bereshit
 
@@ -17,55 +19,47 @@ Verified against public metadata from @destined4torah. Vaera and Mishpatim were 
 ### Lech Lecha
 
 - [Be the Light](https://www.youtube.com/watch?v=hDd1nsURl04)
-- [Go to Yourself](https://www.youtube.com/watch?v=FL4pFvb3dSs)
 
 ### Vayera
 
 - [Immersed in the Light](https://www.youtube.com/watch?v=evIg4s9nhd8)
-- [And He Appeared](https://www.youtube.com/watch?v=q-U4YzchJ7k)
 
 ### Chayei Sarah
 
-- [The World to Come](https://www.youtube.com/watch?v=T8hVfubgE0I)
+- [Life in the Light](https://www.youtube.com/watch?v=EfYOd8mDKT4)
 
 ### Toldot
 
-- [Generations](https://www.youtube.com/watch?v=eAx7P_asQbg)
+No matching teaching in the approved playlist.
 
 ### Vayetzei
 
-- [And He Went Out](https://www.youtube.com/watch?v=8sVcqPs5zAY)
+No matching teaching in the approved playlist.
 
 ### Vayishlach
 
-- [And He Sent — Angels at your Disposal](https://www.youtube.com/watch?v=XHLKnGEeIys)
+- [Light that Transcends the Darkness](https://www.youtube.com/watch?v=UXGHETvEMo0)
+- [Wresting for your Destiny](https://www.youtube.com/watch?v=n1E6XvnVLUQ)
 
 ### Vayeshev
 
 - [Coat of Light](https://www.youtube.com/watch?v=QIbFAp35X2s)
-- [Mentored for the Anointing](https://www.youtube.com/watch?v=9n-q7vcQ9do)
 
 ### Miketz
 
 - [Light at the End of the Tunnel](https://www.youtube.com/watch?v=n0RP3he8auM)
-- [Living the Dream](https://www.youtube.com/watch?v=l68nxYG8w3s)
 
 ### Vayigash
 
 - [Approaching the Light](https://www.youtube.com/watch?v=bBTYPVTOXEE)
-- [Pride, Prejudice, & Torah](https://www.youtube.com/watch?v=nGTb4hORNko)
 
 ### Vayechi
 
 - [Live in the Light](https://www.youtube.com/watch?v=bkFK6KadB6Q)
-- [Unprecedented Changes of Messianic Proportions](https://www.youtube.com/watch?v=1cBOilEiKQ4)
 
 ### Shemot
 
-- [Let there be Light in your Ark](https://www.youtube.com/watch?v=WHbIZQqDKGs)
-- [Filled With Light](https://www.youtube.com/watch?v=yW1Vnpe-uIw)
-- [The Hidden Light of Divine Purpose](https://www.youtube.com/watch?v=z4TpU_ov1cg)
-- [In a Blaze of FIre](https://www.youtube.com/watch?v=iUw1zjnpZqA)
+- [Let there be Light in your Ark (Part 1)](https://www.youtube.com/watch?v=aKjpOAXZnb4)
 
 ### Vaera
 
@@ -73,18 +67,15 @@ Verified against public metadata from @destined4torah. Vaera and Mishpatim were 
 
 ### Bo
 
-- [2019-02-22 The Rippling Effect of Time](https://www.youtube.com/watch?v=BdrzI2KMttc)
-- [The Rippling Effects of Time](https://www.youtube.com/watch?v=N-uu-nDwWgQ)
+- [When I See the Blood](https://www.youtube.com/watch?v=a35p0ACus2o)
 
 ### Beshalach
 
-- [Revealing the Light](https://www.youtube.com/watch?v=_YW9eQp_I0M)
 - [Revealing the Light](https://www.youtube.com/watch?v=lEMMet3R8nM)
 
 ### Yitro
 
-- [Receiving the Light](https://www.youtube.com/watch?v=AzJO_5_tsnk)
-- [Receiving the Light](https://www.youtube.com/watch?v=uJjS0mYizDs)
+No matching teaching in the approved playlist.
 
 ### Mishpatim
 
@@ -92,23 +83,20 @@ Verified against public metadata from @destined4torah. Vaera and Mishpatim were 
 
 ### Terumah
 
-- [Make Me a Sanctuary](https://www.youtube.com/watch?v=xgjy-PbNQFo)
 - [Make Me a Sanctuary](https://www.youtube.com/watch?v=9-lwsNITkIU)
 
 ### Tetzaveh
 
-- [The Connection Between the Oil and the Light](https://www.youtube.com/watch?v=3ByakZQRe1g)
 - [The Connection Between the Oil and the Light](https://www.youtube.com/watch?v=rg3oPyVJoJQ)
 
 ### Ki Tisa
 
-- [The Light in the Attributes of God’s Mercy](https://www.youtube.com/watch?v=kQvmPg0ChAc)
 - [The Light in the Attributes of God's Mercy](https://www.youtube.com/watch?v=3J2i-Lq0Sd4)
 
 ### Vayakhel
 
-- [The Tabernacle of Jewelry](https://www.youtube.com/watch?v=MC-KU48xa7g)
+No matching teaching in the approved playlist.
 
 ### Pekudei
 
-- [The Tabernacle of Jewelry](https://www.youtube.com/watch?v=MC-KU48xa7g)
+No matching teaching in the approved playlist.

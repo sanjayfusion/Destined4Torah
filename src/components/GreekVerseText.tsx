@@ -1,3 +1,4 @@
+import { DictionaryDetails } from './DictionaryDetails'
 import { useState } from 'react'
 import { tokenizeGreekVerse } from '../lib/greekWords'
 import { buildGreekInterlinear } from '../lib/interlinear'
@@ -54,7 +55,7 @@ export function GreekVerseText({ text, highlightCharIndex = null }: GreekVerseTe
           <p className="strongs-popover-translit">
             {active.entry.transliteration} &middot; {active.entry.strongs}
           </p>
-          <p className="strongs-popover-def">{active.entry.definition}</p>
+          <DictionaryDetails strongs={active.entry.strongs} definition={active.entry.definition} />
         </div>
       )}
 
