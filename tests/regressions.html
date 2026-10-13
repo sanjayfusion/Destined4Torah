@@ -1,6 +1,7 @@
 <!doctype html><html lang="en"><meta charset="utf-8"><title>D4T regression checks</title><body><h1>D4T regression checks</h1><pre id="results">Running…</pre><script type="module">
 import { stripTags } from '/src/lib/sefaria.ts'
 import { transliterateHebrew } from '/src/lib/transliterate.ts'
+import { readPassageRoute, passageUrl } from '/src/lib/passageLinks.ts'
 import { fetchIsraelNews } from '/src/lib/news.ts'
 const results = []
 function check(name, actual, expected) {
@@ -9,6 +10,17 @@ function check(name, actual, expected) {
 }
 const originalFetch = window.fetch
 try {
+  const verseRoute = readPassageRoute('?ref=John+3%3A16')
+  check('verse URL restores book', verseRoute.book, 'John')
+  check('verse URL restores chapter', verseRoute.chapter, 3)
+  check('verse URL restores verse', verseRoute.verse, 16)
+  check('numbered book round trip', readPassageRoute(new URL(passageUrl({view:'book',book:'1_Samuel',chapter:17,verse:4}, 'https://app.destined4torah.com/')).search).book, 'I_Samuel')
+  check('invalid chapter falls back safely', readPassageRoute('?ref=John+999').view, 'parsha')
+  check('invalid portion falls back safely', readPassageRoute('?parsha=Unknown').parsha, undefined)
+  check('named portion restored', readPassageRoute('?parsha=Noach').parsha.ref, 'Genesis 6:9-11:32')
+  check('combined portion restored', readPassageRoute('?parsha=Vayakhel-Pekudei').parsha.ref, 'Exodus 35:1-40:38')
+  check('chapter links omit previous verse', new URL(passageUrl({view:'book',book:'John',chapter:4}, 'https://app.destined4torah.com/?ref=John+3%3A16')).searchParams.get('ref'), 'John 4')
+  check('weekly navigation clears fixed portion', new URL(passageUrl({view:'parsha'}, 'https://app.destined4torah.com/?parsha=Noach')).search, '')
   check('poetry line breaks keep words apart', stripTags('Day<br>and night<br/>Shall not cease.'), 'Day and night Shall not cease.')
   check('footnotes removed, legitimate italics kept', stripTags('May <i>God</i> enlarge<sup>1</sup><i class="footnote">play on Japheth.</i> Japheth'), 'May God enlarge Japheth')
   check('HTML entities preserved', stripTags('God &amp; man &#8212; &#x201c;peace&#x201d;'), 'God & man — “peace”')

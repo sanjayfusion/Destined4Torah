@@ -9,24 +9,58 @@ import { SubscribeForm } from './components/SubscribeForm'
 import { WeeklyParsha } from './components/WeeklyParsha'
 import { fetchNewTestamentChapter } from './lib/bibleApi'
 import { ALL_BOOKS } from './data/books'
-import type { ParshaListEntry } from './data/parshiyot'
+import { readPassageRoute, passageUrl, type PassageRoute } from './lib/passageLinks'
 import { fetchChapter, type ChapterText } from './lib/sefaria'
 import logo from './assets/logo.png'
 import './App.css'
 
-type View = 'book' | 'parsha' | 'about' | 'parshiyot-list'
-
 function App() {
-  const [view, setView] = useState<View>('parsha')
-  const [selectedParsha, setSelectedParsha] = useState<ParshaListEntry | null>(null)
-  const [selectedBook, setSelectedBook] = useState('Genesis')
-  const [selectedChapter, setSelectedChapter] = useState(1)
+  const [route, setRoute] = useState<PassageRoute>(() => readPassageRoute(window.location.search))
+  const view = route.view
+  const selectedParsha = route.view === 'parsha' ? route.parsha ?? null : null
+  const selectedBook = route.view === 'book' ? route.book : 'Genesis'
+  const selectedChapter = route.view === 'book' ? route.chapter : 1
   const [chapter, setChapter] = useState<ChapterText | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [mobileNavOpen, setMobileNavOpen] = useState(false)
-  const [verseJump, setVerseJump] = useState<{ verse: number; token: number } | null>(null)
+  const [verseJump, setVerseJump] = useState<{ verse: number; token: number } | null>(() => route.view === 'book' && route.verse !== undefined ? { verse: route.verse, token: 0 } : null)
   const verseJumpCounter = useRef(0)
+
+  function applyRoute(next: PassageRoute) {
+    if (next.view !== 'book' || route.view !== 'book' || next.book !== route.book || next.chapter !== route.chapter) {
+      setChapter(null)
+      setLoading(true)
+      setError(null)
+    }
+    setRoute(next)
+    setMobileNavOpen(false)
+    verseJumpCounter.current += 1
+    setVerseJump(next.view === 'book' && next.verse !== undefined ? { verse: next.verse, token: verseJumpCounter.current } : null)
+  }
+
+  function navigate(next: PassageRoute) {
+    const url = passageUrl(next, window.location.href)
+    if (url !== window.location.href) window.history.pushState(null, '', url)
+    applyRoute(next)
+  }
+
+  useEffect(() => {
+    const onPopState = () => {
+      const next = readPassageRoute(window.location.search)
+      if (next.view !== 'book' || route.view !== 'book' || next.book !== route.book || next.chapter !== route.chapter) {
+        setChapter(null)
+        setLoading(true)
+        setError(null)
+      }
+      setRoute(next)
+      setMobileNavOpen(false)
+      verseJumpCounter.current += 1
+      setVerseJump(next.view === 'book' && next.verse !== undefined ? { verse: next.verse, token: verseJumpCounter.current } : null)
+    }
+    window.addEventListener('popstate', onPopState)
+    return () => window.removeEventListener('popstate', onPopState)
+  }, [route])
 
   const selectedBookInfo = ALL_BOOKS.find((book) => book.slug === selectedBook)
   const source = selectedBookInfo?.testament === 'new' ? 'kjv' : 'sefaria'
@@ -84,8 +118,7 @@ function App() {
               type="button"
               className={view === 'parsha' ? 'parsha-toggle active' : 'parsha-toggle'}
               onClick={() => {
-                setSelectedParsha(null)
-                setView('parsha')
+                navigate({ view: 'parsha' })
               }}
             >
               This Week's Parashah
@@ -93,14 +126,14 @@ function App() {
             <button
               type="button"
               className={view === 'parshiyot-list' ? 'parsha-toggle active' : 'parsha-toggle'}
-              onClick={() => setView('parshiyot-list')}
+              onClick={() => navigate({ view: 'parshiyot-list' })}
             >
               All Parshiyot
             </button>
             <button
               type="button"
               className={view === 'about' ? 'parsha-toggle active' : 'parsha-toggle'}
-              onClick={() => setView('about')}
+              onClick={() => navigate({ view: 'about' })}
             >
               About
             </button>
@@ -138,26 +171,16 @@ function App() {
               selectedBook={selectedBook}
               selectedChapter={selectedChapter}
               onSelect={(book, chap, verse) => {
-                setView('book')
-                setSelectedBook(book)
-                setSelectedChapter(chap)
-                setMobileNavOpen(false)
-                if (verse !== undefined) {
-                  verseJumpCounter.current += 1
-                  setVerseJump({ verse, token: verseJumpCounter.current })
-                } else {
-                  setVerseJump(null)
-                }
+                navigate({ view: 'book', book, chapter: chap, verse })
               }}
             />
           </div>
           <main className="app-main">
-            {view === 'parsha' && <WeeklyParsha overrideParsha={selectedParsha} />}
+            {view === 'parsha' && <WeeklyParsha key={selectedParsha?.english ?? "weekly"} overrideParsha={selectedParsha} />}
             {view === 'parshiyot-list' && (
               <AllParshiyot
                 onSelect={(parsha) => {
-                  setSelectedParsha(parsha)
-                  setView('parsha')
+                  navigate({ view: 'parsha', parsha })
                 }}
               />
             )}

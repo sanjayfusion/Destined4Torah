@@ -1252,3 +1252,11 @@
   .news-ticker-content { animation: none; }
   .news-ticker-track { overflow-x: auto; }
 }
+
+.copy-passage { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0 0 12px; max-width: 100%; }
+.copy-passage-button { border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--accent); padding: 6px 10px; cursor: pointer; font-size: 12px; }
+.copy-passage-button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.copy-passage-status { color: var(--text); font-size: 12px; }
+.copy-passage input { width: 100%; min-width: 0; color: var(--text); background: var(--bg); border: 1px solid var(--border); padding: 8px; }
+.verse-share { grid-column: 2; margin-top: 8px; }
+.verse-share .copy-passage { margin-bottom: 0; }

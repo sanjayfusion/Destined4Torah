@@ -7,6 +7,7 @@ import { HebrewVerseText } from './HebrewVerseText'
 import { YouTubeIcon } from './icons'
 import { ParshaDateHeader } from './ParshaDateHeader'
 import { ReadAloudBar } from './ReadAloudBar'
+import { CopyPassageLink } from './CopyPassageLink'
 import { StudyHelp } from './StudyHelp'
 import { TextCredit } from './TextCredit'
 import { VerseCommentary } from './VerseCommentary'
@@ -99,6 +100,7 @@ export function WeeklyParsha({ overrideParsha = null }: WeeklyParshaProps) {
         <h2 className="hebrew" dir="rtl">{parsha.hebrewName}</h2>
       </header>
       <p className="parsha-ref">{parsha.ref}</p>
+      <CopyPassageLink route={{ view: 'parsha', parsha: overrideParsha ?? { english: parsha.englishName, hebrew: parsha.hebrewName, ref: parsha.ref } }} label="Copy Torah portion link" />
       <StudyHelp version={parsha.sections[0]?.englishVersion ?? 'Sefaria English translation'} reference={`${parsha.ref.split(' ')[0]} ${parsha.sections.map((section) => section.chapter).join(',')}`} originalLanguage="Hebrew" compareKjv />
 
       {youtubeUrls.length > 0 && (
@@ -146,6 +148,7 @@ export function WeeklyParsha({ overrideParsha = null }: WeeklyParshaProps) {
                       }
                     />
                     <p className="verse-english">{section.english[i]}</p>
+                    <div className="verse-share"><CopyPassageLink route={{ view: 'book', book: parsha.ref.split(' ')[0], chapter: section.chapter, verse: section.startVerse + i }} label={`Copy verse ${section.chapter}:${section.startVerse + i} link`} /></div>
                     <VerseCommentary
                       entries={commentaryByChapter[section.chapter]?.[section.startVerse + i] ?? []}
                     />

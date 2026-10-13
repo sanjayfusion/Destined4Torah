@@ -6,6 +6,7 @@ import { useReadAloud } from '../hooks/useReadAloud'
 import { GreekVerseText } from './GreekVerseText'
 import { HebrewVerseText } from './HebrewVerseText'
 import { ReadAloudBar } from './ReadAloudBar'
+import { CopyPassageLink } from './CopyPassageLink'
 import { StudyHelp } from './StudyHelp'
 import { TextCredit } from './TextCredit'
 import { VerseCommentary } from './VerseCommentary'
@@ -28,7 +29,7 @@ export function Reader({ chapter, loading, error, source, bookSlug, chapterNum, 
   const greekReadAloud = useReadAloud(chapter?.greek ?? [], 'el-GR')
 
   useEffect(() => {
-    if (!chapter || !targetVerse) return
+    if (loading || !chapter || !targetVerse) return
 
     const el = document.getElementById(`verse-${targetVerse.verse}`)
     if (!el) return
@@ -37,7 +38,7 @@ export function Reader({ chapter, loading, error, source, bookSlug, chapterNum, 
     setHighlightedVerse(targetVerse.verse)
     const timeout = setTimeout(() => setHighlightedVerse(null), 2000)
     return () => clearTimeout(timeout)
-  }, [chapter, targetVerse])
+  }, [chapter, targetVerse, loading])
 
   useEffect(() => {
     let cancelled = false
@@ -93,6 +94,8 @@ export function Reader({ chapter, loading, error, source, bookSlug, chapterNum, 
         )}
       </header>
 
+      <CopyPassageLink route={{ view: 'book', book: bookSlug, chapter: chapterNum }} label="Copy chapter link" />
+      {targetVerse && targetVerse.verse > verseCount && <p role="status" className="study-help">Verse {targetVerse.verse} is not in this chapter. Showing the full chapter.</p>}
       <StudyHelp version={source === 'kjv' ? 'King James Version (KJV)' : chapter.englishVersion ?? 'Sefaria English translation'} reference={`${bookSlug} ${chapterNum}`} originalLanguage={source === 'kjv' ? 'Greek' : 'Hebrew'} compareKjv={source === 'sefaria'} />
       <ReadAloudBar
         texts={chapter.hebrew}
@@ -133,6 +136,7 @@ export function Reader({ chapter, loading, error, source, bookSlug, chapterNum, 
               />
             )}
             <p className="verse-english">{chapter.english[i]}</p>
+            <div className="verse-share"><CopyPassageLink route={{ view: 'book', book: bookSlug, chapter: chapterNum, verse: i + 1 }} label={`Copy verse ${i + 1} link`} /></div>
             <VerseCommentary entries={commentary[i + 1] ?? []} />
           </li>
         ))}
