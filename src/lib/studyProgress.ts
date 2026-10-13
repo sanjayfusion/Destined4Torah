@@ -25,11 +25,12 @@ export function saveStudyProgress(route: PassageRoute, storage: ProgressStorage)
   } catch { return false }
 }
 
-export function initialStudyRoute(search: string, saved: SavedPassage | null): PassageRoute {
+export function initialStudyRoute(search: string, _saved: SavedPassage | null): PassageRoute {
   const params = new URLSearchParams(search)
   // Explicit links always take precedence, including invalid ones (normal fallback).
   if (['ref', 'parsha', 'view'].some((key) => params.has(key))) return readPassageRoute(search)
-  return saved ?? { view: 'parsha' }
+  // Resume is an explicit action through Continue studying, never a homepage redirect.
+  return { view: 'parsha' }
 }
 
 export function savedPassageLabel(route: SavedPassage): string {

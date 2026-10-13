@@ -25,13 +25,6 @@ function App() {
   useEffect(() => {
     if (route.view === 'book' || route.view === 'parsha') lastReading.current = route
   }, [route])
-  const initialRoute = useRef(route)
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search)
-    if (!['ref', 'parsha', 'view'].some((key) => params.has(key))) {
-      window.history.replaceState(null, '', passageUrl(initialRoute.current, window.location.href))
-    }
-  }, [])
   const rememberPassage = useCallback((passage: SavedPassage) => {
     try {
       if (saveStudyProgress(passage, window.localStorage)) setSavedPassage(passage)
@@ -212,7 +205,7 @@ function App() {
             />
           </div>}
           <main className="app-main">
-            {view === 'parsha' && <WeeklyParsha key={selectedParsha?.english ?? "weekly"} overrideParsha={selectedParsha} onReadingLoaded={rememberPassage} />}
+            {view === 'parsha' && <WeeklyParsha key={selectedParsha?.english ?? "weekly"} overrideParsha={selectedParsha} onReadingLoaded={selectedParsha ? rememberPassage : undefined} />}
             {view === 'parshiyot-list' && (
               <AllParshiyot
                 onSelect={(parsha) => {
