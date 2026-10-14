@@ -4,7 +4,7 @@ import { findParshaEntry, type ParshaListEntry } from '../data/parshiyot'
 export type PassageRoute =
   | { view: 'book'; book: string; chapter: number; verse?: number }
   | { view: 'parsha'; parsha?: ParshaListEntry }
-  | { view: 'about' | 'parshiyot-list' | 'subscribe' }
+  | { view: 'about' | 'parshiyot-list' | 'subscribe' | 'tanakh' }
 
 /** Query URLs work on static hosting without server rewrites. */
 export function readPassageRoute(search: string): PassageRoute {
@@ -19,7 +19,7 @@ export function readPassageRoute(search: string): PassageRoute {
   const parsha = findParshaEntry(params.get('parsha') ?? '')
   if (parsha) return { view: 'parsha', parsha }
   const view = params.get('view')
-  if (view === 'about' || view === 'parshiyot-list' || view === 'subscribe') return { view }
+  if (view === 'about' || view === 'parshiyot-list' || view === 'subscribe' || view === 'tanakh') return { view }
   return { view: 'parsha' }
 }
 

@@ -1,3 +1,4 @@
+import { TanakhPage } from './components/TanakhPage'
 import { ReadingPreferencesProvider } from './components/ReadingControls'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { About } from './components/About'
@@ -30,7 +31,10 @@ function App() {
       if (saveStudyProgress(passage, window.localStorage)) setSavedPassage(passage)
     } catch { /* The reader still works when local storage is unavailable. */ }
   }, [])
+  const [studyMenuOpen, setStudyMenuOpen] = useState(false)
+  useEffect(() => setStudyMenuOpen(false), [route])
   const view = route.view
+  const overviewPage = view === 'subscribe' || view === 'tanakh'
   const selectedParsha = route.view === 'parsha' ? route.parsha ?? null : null
   const selectedBook = route.view === 'book' ? route.book : 'Genesis'
   const selectedChapter = route.view === 'book' ? route.chapter : 1
@@ -133,7 +137,10 @@ function App() {
             &ldquo;Ye worship ye know not what: we know what we worship: for salvation is of the
             Jews.&rdquo; &mdash; John 4:22 (KJV)
           </p>
-          <div className="header-nav">
+          <nav className="header-nav" aria-label="Main navigation">
+            <div className="study-navigation">
+            <button type="button" className="parsha-toggle study-menu-toggle" aria-expanded={studyMenuOpen} aria-controls="study-navigation-links" onClick={() => setStudyMenuOpen(!studyMenuOpen)}>Study Scripture ▾</button>
+            <div id="study-navigation-links" className={studyMenuOpen ? 'study-links open' : 'study-links'}>
             <button
               type="button"
               className={view === 'parsha' ? 'parsha-toggle active' : 'parsha-toggle'}
@@ -150,6 +157,9 @@ function App() {
             >
               All Parshiyot
             </button>
+            <button type="button" className={view === 'tanakh' ? 'parsha-toggle active' : 'parsha-toggle'} aria-current={view === 'tanakh' ? 'page' : undefined} onClick={() => navigate({ view: 'tanakh' })}>Tanakh</button>
+            </div>
+            </div>
             <button
               type="button"
               className={view === 'about' ? 'parsha-toggle active' : 'parsha-toggle'}
@@ -158,6 +168,7 @@ function App() {
               About
             </button>
             <div className="header-actions">
+            <button type="button" className={view === 'subscribe' ? 'parsha-toggle subscribe-nav active' : 'parsha-toggle subscribe-nav'} aria-current={view === 'subscribe' ? 'page' : undefined} onClick={() => navigate({ view: 'subscribe' })}>Subscribe</button>
             <a
               href="https://square.link/u/TQ6ubiPe?src=sheet"
               target="_blank"
@@ -166,26 +177,25 @@ function App() {
             >
               Partner with us
             </a>
-            <button type="button" className={view === 'subscribe' ? 'parsha-toggle subscribe-nav active' : 'parsha-toggle subscribe-nav'} aria-current={view === 'subscribe' ? 'page' : undefined} onClick={() => navigate({ view: 'subscribe' })}>Subscribe</button>
             </div>
-          </div>
+          </nav>
         </header>
 
-        {savedPassage && view !== 'subscribe' && <section className="continue-studying" aria-label="Saved reading">
+        {savedPassage && !overviewPage && <section className="continue-studying" aria-label="Saved reading">
           <div><strong>Your last reading</strong><p>{savedPassageLabel(savedPassage)}</p></div>
           <button type="button" onClick={() => navigate(savedPassage)}>Continue studying</button>
           <small>Remembered on this device.</small>
         </section>}
 
-        {view !== 'subscribe' && <button type="button" className="mobile-nav-trigger" onClick={() => setMobileNavOpen(true)}>
+        {!overviewPage && <button type="button" className="mobile-nav-trigger" onClick={() => setMobileNavOpen(true)}>
           <span className="mobile-nav-trigger-label">
             {view === 'book' ? `${selectedBookInfo?.english ?? selectedBook} ${selectedChapter}` : view === 'parsha' ? (selectedParsha?.ref ?? "This Week's Parashah") : view === 'about' ? 'About' : 'All Parshiyot'}
           </span>
           <span aria-hidden="true">Browse books ▾</span>
         </button>}
 
-        <div className={view === 'subscribe' ? 'app-body subscribe-layout' : 'app-body'}>
-          {view !== 'subscribe' && <div className={mobileNavOpen ? 'book-nav-wrapper open' : 'book-nav-wrapper'}>
+        <div className={overviewPage ? 'app-body subscribe-layout' : 'app-body'}>
+          {!overviewPage && <div className={mobileNavOpen ? 'book-nav-wrapper open' : 'book-nav-wrapper'}>
             {mobileNavOpen && (
               <button
                 type="button"
@@ -214,6 +224,7 @@ function App() {
               />
             )}
             {view === 'about' && <About />}
+            {view === 'tanakh' && <TanakhPage onSelect={(book) => navigate({ view: 'book', book, chapter: 1 })} />}
             {view === 'subscribe' && <SubscribePage onBackToReading={() => navigate(lastReading.current)} />}
             {view === 'book' && (
               <Reader
