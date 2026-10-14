@@ -4,15 +4,6 @@ import countdown from '../assets/final-countdown.jpg'
 import voice from '../assets/earth-wind-fire.jpg'
 import mirror from '../assets/man-in-the-mirror.jpg'
 import royal from '../assets/becoming-a-royal.jpg'
-import {
-  AmazonIcon,
-  ApplePodcastsIcon,
-  FacebookIcon,
-  InstagramIcon,
-  SpotifyIcon,
-  XIcon,
-  YouTubeIcon,
-} from './icons'
 
 const BOOKS = [
   { title: "Destiny’s Arrow", subtitle: 'How to Recognize the Signs of Greatness', cover: arrow, asin: 'B0HDKK31LP', description: 'Have you ever been rejected? You may be closer to your calling than you think. Journey through the lives of Saul and David to explore how humility, jealousy, and the choices we make in seasons of testing shape our destiny. Drawing on Scripture and rabbinic commentary, this book invites you to recognize the greatness God has placed within you.' },
@@ -22,23 +13,6 @@ const BOOKS = [
   { title: 'Becoming a Royal', subtitle: 'Assuming Your Role as a Royal in the Tapestry of Creation', cover: royal, asin: 'B09YV9PG8J', description: 'Explore the principles of royalty woven throughout God’s Word. Discover what it means to live as a child of the King of Kings and embrace your place in the tapestry of creation.' },
 ]
 
-const SOCIAL_LINKS = [
-  { label: 'Facebook', href: 'https://www.facebook.com/destined4torah', Icon: FacebookIcon },
-  { label: 'Instagram', href: 'https://www.instagram.com/destined4torah', Icon: InstagramIcon },
-  {
-    label: 'Spotify',
-    href: 'https://open.spotify.com/show/7xKxwlBgYAhWaH7qiQSE96?si=OsAB83d1RwCGDPa-NThfRQ&nd=1&dlsi=516b4bf6332543fc',
-    Icon: SpotifyIcon,
-  },
-  { label: 'YouTube', href: 'https://www.youtube.com/@destined4torah', Icon: YouTubeIcon },
-  { label: 'Amazon', href: 'https://www.amazon.com/author/sanjayprajapati', Icon: AmazonIcon },
-  {
-    label: 'Apple Podcasts',
-    href: 'https://podcasts.apple.com/us/podcast/destined4torah/id1441022266',
-    Icon: ApplePodcastsIcon,
-  },
-  { label: 'X', href: 'https://x.com/destined4torah', Icon: XIcon },
-]
 
 export function About() {
   return (
@@ -49,15 +23,6 @@ export function About() {
         <div className="about-text">
           <h3 className="about-name">Dr. Sanjay Prajapati</h3>
           <p className="about-title">Author, Teacher &amp; Public Speaker</p>
-          <ul className="social-links">
-            {SOCIAL_LINKS.map(({ label, href, Icon }) => (
-              <li key={label}>
-                <a href={href} target="_blank" rel="noopener noreferrer" aria-label={label} title={label}>
-                  <Icon className="social-icon" />
-                </a>
-              </li>
-            ))}
-          </ul>
           <div className="about-intro">
         <p>
           Dr. Sanjay Prajapati is an author, teacher, and public speaker revealing Jesus in

@@ -1391,3 +1391,8 @@
 }
 
 .about-book-copy p.about-book-formats { margin: 10px 0 0; font-size: 13px; line-height: 1.5; }
+
+.header-social-links { justify-content: center; gap: 6px; margin: 4px 0 16px; }
+.header-social-links a { width: 36px; height: 36px; }
+.header-social-links a:focus-visible { outline: 2px solid var(--text-h); outline-offset: 3px; }
+.header-social-links .social-icon { width: 17px; height: 17px; }
