@@ -999,7 +999,8 @@
 }
 
 .about-photo {
-  width: 220px;
+  width: 280px;
+  max-width: 100%;
   height: auto;
   border-radius: 14px;
   flex-shrink: 0;
@@ -1342,4 +1343,11 @@
 }
 @media (max-width: 600px) {
   .header-nav { align-items: start; }
+}
+
+.about-text { flex: 1; min-width: min(100%, 250px); }
+.about-intro p { line-height: 1.75; margin: 16px 0 0; }
+@media (max-width: 600px) {
+  .about-body { flex-direction: column; }
+  .about-photo { width: 100%; max-width: 360px; align-self: center; }
 }

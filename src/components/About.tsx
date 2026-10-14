@@ -1,4 +1,4 @@
-import photo from '../assets/sanjay.jpg'
+import photo from '../assets/sanjay-compass.png'
 import {
   AmazonIcon,
   ApplePodcastsIcon,
@@ -40,7 +40,7 @@ export function About() {
     <article className="reader about">
       <h2>About</h2>
       <div className="about-body">
-        <img src={photo} className="about-photo" alt="Dr. Sanjay Prajapati" />
+        <img src={photo} className="about-photo" width={1254} height={1254} alt="Dr. Sanjay Prajapati" />
         <div className="about-text">
           <h3 className="about-name">Dr. Sanjay Prajapati</h3>
           <p className="about-title">Author, Teacher &amp; Public Speaker</p>
@@ -53,10 +53,7 @@ export function About() {
               </li>
             ))}
           </ul>
-        </div>
-      </div>
-
-      <div className="about-bio">
+          <div className="about-intro">
         <p>
           Dr. Sanjay Prajapati is an author, teacher, and public speaker revealing Jesus in
           His Jewish context through Torah study.
@@ -68,6 +65,11 @@ export function About() {
           Hebrew and New Testament alike. He is a frequent guest on Dr. Corral's program The
           Prophetic Word (Word Network).
         </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="about-bio">
         <p>
           <a
             href="https://www.amazon.com/author/sanjayprajapati"
