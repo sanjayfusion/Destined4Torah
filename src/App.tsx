@@ -34,7 +34,7 @@ function App() {
   const [studyMenuOpen, setStudyMenuOpen] = useState(false)
   useEffect(() => setStudyMenuOpen(false), [route])
   const view = route.view
-  const overviewPage = view === 'subscribe' || view === 'tanakh'
+  const overviewPage = view === 'subscribe' || view === 'tanakh' || view === 'about'
   const selectedParsha = route.view === 'parsha' ? route.parsha ?? null : null
   const selectedBook = route.view === 'book' ? route.book : 'Genesis'
   const selectedChapter = route.view === 'book' ? route.chapter : 1
@@ -189,7 +189,7 @@ function App() {
 
         {!overviewPage && <button type="button" className="mobile-nav-trigger" onClick={() => setMobileNavOpen(true)}>
           <span className="mobile-nav-trigger-label">
-            {view === 'book' ? `${selectedBookInfo?.english ?? selectedBook} ${selectedChapter}` : view === 'parsha' ? (selectedParsha?.ref ?? "This Week's Parashah") : view === 'about' ? 'About' : 'All Parshiyot'}
+            {view === 'book' ? `${selectedBookInfo?.english ?? selectedBook} ${selectedChapter}` : view === 'parsha' ? (selectedParsha?.ref ?? "This Week's Parashah") : 'All Parshiyot'}
           </span>
           <span aria-hidden="true">Browse books ▾</span>
         </button>}
