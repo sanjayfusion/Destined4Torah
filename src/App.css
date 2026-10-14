@@ -1389,3 +1389,5 @@
   .about-book-cover, .about-book-featured .about-book-cover { width: 180px; align-self: center; }
   .about .about-speaking { padding: 22px; }
 }
+
+.about-book-copy p.about-book-formats { margin: 10px 0 0; font-size: 13px; line-height: 1.5; }

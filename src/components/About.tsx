@@ -100,7 +100,8 @@ export function About() {
                 <h4>{book.title}</h4>
                 <p className="about-book-subtitle">{book.subtitle}</p>
                 <p>{book.description}</p>
-                <a className="about-book-button" href={`https://www.amazon.com/dp/${book.asin}`} target="_blank" rel="noopener noreferrer" aria-label={`View ${book.title} paperback on Amazon (opens in a new tab)`}>Paperback on Amazon <span aria-hidden="true">↗</span></a>
+                <a className="about-book-button" href={`https://www.amazon.com/dp/${book.asin}`} target="_blank" rel="noopener noreferrer" aria-label={`View ${book.title} on Amazon (opens in a new tab)`}>View on Amazon <span aria-hidden="true">↗</span></a>
+                <p className="about-book-formats">Choose your format on Amazon.</p>
               </div>
             </article>
           ))}
