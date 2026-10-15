@@ -1,3 +1,5 @@
+import { SUBSCRIBE_API_URL } from '../config'
+
 export interface NewsItem {
   title: string
   link: string
@@ -42,7 +44,25 @@ async function fetchFeed(feedUrl: string): Promise<NewsItem[]> {
   return fresh
 }
 
+// Our own worker fetches and caches the headlines, so visitors don't depend on a third-party
+// converter. If it is unavailable, fall back to the converter below.
+async function fetchFromOwnServer(): Promise<NewsItem[]> {
+  const response = await fetch(`${SUBSCRIBE_API_URL}/api/news`, { signal: AbortSignal.timeout(8000) })
+  if (!response.ok) throw new Error(`News request failed (${response.status})`)
+  const data = (await response.json()) as { items?: NewsItem[] }
+  const items = (data.items ?? []).filter((item) => item.title && /^https?:\/\//i.test(item.link) && Number.isFinite(Date.parse(item.publishedAt)))
+  if (items.length === 0) throw new Error('No recent news available')
+  return items.slice(0, 15)
+}
+
 export async function fetchIsraelNews(): Promise<NewsItem[]> {
+  if (SUBSCRIBE_API_URL) {
+    try {
+      return await fetchFromOwnServer()
+    } catch {
+      // fall through to the converter
+    }
+  }
   let lastError: unknown
   for (const feedUrl of FEED_URLS) {
     try {

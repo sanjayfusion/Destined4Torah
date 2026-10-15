@@ -22,143 +22,72 @@
   font-family: var(--font-greek);
 }
 
-/* News ticker */
+/* Top ticker: verse, Hebrew date, next holiday, then Israel news, in one scrolling line. */
 
-.news-ticker {
-  display: flex;
-  align-items: center;
-  background: var(--text-h);
-  background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.06), transparent 60%);
-  color: var(--bg);
-  overflow: hidden;
-}
-
-.news-ticker-verse {
-  flex-shrink: 0;
-  padding: 8px 14px;
-  font-size: 12px;
-  font-style: italic;
-  white-space: nowrap;
-  border-right: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.news-ticker-label {
-  flex-shrink: 0;
-  padding: 8px 14px;
-  background: var(--accent);
-  color: #fff;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-
-/* With no headlines loaded, show just the verse, centered. */
-.news-ticker-verse-only {
-  justify-content: center;
-}
-
-.news-ticker-verse-only .news-ticker-verse {
-  border-right: 0;
-  white-space: normal;
-  text-align: center;
-}
-
-@media (max-width: 700px) {
-  .news-ticker-verse {
-    display: none;
-  }
-
-  /* On phones the verse is hidden, so with no headlines there is nothing to show. */
-  .news-ticker-verse-only {
-    display: none;
-  }
-}
-
-.news-ticker-track {
-  flex: 1;
-  overflow: hidden;
-}
-
-.news-ticker-content {
-  display: flex;
-  width: max-content;
-  animation: news-ticker-scroll 40s linear infinite;
-}
-
-.news-ticker:hover .news-ticker-content {
-  animation-play-state: paused;
-}
-
-.news-ticker-item {
-  flex-shrink: 0;
-  padding: 8px 32px 8px 0;
-  color: var(--bg);
-  text-decoration: none;
-  font-size: 13px;
-  white-space: nowrap;
-}
-
-.news-ticker-item:hover {
-  text-decoration: underline;
-}
-
-/* Holiday countdown ticker */
-
-.holiday-ticker {
-  display: flex;
-  align-items: center;
+.top-ticker {
   background: var(--accent);
   background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.1), transparent 60%);
   color: #fff;
   overflow: hidden;
 }
 
-.holiday-ticker-label {
-  flex-shrink: 0;
-  padding: 8px 14px;
-  background: rgba(0, 0, 0, 0.15);
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-
-.holiday-ticker-track {
-  flex: 1;
+.top-ticker-track {
   overflow: hidden;
 }
 
-.holiday-ticker-content {
+.top-ticker-content {
   display: flex;
   width: max-content;
-  animation: holiday-ticker-scroll 40s linear infinite;
+  animation: top-ticker-scroll 60s linear infinite;
 }
 
-.holiday-ticker:hover .holiday-ticker-content {
+.top-ticker:hover .top-ticker-content {
   animation-play-state: paused;
 }
 
-.holiday-ticker-item {
+.top-ticker-item {
   flex-shrink: 0;
-  padding: 8px 48px 8px 0;
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 0 8px 40px;
   font-size: 13px;
   font-weight: 600;
   white-space: nowrap;
 }
 
-@keyframes holiday-ticker-scroll {
-  from {
-    transform: translateX(0);
-  }
-  to {
-    transform: translateX(-50%);
-  }
+/* A small diamond between items. */
+.top-ticker-item::before {
+  content: '\25C6';
+  margin-right: 40px;
+  font-size: 7px;
+  opacity: 0.6;
 }
 
-@keyframes news-ticker-scroll {
+.top-ticker-verse {
+  font-style: italic;
+}
+
+.top-ticker-news-label {
+  padding: 1px 8px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.22);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.top-ticker-link {
+  color: #fff;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.top-ticker-link:hover {
+  text-decoration: underline;
+}
+
+@keyframes top-ticker-scroll {
   from {
     transform: translateX(0);
   }
@@ -1266,8 +1195,8 @@
   .subscribe-card { padding: 22px 16px; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .news-ticker-content { animation: none; }
-  .news-ticker-track { overflow-x: auto; }
+  .top-ticker-content { animation: none; }
+  .top-ticker-track { overflow-x: auto; }
 }
 
 .copy-passage { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0 0 12px; max-width: 100%; }

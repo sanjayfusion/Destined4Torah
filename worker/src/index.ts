@@ -2,6 +2,7 @@ import { handleAdmin } from './admin'
 import type { Env } from './env'
 import { serveAuthor, serveImage, serveLogo, serveSting } from './images'
 import { handleConfirm, handleJoin, handlePreferences, handleSubscribe, handleSubscribeOptions, handleUnsubscribe } from './public'
+import { handleNews, refreshNewsIfStale } from './news'
 import { processQueue } from './sender'
 import { now } from './util'
 import { handleResendWebhook } from './webhook'
@@ -14,6 +15,7 @@ async function route(request: Request, env: Env, ctx: ExecutionContext): Promise
     if (request.method === 'POST') return handleSubscribe(request, env)
     return new Response('Method not allowed', { status: 405 })
   }
+  if (pathname === '/api/news') return handleNews(request, env)
   const image = /^\/img\/([a-f0-9]{48})$/.exec(pathname)
   if (image && request.method === 'GET') return serveImage(env, image[1])
   if (pathname === '/assets/logo.png' && request.method === 'GET') return serveLogo()
@@ -45,6 +47,7 @@ export default {
     ctx.waitUntil(
       (async () => {
         await processQueue(env)
+        await refreshNewsIfStale(env).catch((error) => console.error('News refresh failed:', String(error)))
         await env.DB.prepare('DELETE FROM rate_limits WHERE at < ?').bind(now() - 24 * 60 * 60).run()
       })(),
     )
