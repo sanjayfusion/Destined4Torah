@@ -4,8 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { About } from './components/About'
 import { AllParshiyot } from './components/AllParshiyot'
 import { BookNav } from './components/BookNav'
-import { HolidayCountdownTicker } from './components/HolidayCountdownTicker'
-import { NewsTicker } from './components/NewsTicker'
+import { TopTicker } from './components/TopTicker'
 import { Reader } from './components/Reader'
 import { SubscribePage } from './components/SubscribePage'
 import { WeeklyParsha } from './components/WeeklyParsha'
@@ -128,8 +127,7 @@ function App() {
 
   return (
     <ReadingPreferencesProvider>
-      <NewsTicker />
-      <HolidayCountdownTicker />
+      <TopTicker />
       <div className="app">
         <header className="app-header">
           <img src={logo} className="app-logo" alt="Destined4Torah" />
