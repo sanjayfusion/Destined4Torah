@@ -1,6 +1,6 @@
 import { handleAdmin } from './admin'
 import type { Env } from './env'
-import { serveAuthor, serveImage, serveLogo, serveSting } from './images'
+import { serveAuthor, serveBanner, serveImage, serveLogo, serveSting } from './images'
 import { handleConfirm, handleJoin, handlePreferences, handleSubscribe, handleSubscribeOptions, handleUnsubscribe } from './public'
 import { handleNews, refreshNewsIfStale } from './news'
 import { processQueue } from './sender'
@@ -20,6 +20,7 @@ async function route(request: Request, env: Env, ctx: ExecutionContext): Promise
   if (image && request.method === 'GET') return serveImage(env, image[1])
   if (pathname === '/assets/logo.png' && request.method === 'GET') return serveLogo()
   if (pathname === '/assets/sting.png' && request.method === 'GET') return serveSting()
+  if (pathname === '/assets/banner.jpg' && request.method === 'GET') return serveBanner()
   if (pathname === '/assets/author.jpg' && request.method === 'GET') return serveAuthor()
   if (pathname === '/confirm' && request.method === 'GET') return handleConfirm(request, env)
   if (pathname === '/join' && (request.method === 'GET' || request.method === 'POST')) return handleJoin(request, env)
