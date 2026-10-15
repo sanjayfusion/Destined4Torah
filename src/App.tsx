@@ -148,15 +148,17 @@ function App() {
               onClick={() => {
                 navigate({ view: 'parsha' })
               }}
+              title="This week's parashah"
             >
-              This Week's Parashah
+              This Week
             </button>
             <button
               type="button"
               className={view === 'parshiyot-list' ? 'parsha-toggle active' : 'parsha-toggle'}
               onClick={() => navigate({ view: 'parshiyot-list' })}
+              title="All parshiyot"
             >
-              All Parshiyot
+              Parshiyot
             </button>
             <button type="button" className={view === 'tanakh' ? 'parsha-toggle active' : 'parsha-toggle'} aria-current={view === 'tanakh' ? 'page' : undefined} onClick={() => navigate({ view: 'tanakh' })}>Tanakh</button>
             </div>
