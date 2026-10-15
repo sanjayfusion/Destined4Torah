@@ -42,6 +42,7 @@ function App() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [mobileNavOpen, setMobileNavOpen] = useState(false)
+  const [resumeDismissed, setResumeDismissed] = useState(false)
   const [verseJump, setVerseJump] = useState<{ verse: number; token: number } | null>(() => route.view === 'book' && route.verse !== undefined ? { verse: route.verse, token: 0 } : null)
   const verseJumpCounter = useRef(0)
 
@@ -181,10 +182,10 @@ function App() {
           </nav>
         </header>
 
-        {savedPassage && !overviewPage && <section className="continue-studying" aria-label="Saved reading">
-          <div><strong>Your last reading</strong><p>{savedPassageLabel(savedPassage)}</p></div>
-          <button type="button" onClick={() => navigate(savedPassage)}>Continue studying</button>
-          <small>Remembered on this device.</small>
+        {savedPassage && !overviewPage && !resumeDismissed && <section className="continue-studying" aria-label="Saved reading" title="Remembered on this device">
+          <span className="continue-studying-text">Last read: <strong>{savedPassageLabel(savedPassage)}</strong></span>
+          <button type="button" className="continue-studying-go" onClick={() => navigate(savedPassage)}>Continue</button>
+          <button type="button" className="continue-studying-close" aria-label="Hide this for now" onClick={() => setResumeDismissed(true)}>&times;</button>
         </section>}
 
         {!overviewPage && <button type="button" className="mobile-nav-trigger" onClick={() => setMobileNavOpen(true)}>
