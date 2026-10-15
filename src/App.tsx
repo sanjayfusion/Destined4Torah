@@ -251,6 +251,10 @@ function App() {
           </main>
         </div>
 
+        <p className="app-credit">
+          Icons by <a href="https://icons8.com" target="_blank" rel="noopener noreferrer">Icons8</a>
+        </p>
+
         <BackToTop />
       </div>
     </ReadingPreferencesProvider>

@@ -1,8 +1,8 @@
-import amazonLogo from '../assets/amazon-logo.png'
+import amazonIcon from '../assets/amazon-icon.png'
 
 // The Facebook, Instagram, Spotify, YouTube, X and Apple Podcasts shapes come from the open-source
 // Simple Icons collection (https://github.com/simple-icons/simple-icons, CC0). The logos remain the
-// trademarks of their owners. Amazon's logo is not in that collection; its wordmark comes from the owner's Author Central logo.
+// trademarks of their owners. Amazon's icon is from Icons8.
 interface IconProps {
   className?: string
 }
@@ -56,9 +56,9 @@ export function XIcon({ className }: IconProps) {
   )
 }
 
-/** Amazon's own wordmark (white, from the owner's Author Central logo), used on a dark tile. */
+/** The Amazon "a" icon from Icons8 (icons8.com), shown on a white tile; the footer links back to Icons8. */
 export function AmazonIcon({ className }: IconProps) {
-  return <img className={className} src={amazonLogo} width={209} height={67} alt="" aria-hidden="true" />
+  return <img className={className} src={amazonIcon} width={96} height={96} alt="" aria-hidden="true" />
 }
 
 export function ApplePodcastsIcon({ className }: IconProps) {
