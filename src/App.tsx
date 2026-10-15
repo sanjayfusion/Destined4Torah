@@ -3,6 +3,7 @@ import { ReadingPreferencesProvider } from './components/ReadingControls'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { About } from './components/About'
 import { AllParshiyot } from './components/AllParshiyot'
+import { BackToTop } from './components/BackToTop'
 import { BookNav } from './components/BookNav'
 import { TopTicker } from './components/TopTicker'
 import { Reader } from './components/Reader'
@@ -243,6 +244,7 @@ function App() {
           </main>
         </div>
 
+        <BackToTop />
       </div>
     </ReadingPreferencesProvider>
   )

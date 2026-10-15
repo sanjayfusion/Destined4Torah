@@ -3,7 +3,7 @@ import { SUBSCRIBE_API_URL } from '../config'
 
 type Status = 'idle' | 'sending' | 'done' | 'error'
 
-export function SubscribeForm() {
+export function SubscribeForm({ compact = false }: { compact?: boolean }) {
   const [email, setEmail] = useState('')
   const [name, setName] = useState('')
   const [phone, setPhone] = useState('')
@@ -26,7 +26,7 @@ export function SubscribeForm() {
       const data = (await response.json()) as { ok: boolean; error?: string }
       if (data.ok) {
         setStatus('done')
-        setMessage('Almost there! Check your email and click the link to confirm your subscription.')
+        setMessage('Almost there! Check your email and click the link to confirm your subscription. If you don\u2019t see it within a minute, look in your spam or promotions folder.')
       } else {
         setStatus('error')
         setMessage(data.error ?? 'Something went wrong. Please try again.')
@@ -38,9 +38,9 @@ export function SubscribeForm() {
   }
 
   return (
-    <section className="subscribe-card" aria-labelledby="subscribe-heading">
-      <h2 id="subscribe-heading">Get Destined4Torah in your inbox</h2>
-      <p>Teaching, Torah insights, and updates from Dr. Sanjay Prajapati, delivered by email. Unsubscribe any time.</p>
+    <section className={compact ? 'subscribe-card subscribe-card-compact' : 'subscribe-card'} aria-labelledby={compact ? 'subscribe-heading-compact' : 'subscribe-heading'}>
+      <h2 id={compact ? 'subscribe-heading-compact' : 'subscribe-heading'}>{compact ? 'Enjoyed this reading? Get the weekly email' : 'Get Destined4Torah in your inbox'}</h2>
+      <p>{compact ? 'Each week, the new parashah and Dr. Sanjay Prajapati\u2019s teaching, straight to your inbox. Unsubscribe any time.' : 'Teaching, Torah insights, and updates from Dr. Sanjay Prajapati, delivered by email. Unsubscribe any time.'}</p>
 
       {status === 'done' ? (
         <p className="subscribe-message success" role="status">
@@ -69,7 +69,7 @@ export function SubscribeForm() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
-          <details className="subscribe-optional">
+          {!compact && <details className="subscribe-optional">
             <summary>Add phone or address (optional)</summary>
             <input
               type="tel"
@@ -91,7 +91,7 @@ export function SubscribeForm() {
               value={address}
               onChange={(e) => setAddress(e.target.value)}
             />
-          </details>
+          </details>}
           <input
             type="text"
             className="subscribe-trap"
@@ -112,7 +112,7 @@ export function SubscribeForm() {
         </form>
       )}
 
-      {status !== 'done' && (
+      {status !== 'done' && !compact && (
         <div className="subscribe-qr">
           <img src="/join-qr.svg" width={132} height={132} alt="QR code to join the email list from your phone" />
           <p>
