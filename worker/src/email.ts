@@ -100,6 +100,8 @@ function layout({ env, subject, bodyHtml, footerHtml, banner, headerBanner }: La
 <style>
 :root{color-scheme:light dark;supported-color-schemes:light dark}
 @media (prefers-color-scheme: dark){
+body,.frame{background:#0b0b0b !important}
+.foot,.foot a{color:#b9b2c2 !important}
 .card{background:#16151a !important;border-color:#2b2933 !important;color:#e9e5ef !important}
 .card h1,.card h2,.card h3{color:#ffffff !important}
 .card a{color:#e3b667 !important}
@@ -109,11 +111,11 @@ function layout({ env, subject, bodyHtml, footerHtml, banner, headerBanner }: La
 .card .muted{color:#b9b2c2 !important}
 }
 </style></head>
-<body style="margin:0;padding:0;background:#0b0b0b">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#0b0b0b"><tr><td align="center" style="padding:24px 12px">
+<body class="frame" bgcolor="#0b0b0b" style="margin:0;padding:0;background:#0b0b0b">
+<table role="presentation" class="frame" width="100%" cellpadding="0" cellspacing="0" bgcolor="#0b0b0b" style="background:#0b0b0b"><tr><td align="center" style="padding:24px 12px">
 <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%">
 <tr><td class="card" style="background:#ffffff;border:1px solid #e6e2d8;border-radius:12px;padding:30px 32px;font:16px/1.6 -apple-system,'Segoe UI',Roboto,Arial,sans-serif;color:#3b3544">${logo}${bannerHtml}${bodyHtml}${stingHtml}</td></tr>
-<tr><td style="padding:18px 12px 0;font:12px/1.6 Arial,sans-serif;color:#b9b2c2;text-align:center">${footerHtml}</td></tr>
+<tr><td class="foot" style="padding:18px 12px 0;font:12px/1.6 Arial,sans-serif;color:#b9b2c2;text-align:center">${footerHtml}</td></tr>
 </table></td></tr></table></body></html>`
 }
 
