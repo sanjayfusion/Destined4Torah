@@ -140,7 +140,7 @@ async function createDraftAndPreview(env: Env, saturday: { year: number; month: 
     return { startedAt: now(), skipped: true, sent: true }
   }
   const reflection = portion.summary
-    ? await reflectOnPortion(env, portion.name, portion.ref, portion.summary).catch((error) => (console.error('Reflection failed:', String(error)), ''))
+    ? await reflectOnPortion(env, site.name ?? portion.name, portion.ref, portion.summary).catch((error) => (console.error('Reflection failed:', String(error)), ''))
     : ''
   // Prefer the site's own spelling and vowelled Hebrew so the email matches what readers see on the site.
   const shown: Portion = { ...portion, name: site.name ?? portion.name, hebrew: site.hebrew ?? portion.hebrew }
