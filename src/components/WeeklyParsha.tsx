@@ -12,6 +12,7 @@ import { ParshaDateHeader } from './ParshaDateHeader'
 import { ReadAloudBar } from './ReadAloudBar'
 import { CopyPassageLink } from './CopyPassageLink'
 import { StudyHelp } from './StudyHelp'
+import { SubscribeForm } from './SubscribeForm'
 import { TextCredit } from './TextCredit'
 import { VerseCommentary } from './VerseCommentary'
 
@@ -135,6 +136,22 @@ export function WeeklyParsha({ overrideParsha = null, onReadingLoaded }: WeeklyP
         label="Read parashah aloud"
       />
 
+      {parsha.sections.length > 1 && (
+        <nav className="jump-menu" aria-label="Jump to a chapter">
+          <span className="jump-menu-label">Jump to:</span>
+          {parsha.sections.map((section) => (
+            <button
+              key={section.chapter}
+              type="button"
+              className="jump-menu-link"
+              onClick={() => document.getElementById(`chapter-${section.chapter}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+            >
+              Chapter {section.chapter}
+            </button>
+          ))}
+        </nav>
+      )}
+
       {(() => {
         let globalVerseIndex = 0
 
@@ -143,7 +160,7 @@ export function WeeklyParsha({ overrideParsha = null, onReadingLoaded }: WeeklyP
           globalVerseIndex += section.hebrew.length
 
           return (
-            <div key={section.chapter} className="parsha-section">
+            <div key={section.chapter} id={`chapter-${section.chapter}`} className="parsha-section">
               {parsha.sections.length > 1 && (
                 <h3 className="chapter-divider">Chapter {section.chapter}</h3>
               )}
@@ -172,6 +189,8 @@ export function WeeklyParsha({ overrideParsha = null, onReadingLoaded }: WeeklyP
           )
         })
       })()}
+
+      <SubscribeForm compact />
 
       <TextCredit source="sefaria" />
     </article>
