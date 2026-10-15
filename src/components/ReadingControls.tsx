@@ -1,11 +1,10 @@
 import { createContext, useContext, useState, type ReactNode, type CSSProperties } from 'react'
 
-import { defaults, key, parseReadingPreferences, type ReadingPreferences } from '../lib/readingPreferences'
+import { defaults, key, type ReadingPreferences } from '../lib/readingPreferences'
 const ReadingContext = createContext({ preferences: defaults, update: (_next: ReadingPreferences) => {} })
 export function ReadingPreferencesProvider({ children }: { children: ReactNode }) {
-  const [preferences, setPreferences] = useState(() => {
-    try { return parseReadingPreferences(localStorage.getItem(key)) } catch { return defaults }
-  })
+  // The reader no longer offers these controls, so ignore any size/layer choice saved earlier on this device.
+  const [preferences, setPreferences] = useState(defaults)
   function update(next: ReadingPreferences) {
     setPreferences(next)
     try { localStorage.setItem(key, JSON.stringify(next)) } catch { /* Controls still work without storage. */ }
