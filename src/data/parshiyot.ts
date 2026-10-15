@@ -105,8 +105,13 @@ export const PARSHIYOT_BY_BOOK: TorahBookParshiyot[] = [
 ]
 
 /** Compares names ignoring case, spaces, hyphens and punctuation, so "Lech-Lecha" finds "Lech Lecha". */
+const SPELLING_ALIASES: Record<string, string> = { chayeisara: 'chayeisarah' }
+
 function sameName(a: string, b: string): boolean {
-  const norm = (name: string) => name.toLowerCase().replace(/[^a-z]/g, '')
+  const norm = (name: string) => {
+    const plain = name.toLowerCase().replace(/[^a-z]/g, '')
+    return SPELLING_ALIASES[plain] ?? plain
+  }
   return norm(a) === norm(b)
 }
 

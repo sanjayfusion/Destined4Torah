@@ -22,6 +22,8 @@ interface State {
   startedAt: number
   cancelled?: boolean
   sent?: boolean
+  /** No newsletter this week (a holiday week with no regular portion). */
+  skipped?: boolean
 }
 
 interface Local {
@@ -71,7 +73,11 @@ async function fetchPortion(date: { year: number; month: number; day: number }):
   return { name: item.displayValue.en, hebrew: item.displayValue.he ?? '', ref: item.ref, summary: (item.description?.en ?? '').trim() }
 }
 
-const normName = (name: string) => name.toLowerCase().replace(/[^a-z]/g, '')
+const SPELLING_ALIASES: Record<string, string> = { chayeisara: 'chayeisarah' }
+const normName = (name: string) => {
+  const plain = name.toLowerCase().replace(/[^a-z]/g, '')
+  return SPELLING_ALIASES[plain] ?? plain
+}
 
 interface SiteInfo {
   /** The site's spelling of the name (e.g. "Lech Lecha"), when the site list is reachable. */
@@ -81,10 +87,10 @@ interface SiteInfo {
 }
 
 /** Names, Hebrew and Dr. Sanjay's teaching videos for a portion, from the same list the site uses. */
-async function fetchSiteInfo(env: Env, name: string): Promise<SiteInfo> {
+async function fetchSiteInfo(env: Env, name: string): Promise<SiteInfo | null> {
   try {
     const response = await fetch(`${env.SITE_URL}/parshiyot.json`)
-    if (!response.ok) return { videos: [] }
+    if (!response.ok) return null
     const list = (await response.json()) as { english: string; hebrew: string; youtubeUrls?: string[]; youtubeTitles?: string[] }[]
     // Combined portions arrive as "Vayakhel-Pekudei": match each half, or the whole name.
     const whole = list.find((p) => normName(p.english) === normName(name))
@@ -101,7 +107,7 @@ async function fetchSiteInfo(env: Env, name: string): Promise<SiteInfo> {
     }
     return { name: entries.map((e) => e.english).join('-'), hebrew: entries.map((e) => e.hebrew).join('־'), videos }
   } catch {
-    return { videos: [] }
+    return null
   }
 }
 
@@ -125,10 +131,17 @@ async function cancelToken(env: Env, campaignId: number): Promise<string> {
 
 async function createDraftAndPreview(env: Env, saturday: { year: number; month: number; day: number }, mode: 'weekly' | 'test'): Promise<State> {
   const portion = await fetchPortion(addDays({ ...saturday, weekday: 6, hour: 0 }, 7))
-  const [site, reflection] = await Promise.all([
-    fetchSiteInfo(env, portion.name),
-    portion.summary ? reflectOnPortion(env, portion.name, portion.ref, portion.summary).catch((error) => (console.error('Reflection failed:', String(error)), '')) : Promise.resolve(''),
-  ])
+  const site = await fetchSiteInfo(env, portion.name)
+  if (!site) throw new Error('The site portion list is unavailable') // try again next minute
+  if (!site.name) {
+    // Holiday weeks: Sefaria lists the holiday reading instead of a regular portion. Skip, and say so.
+    const note = `No weekly newsletter was made this week. Sefaria lists "${portion.name}" (a holiday reading) for next Shabbat, not a regular Torah portion. You can still write one in the admin: ${env.WORKER_URL}/admin`
+    await sendBatch(env, [{ to: env.AUTO_PREVIEW_TO!, subject: `No weekly newsletter this week (${portion.name})`, html: `<p>${esc(note)}</p>`, text: note }])
+    return { startedAt: now(), skipped: true, sent: true }
+  }
+  const reflection = portion.summary
+    ? await reflectOnPortion(env, portion.name, portion.ref, portion.summary).catch((error) => (console.error('Reflection failed:', String(error)), ''))
+    : ''
   // Prefer the site's own spelling and vowelled Hebrew so the email matches what readers see on the site.
   const shown: Portion = { ...portion, name: site.name ?? portion.name, hebrew: site.hebrew ?? portion.hebrew }
   const body = buildBody(env, shown, portion.name, reflection, site.videos)
@@ -202,6 +215,7 @@ export async function runWeekly(env: Env): Promise<void> {
     return
   }
 
+  if (state.skipped || state.cancelled || state.sent) return
   if (!state.campaignId) {
     // A run that claimed the week but never finished: let a new run try after five minutes.
     if (now() - state.startedAt > 5 * 60) await env.IMAGES.delete(key)
