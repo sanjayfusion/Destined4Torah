@@ -165,6 +165,30 @@ export function renderConfirmation(env: Env, name: string, confirmUrl: string): 
   }
 }
 
+/** Sent once, right after someone confirms their subscription. */
+export function renderWelcome(
+  env: Env,
+  name: string,
+  unsubscribeUrl: string,
+): { subject: string; html: string; text: string; headers: Record<string, string> } {
+  const who = name.trim() || FALLBACK_NAME
+  const updateUrl = unsubscribeUrl.replace('/unsubscribe?', '/preferences?')
+  const bodyHtml = `<p style="margin:0 0 16px">Dear ${esc(who)},</p>
+<p style="margin:0 0 16px">Thank you for subscribing. You're confirmed, and I'm glad you're here.</p>
+<p style="margin:0 0 16px">Destined4Torah is about reading Scripture in its Jewish context, from Genesis to Revelation. A good place to begin is this week's Torah portion, with the Hebrew, English, and commentary together:</p>
+<p style="margin:22px 0"><a href="${esc(env.SITE_URL)}" style="background:#8a5a2c;color:#ffffff;text-decoration:none;font-weight:600;padding:12px 22px;border-radius:8px;display:inline-block">Read this week's parashah</a></p>
+<p style="margin:0 0 16px">I'll send teaching and updates from time to time. If there is something you'd like to see, just reply to this email.</p>
+<p style="margin:0">Blessings,<br>Dr. Sanjay Prajapati</p>`
+  const footerHtml = `<a href="${esc(updateUrl)}" style="color:#7a7285">Update your contact details</a> &nbsp;|&nbsp; <a href="${esc(unsubscribeUrl)}" style="color:#7a7285">Unsubscribe</a><br>${addressHtml(env)}`
+  const text = `Dear ${who},\n\nThank you for subscribing. You're confirmed, and I'm glad you're here.\n\nDestined4Torah is about reading Scripture in its Jewish context, from Genesis to Revelation. A good place to begin is this week's Torah portion, with the Hebrew, English, and commentary together:\n${env.SITE_URL}\n\nI'll send teaching and updates from time to time. If there is something you'd like to see, just reply to this email.\n\nBlessings,\nDr. Sanjay Prajapati\n\n--\nUpdate your contact details: ${updateUrl}\nUnsubscribe: ${unsubscribeUrl}\n${mailingAddress(env)}`
+  return {
+    subject: `Welcome to ${env.FROM_NAME}`,
+    html: layout({ env, subject: `Welcome to ${env.FROM_NAME}`, bodyHtml, footerHtml }),
+    text,
+    headers: unsubscribeHeaders(unsubscribeUrl),
+  }
+}
+
 export function unsubscribeHeaders(unsubscribeUrl: string): Record<string, string> {
   return {
     'List-Unsubscribe': `<${unsubscribeUrl}>`,

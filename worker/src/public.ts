@@ -1,4 +1,4 @@
-import { renderConfirmation, sendBatch } from './email'
+import { renderConfirmation, renderWelcome, sendBatch, unsubscribeUrl } from './email'
 import type { Env, Subscriber } from './env'
 import { esc, htmlResponse, messagePage } from './html'
 import { clientIp, normalizeEmail, now, randomToken, recordRequest, tooManyRequests } from './util'
@@ -64,7 +64,7 @@ export async function handleSubscribe(request: Request, env: Env): Promise<Respo
   if (!name) return jsonResponse(request, env, { ok: false, error: 'Please enter your name.' }, 400)
   const phone = String(body.phone ?? '').trim().slice(0, 40)
   const address = String(body.address ?? '').trim().slice(0, 300)
-  const sourceLabel = body.via === 'qr' ? 'QR code' : 'Website signup'
+  const sourceLabel = body.via === 'qr' ? 'QR code' : body.via === 'prompt' ? 'After-reading prompt' : 'Website signup'
 
   const existing = await env.DB.prepare('SELECT * FROM subscribers WHERE email = ?').bind(email).first<Subscriber>()
   const timestamp = now()
@@ -120,7 +120,13 @@ export async function handleConfirm(request: Request, env: Env): Promise<Respons
     return messagePage('Link no longer active', `Please <a href="${esc(env.SITE_URL)}">subscribe again from the website</a>.`, 410)
   }
 
-  await env.DB.prepare(`UPDATE subscribers SET status = 'confirmed', confirmed_at = ? WHERE id = ?`).bind(now(), subscriber.id).run()
+  const confirmed = await env.DB.prepare(`UPDATE subscribers SET status = 'confirmed', confirmed_at = ? WHERE id = ? AND status = 'pending'`).bind(now(), subscriber.id).run()
+  // Only the click that actually confirms sends the welcome, so a double click can't send two.
+  if (confirmed.meta.changes > 0) {
+    const welcome = renderWelcome(env, subscriber.name, unsubscribeUrl(env, subscriber.token))
+    const sent = await sendBatch(env, [{ to: subscriber.email, subject: welcome.subject, html: welcome.html, text: welcome.text, headers: welcome.headers }])
+    if (!sent.ok) console.error('Welcome email failed:', sent.error)
+  }
   return messagePage("You're subscribed", `Thank you! You'll receive ${esc(env.FROM_NAME)} by email. <a href="${esc(env.SITE_URL)}">Return to the website</a>.`)
 }
 
