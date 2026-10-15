@@ -1,5 +1,6 @@
 import type { Env } from './env'
 import { AUTHOR_JPG_BASE64 } from './author'
+import { BANNER_JPG_BASE64 } from './banner'
 import { LOGO_PNG_BASE64 } from './logo'
 import { STING_PNG_BASE64 } from './sting'
 import { randomToken } from './util'
@@ -48,6 +49,12 @@ let stingBytes: Uint8Array | null = null
 export function serveSting(): Response {
   stingBytes ??= Uint8Array.from(atob(STING_PNG_BASE64), (c) => c.charCodeAt(0))
   return new Response(stingBytes, { headers: { 'Content-Type': 'image/png', 'Cache-Control': 'public, max-age=86400', 'X-Content-Type-Options': 'nosniff' } })
+}
+
+let bannerBytes: Uint8Array | null = null
+export function serveBanner(): Response {
+  bannerBytes ??= Uint8Array.from(atob(BANNER_JPG_BASE64), (c) => c.charCodeAt(0))
+  return new Response(bannerBytes, { headers: { 'Content-Type': 'image/jpeg', 'Cache-Control': 'public, max-age=86400', 'X-Content-Type-Options': 'nosniff' } })
 }
 
 let authorBytes: Uint8Array | null = null

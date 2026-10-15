@@ -71,7 +71,7 @@ export async function sendBatch(env: Env, messages: Message[], idempotencyKey?: 
  * Mail apps cache email images by address, so a changed logo or photo would keep
  * showing the old one. Bump this number whenever either image is replaced.
  */
-const ASSET_VERSION = '3'
+const ASSET_VERSION = '4'
 
 export interface Banner {
   src: string
@@ -84,26 +84,23 @@ interface Layout {
   bodyHtml: string
   footerHtml: string
   banner?: Banner
-  /** Show the author's photo below the message (newsletters only). */
-  authorPhoto?: boolean
+  /** Use the full header banner (logo, name, tagline, photo) instead of the plain logo. */
+  headerBanner?: boolean
 }
 
-function layout({ env, subject, bodyHtml, footerHtml, banner, authorPhoto }: Layout): string {
-  const logo = `<p style="margin:0 0 22px;text-align:center"><a href="${esc(env.SITE_URL)}"><img src="${esc(env.WORKER_URL)}/assets/logo.png?v=${ASSET_VERSION}" width="360" alt="Destined4Torah" style="max-width:100%;height:auto;border:0"></a></p>`
+function layout({ env, subject, bodyHtml, footerHtml, banner, headerBanner }: Layout): string {
+  const logo = headerBanner
+    ? `<p style="margin:0 0 24px;text-align:center"><a href="${esc(env.SITE_URL)}"><img src="${esc(env.WORKER_URL)}/assets/banner.jpg?v=${ASSET_VERSION}" width="536" alt="Destined4Torah — Dr. Sanjay Prajapati" style="width:100%;max-width:536px;height:auto;border:0;border-radius:8px;background:#000000"></a></p>`
+    : `<p style="margin:0 0 22px;text-align:center"><a href="${esc(env.SITE_URL)}"><img src="${esc(env.WORKER_URL)}/assets/logo.png?v=${ASSET_VERSION}" width="360" alt="Destined4Torah" style="max-width:100%;height:auto;border:0"></a></p>`
   const bannerHtml = banner
     ? `<p style="margin:0 0 24px;text-align:center"><img src="${esc(banner.src)}" alt="${esc(banner.alt)}" width="536" style="width:100%;max-width:536px;height:auto;border:0;border-radius:4px"></p>`
     : ''
-  const photoHtml = authorPhoto
-    ? `<p style="margin:28px 0 0;text-align:center"><img src="${esc(env.WORKER_URL)}/assets/author.jpg?v=${ASSET_VERSION}" width="260" height="260" alt="Dr. Sanjay Prajapati" style="width:260px;max-width:100%;height:auto;border:0;border-radius:12px"></p>`
-    : ''
-  const stingHtml = authorPhoto
-    ? `<p style="margin:28px 0 0;text-align:center"><img src="${esc(env.WORKER_URL)}/assets/sting.png?v=${ASSET_VERSION}" width="536" alt="Destined4Torah" style="width:100%;max-width:536px;height:auto;border:0;border-radius:8px;background:#000000"></p>`
-    : ''
+  const stingHtml = `<p style="margin:28px 0 0;text-align:center"><img src="${esc(env.WORKER_URL)}/assets/sting.png?v=${ASSET_VERSION}" width="536" alt="Destined4Torah" style="width:100%;max-width:536px;height:auto;border:0;border-radius:8px;background:#000000"></p>`
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(subject)}</title></head>
 <body style="margin:0;padding:0;background:#f4f1ea">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f4f1ea"><tr><td align="center" style="padding:24px 12px">
 <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%">
-<tr><td style="background:#ffffff;border:1px solid #e6e2d8;border-radius:12px;padding:30px 32px;font:16px/1.6 -apple-system,'Segoe UI',Roboto,Arial,sans-serif;color:#3b3544">${logo}${bannerHtml}${bodyHtml}${photoHtml}${stingHtml}</td></tr>
+<tr><td style="background:#ffffff;border:1px solid #e6e2d8;border-radius:12px;padding:30px 32px;font:16px/1.6 -apple-system,'Segoe UI',Roboto,Arial,sans-serif;color:#3b3544">${logo}${bannerHtml}${bodyHtml}${stingHtml}</td></tr>
 <tr><td style="padding:18px 12px 0;font:12px/1.6 Arial,sans-serif;color:#7a7285;text-align:center">${footerHtml}</td></tr>
 </table></td></tr></table></body></html>`
 }
@@ -148,7 +145,7 @@ export function renderCampaign(
 <a href="${esc(updateUrl)}" style="color:#7a7285">Update your contact details</a> &nbsp;|&nbsp; <a href="${esc(unsubscribeUrl)}" style="color:#7a7285">Unsubscribe</a><br>${addressHtml(env)}`
   const textBody = [headingMd ? markdownToText(headingMd) : '', `Dear ${name},`, markdownToText(restMd)].filter(Boolean).join('\n\n')
   const text = `${textBody}\n\n--\nYou are receiving this because you subscribed at ${env.SITE_URL}.\nUpdate your contact details: ${updateUrl}\nUnsubscribe: ${unsubscribeUrl}\n${mailingAddress(env)}`
-  return { html: layout({ env, subject, bodyHtml, footerHtml, banner, authorPhoto: true }), text }
+  return { html: layout({ env, subject, bodyHtml, footerHtml, banner, headerBanner: true }), text }
 }
 
 export function renderConfirmation(env: Env, name: string, confirmUrl: string): { subject: string; html: string; text: string } {
@@ -183,7 +180,7 @@ export function renderWelcome(
   const text = `Dear ${who},\n\nThank you for subscribing. You're confirmed, and I'm glad you're here.\n\nDestined4Torah is about reading Scripture in its Jewish context, from Genesis to Revelation. A good place to begin is this week's Torah portion, with the Hebrew, English, and commentary together:\n${env.SITE_URL}\n\nI'll send teaching and updates from time to time. If there is something you'd like to see, just reply to this email.\n\nBlessings,\nDr. Sanjay Prajapati\n\n--\nUpdate your contact details: ${updateUrl}\nUnsubscribe: ${unsubscribeUrl}\n${mailingAddress(env)}`
   return {
     subject: `Welcome to ${env.FROM_NAME}`,
-    html: layout({ env, subject: `Welcome to ${env.FROM_NAME}`, bodyHtml, footerHtml }),
+    html: layout({ env, subject: `Welcome to ${env.FROM_NAME}`, bodyHtml, footerHtml, headerBanner: true }),
     text,
     headers: unsubscribeHeaders(unsubscribeUrl),
   }
