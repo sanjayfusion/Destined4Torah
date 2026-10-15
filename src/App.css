@@ -1207,11 +1207,12 @@
 .verse-share { grid-column: 2; margin-top: 8px; }
 .verse-share .copy-passage { margin-bottom: 0; }
 
-.continue-studying { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; padding: 14px 18px; margin-bottom: 20px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; }
-.continue-studying strong { color: var(--accent); font-size: 12px; }
-.continue-studying p { margin: 4px 0 0; }
-.continue-studying button { margin-left: auto; border: 1px solid var(--accent); background: var(--accent); color: var(--bg); border-radius: 20px; padding: 9px 14px; cursor: pointer; font-weight: 600; }
-.continue-studying small { flex-basis: 100%; color: var(--text); font-size: 12px; }
+.continue-studying { display: flex; align-items: center; gap: 10px; padding: 6px 8px 6px 16px; margin-bottom: 16px; background: var(--surface); border: 1px solid var(--border); border-radius: 999px; font-size: 14px; }
+.continue-studying-text { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text); }
+.continue-studying strong { color: var(--accent); font-weight: 600; }
+.continue-studying-go { flex: none; border: 1px solid var(--accent); background: var(--accent); color: var(--bg); border-radius: 20px; padding: 5px 14px; cursor: pointer; font-weight: 600; font-size: 13px; }
+.continue-studying-close { flex: none; border: 0; background: transparent; color: var(--text); font-size: 20px; line-height: 1; width: 28px; height: 28px; border-radius: 50%; cursor: pointer; }
+.continue-studying-close:hover { background: var(--border); }
 
 /* Study preferences apply to Scripture text only. */
 .reading-preferences[data-english='false'] .reader .verse-english { display: none; }
