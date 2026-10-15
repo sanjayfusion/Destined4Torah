@@ -11,6 +11,8 @@ export interface Env {
   /** Only for local testing against a fake sending service. */
   RESEND_API_URL?: string
   MAILING_ADDRESS?: string
+  /** Where the weekly newsletter preview goes; the weekly send is off while this is unset. */
+  AUTO_PREVIEW_TO?: string
 
   // Plain config (wrangler.toml [vars])
   SITE_URL: string

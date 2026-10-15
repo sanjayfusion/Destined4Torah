@@ -91,6 +91,8 @@ try {
       check(`${entry.english} uses valid YouTube watch URLs`, entry.youtubeUrls.every((url) => /^https:\/\/www\.youtube\.com\/watch\?v=[A-Za-z0-9_-]{11}$/.test(url)), true)
     }
   }
+  check('portion lookup ignores hyphens and case', findParshaEntry('Lech-Lecha')?.english, 'Lech Lecha')
+  check('portion lookup still finds combined portions', findParshaEntry('vayakhel-pekudei')?.english, 'vayakhel-pekudei')
   check('combined portions have no outside-playlist teaching', (findParshaEntry('Vayakhel-Pekudei').youtubeUrls ?? []).length, 0)
   const memory = new Map()
   const storage = { getItem: (key) => memory.get(key) ?? null, setItem: (key, value) => memory.set(key, value) }

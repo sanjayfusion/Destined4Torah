@@ -107,6 +107,23 @@ Commit and push; the site's normal deploy shows the signup box. Until this file 
 3. Import your Constant Contact list (Subscribers, then Add or import). Export it from Constant Contact as CSV first. People marked unsubscribed or bounced are skipped automatically.
 4. Write an email, send yourself a test, and check how it looks.
 
+## The weekly Saturday newsletter
+
+Every Saturday the worker writes and sends a newsletter about the Torah portion that begins at sunset that evening (Sefaria's calendar picks the portion; the site's `/parshiyot.json` supplies the spelling, Hebrew and Dr. Sanjay's teaching videos; Workers AI writes a short introduction using only Sefaria's summary).
+
+- **8:00 AM Pacific:** a draft is created and a **[PREVIEW]** email goes to the `AUTO_PREVIEW_TO` address. It has links to edit the draft in the admin or cancel the week.
+- **2:00 PM Pacific:** the draft is sent to every confirmed subscriber, unless it was cancelled or deleted. If the preview went out late, the send waits until the preview has been out for an hour, and a newsletter that would start after 8:00 PM is not sent (the draft stays for you to send by hand).
+- Editing the draft in the admin before 2:00 PM changes what is sent.
+
+Setup and controls (all use the `IMAGES` KV namespace; `--remote` is the live one):
+
+```
+wrangler secret put AUTO_PREVIEW_TO                                   # preview address; the weekly send is off without it
+wrangler kv key put weekly:paused 1 --binding IMAGES --remote         # pause the weekly send
+wrangler kv key delete weekly:paused --binding IMAGES --remote        # resume it
+wrangler kv key put weekly:force-test 1 --binding IMAGES --remote     # next minute: email yourself a test preview only (nothing is sent to subscribers)
+```
+
 ## Using it day to day
 
 - **Write and send:** Admin, Emails, Write an email. Use "Save and send test" until it looks right, then "Review and send to everyone".
