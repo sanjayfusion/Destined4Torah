@@ -1355,3 +1355,6 @@
 
 .back-to-top { position: fixed; right: 16px; bottom: 16px; z-index: 40; border: none; border-radius: 999px; background: var(--accent); color: #fff; padding: 10px 16px; font-size: 14px; font-weight: 600; cursor: pointer; box-shadow: var(--shadow-card); }
 .back-to-top:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* Without the side panel the reading column would stretch very wide; keep lines comfortable to read. */
+.subscribe-layout .reader { max-width: 900px; margin-left: auto; margin-right: auto; }

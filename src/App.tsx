@@ -36,6 +36,8 @@ function App() {
   useEffect(() => setStudyMenuOpen(false), [route])
   const view = route.view
   const overviewPage = view === 'subscribe' || view === 'tanakh' || view === 'about'
+  // The book/chapter panel only helps while reading a book; the weekly portion and portion list get the full width.
+  const showBookNav = view === 'book'
   const selectedParsha = route.view === 'parsha' ? route.parsha ?? null : null
   const selectedBook = route.view === 'book' ? route.book : 'Genesis'
   const selectedChapter = route.view === 'book' ? route.chapter : 1
@@ -191,15 +193,15 @@ function App() {
           <button type="button" className="continue-studying-close" aria-label="Hide this for now" onClick={() => setResumeDismissed(true)}>&times;</button>
         </section>}
 
-        {!overviewPage && <button type="button" className="mobile-nav-trigger" onClick={() => setMobileNavOpen(true)}>
+        {showBookNav && <button type="button" className="mobile-nav-trigger" onClick={() => setMobileNavOpen(true)}>
           <span className="mobile-nav-trigger-label">
-            {view === 'book' ? `${selectedBookInfo?.english ?? selectedBook} ${selectedChapter}` : view === 'parsha' ? (selectedParsha?.ref ?? "This Week's Parashah") : 'All Parshiyot'}
+            {`${selectedBookInfo?.english ?? selectedBook} ${selectedChapter}`}
           </span>
           <span aria-hidden="true">Browse books ▾</span>
         </button>}
 
-        <div className={overviewPage ? 'app-body subscribe-layout' : 'app-body'}>
-          {!overviewPage && <div className={mobileNavOpen ? 'book-nav-wrapper open' : 'book-nav-wrapper'}>
+        <div className={showBookNav ? 'app-body' : 'app-body subscribe-layout'}>
+          {showBookNav && <div className={mobileNavOpen ? 'book-nav-wrapper open' : 'book-nav-wrapper'}>
             {mobileNavOpen && (
               <button
                 type="button"
