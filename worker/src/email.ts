@@ -178,7 +178,7 @@ export function renderConfirmation(env: Env, name: string, confirmUrl: string): 
   const footerHtml = addressHtml(env)
   return {
     subject: `Please confirm your subscription to ${env.FROM_NAME}`,
-    html: layout({ env, subject: 'Confirm your subscription', bodyHtml, footerHtml }),
+    html: layout({ env, subject: 'Confirm your subscription', bodyHtml, footerHtml, headerBanner: true }),
     text: `${name ? `Hi ${name},` : 'Hello,'}\n\nPlease confirm that you'd like to receive ${env.FROM_NAME} by email:\n${confirmUrl}\n\nIf you didn't ask for this, you can ignore this email.\n\n${mailingAddress(env)}`,
   }
 }
