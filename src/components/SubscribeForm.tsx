@@ -21,7 +21,7 @@ export function SubscribeForm({ compact = false }: { compact?: boolean }) {
       const response = await fetch(`${SUBSCRIBE_API_URL}/api/subscribe`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, name, phone, address, company }),
+        body: JSON.stringify({ email, name, phone, address, company, via: compact ? 'prompt' : 'website' }),
       })
       const data = (await response.json()) as { ok: boolean; error?: string }
       if (data.ok) {
