@@ -999,7 +999,9 @@
 .social-links a[data-brand='instagram'] { background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%); }
 .social-links a[data-brand='spotify'] { background: #1db954; }
 .social-links a[data-brand='youtube'] { background: #ff0000; }
-.social-links a[data-brand='amazon'] { background: #ff9900; color: #111; }
+/* The Amazon wordmark is wide, so its tile is wider than the others. */
+.social-links a[data-brand='amazon'] { background: #232f3e; width: 68px; }
+.social-links a[data-brand='amazon'] .social-icon { width: 46px; height: auto; }
 /* The Apple Podcasts logo is a whole tile with the microphone cut out, so it fills a white tile in Apple's purple. */
 .social-links a[data-brand='podcasts'] { background: #fff; color: #9933cc; border-radius: 22%; }
 .social-links a[data-brand='podcasts'] .social-icon { width: 100%; height: 100%; }
@@ -1356,6 +1358,8 @@
 .header-social-links a { width: 36px; height: 36px; }
 .header-social-links a:focus-visible { outline: 2px solid var(--text-h); outline-offset: 3px; }
 .header-social-links .social-icon { width: 17px; height: 17px; }
+.header-social-links a[data-brand='amazon'] { width: 64px; }
+.header-social-links a[data-brand='amazon'] .social-icon { width: 44px; height: auto; }
 
 .jump-menu { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0 0 20px; }
 .jump-menu-label { font-size: 13px; font-weight: 600; color: var(--text); }

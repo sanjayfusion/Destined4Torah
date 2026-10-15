@@ -1,6 +1,8 @@
+import amazonLogo from '../assets/amazon-logo.png'
+
 // The Facebook, Instagram, Spotify, YouTube, X and Apple Podcasts shapes come from the open-source
 // Simple Icons collection (https://github.com/simple-icons/simple-icons, CC0). The logos remain the
-// trademarks of their owners. Amazon's logo is not in that collection, so Amazon keeps a book glyph.
+// trademarks of their owners. Amazon's logo is not in that collection; its wordmark comes from the owner's Author Central logo.
 interface IconProps {
   className?: string
 }
@@ -54,20 +56,9 @@ export function XIcon({ className }: IconProps) {
   )
 }
 
-// Amazon and Apple Podcasts trademark logomarks are intricate enough that
-// reproducing them precisely from memory (no network access to pull the
-// real assets) risks a garbled shape — using simple, unambiguous stand-ins
-// built from basic geometry instead: a book (this links to the author
-// page for his books) and a microphone (podcast).
+/** Amazon's own wordmark (white, from the owner's Author Central logo), used on a dark tile. */
 export function AmazonIcon({ className }: IconProps) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
-      <path d="M6 3h12a1.5 1.5 0 0 1 1.5 1.5v15A1.5 1.5 0 0 1 18 21H6a1.5 1.5 0 0 1-1.5-1.5v-15A1.5 1.5 0 0 1 6 3z" />
-      <line x1="8.5" y1="3" x2="8.5" y2="21" />
-      <line x1="11.5" y1="8" x2="16" y2="8" />
-      <line x1="11.5" y1="11.5" x2="16" y2="11.5" />
-    </svg>
-  )
+  return <img className={className} src={amazonLogo} width={209} height={67} alt="" aria-hidden="true" />
 }
 
 export function ApplePodcastsIcon({ className }: IconProps) {
