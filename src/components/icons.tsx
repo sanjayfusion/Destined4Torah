@@ -34,6 +34,15 @@ export function YouTubeIcon({ className }: IconProps) {
   )
 }
 
+/** A plain play triangle, for the red YouTube tile in the social links. */
+export function YouTubePlayIcon({ className }: IconProps) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M8 5.2v13.6a.8.8 0 0 0 1.2.7l11-6.8a.8.8 0 0 0 0-1.4l-11-6.8A.8.8 0 0 0 8 5.2z" />
+    </svg>
+  )
+}
+
 export function XIcon({ className }: IconProps) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
@@ -50,8 +59,10 @@ export function XIcon({ className }: IconProps) {
 export function AmazonIcon({ className }: IconProps) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
-      <rect x="4" y="3" width="16" height="18" rx="2" />
-      <line x1="9" y1="3" x2="9" y2="21" />
+      <path d="M6 3h12a1.5 1.5 0 0 1 1.5 1.5v15A1.5 1.5 0 0 1 18 21H6a1.5 1.5 0 0 1-1.5-1.5v-15A1.5 1.5 0 0 1 6 3z" />
+      <line x1="8.5" y1="3" x2="8.5" y2="21" />
+      <line x1="11.5" y1="8" x2="16" y2="8" />
+      <line x1="11.5" y1="11.5" x2="16" y2="11.5" />
     </svg>
   )
 }
