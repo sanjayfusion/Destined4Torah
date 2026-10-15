@@ -111,23 +111,23 @@ body,.frame{background:#0b0b0b !important}
 .card .muted{color:#b9b2c2 !important}
 }
 </style></head>
-<body class="frame" bgcolor="#0b0b0b" style="margin:0;padding:0;background:#0b0b0b">
-<table role="presentation" class="frame" width="100%" cellpadding="0" cellspacing="0" bgcolor="#0b0b0b" style="background:#0b0b0b"><tr><td align="center" style="padding:24px 12px">
+<body class="frame" bgcolor="#f4f1ea" style="margin:0;padding:0;background:#f4f1ea">
+<table role="presentation" class="frame" width="100%" cellpadding="0" cellspacing="0" bgcolor="#f4f1ea" style="background:#f4f1ea"><tr><td align="center" style="padding:24px 12px">
 <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%">
 <tr><td class="card" style="background:#ffffff;border:1px solid #e6e2d8;border-radius:12px;padding:30px 32px;font:16px/1.6 -apple-system,'Segoe UI',Roboto,Arial,sans-serif;color:#3b3544">${logo}${bannerHtml}${bodyHtml}${stingHtml}</td></tr>
-<tr><td class="foot" style="padding:18px 12px 0;font:12px/1.6 Arial,sans-serif;color:#b9b2c2;text-align:center">${footerHtml}</td></tr>
+<tr><td class="foot" style="padding:18px 12px 0;font:12px/1.6 Arial,sans-serif;color:#7a7285;text-align:center">${footerHtml}</td></tr>
 </table></td></tr></table></body></html>`
 }
 
 /**
- * Gmail turns plain addresses and web names into its own blue links, which are hard to read on the
- * black frame. Making them real links with our own color keeps them readable.
+ * Gmail turns plain addresses and web names into its own blue links. Making them real links with our
+ * own color keeps the footer consistent.
  */
 function addressHtml(env: Env): string {
   const address = mailingAddress(env)
   if (!address) return ''
   const map = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address.replace(/\n/g, ', '))}`
-  return `<a href="${esc(map)}" style="color:#b9b2c2;text-decoration:none">${esc(address).replace(/\n/g, '<br>')}</a>`
+  return `<a href="${esc(map)}" style="color:#7a7285;text-decoration:none">${esc(address).replace(/\n/g, '<br>')}</a>`
 }
 
 /** The banner for a campaign, if one has been uploaded. */
@@ -162,8 +162,8 @@ export function renderCampaign(
   const bodyHtml = `${headingMd ? markdownToHtml(headingMd) : ''}${greetingHtml}${markdownToHtml(restMd)}`
 
   const updateUrl = unsubscribeUrl.replace('/unsubscribe?', '/preferences?')
-  const footerHtml = `You are receiving this because you subscribed at <a href="${esc(env.SITE_URL)}" style="color:#b9b2c2">${esc(env.SITE_URL.replace(/^https?:\/\//, ''))}</a>.<br>
-<a href="${esc(updateUrl)}" style="color:#b9b2c2">Update your contact details</a> &nbsp;|&nbsp; <a href="${esc(unsubscribeUrl)}" style="color:#b9b2c2">Unsubscribe</a><br>${addressHtml(env)}`
+  const footerHtml = `You are receiving this because you subscribed at <a href="${esc(env.SITE_URL)}" style="color:#7a7285">${esc(env.SITE_URL.replace(/^https?:\/\//, ''))}</a>.<br>
+<a href="${esc(updateUrl)}" style="color:#7a7285">Update your contact details</a> &nbsp;|&nbsp; <a href="${esc(unsubscribeUrl)}" style="color:#7a7285">Unsubscribe</a><br>${addressHtml(env)}`
   const textBody = [headingMd ? markdownToText(headingMd) : '', `Dear ${name},`, markdownToText(restMd)].filter(Boolean).join('\n\n')
   const text = `${textBody}\n\n--\nYou are receiving this because you subscribed at ${env.SITE_URL}.\nUpdate your contact details: ${updateUrl}\nUnsubscribe: ${unsubscribeUrl}\n${mailingAddress(env)}`
   return { html: layout({ env, subject, bodyHtml, footerHtml, banner, headerBanner: true }), text }
@@ -197,7 +197,7 @@ export function renderWelcome(
 <p style="margin:22px 0"><a class="btn" href="${esc(env.SITE_URL)}" style="background:#8a5a2c;color:#ffffff;text-decoration:none;font-weight:600;padding:12px 22px;border-radius:8px;display:inline-block">Read this week's parashah</a></p>
 <p style="margin:0 0 16px">I'll send teaching and updates from time to time. If there is something you'd like to see, just reply to this email.</p>
 <p style="margin:0">Blessings,<br>Dr. Sanjay Prajapati</p>`
-  const footerHtml = `<a href="${esc(updateUrl)}" style="color:#b9b2c2">Update your contact details</a> &nbsp;|&nbsp; <a href="${esc(unsubscribeUrl)}" style="color:#b9b2c2">Unsubscribe</a><br>${addressHtml(env)}`
+  const footerHtml = `<a href="${esc(updateUrl)}" style="color:#7a7285">Update your contact details</a> &nbsp;|&nbsp; <a href="${esc(unsubscribeUrl)}" style="color:#7a7285">Unsubscribe</a><br>${addressHtml(env)}`
   const text = `Dear ${who},\n\nThank you for subscribing. You're confirmed, and I'm glad you're here.\n\nDestined4Torah is about reading Scripture in its Jewish context, from Genesis to Revelation. A good place to begin is this week's Torah portion, with the Hebrew, English, and commentary together:\n${env.SITE_URL}\n\nI'll send teaching and updates from time to time. If there is something you'd like to see, just reply to this email.\n\nBlessings,\nDr. Sanjay Prajapati\n\n--\nUpdate your contact details: ${updateUrl}\nUnsubscribe: ${unsubscribeUrl}\n${mailingAddress(env)}`
   return {
     subject: `Welcome to ${env.FROM_NAME}`,
