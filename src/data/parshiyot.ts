@@ -104,6 +104,12 @@ export const PARSHIYOT_BY_BOOK: TorahBookParshiyot[] = [
   },
 ]
 
+/** Compares names ignoring case, spaces, hyphens and punctuation, so "Lech-Lecha" finds "Lech Lecha". */
+function sameName(a: string, b: string): boolean {
+  const norm = (name: string) => name.toLowerCase().replace(/[^a-z]/g, '')
+  return norm(a) === norm(b)
+}
+
 /**
  * Looks up a parasha's static entry (including its YouTube link, if set)
  * by English name. Used to find the matching teaching video for "this
@@ -112,14 +118,14 @@ export const PARSHIYOT_BY_BOOK: TorahBookParshiyot[] = [
  */
 export function findParshaEntry(englishName: string): ParshaListEntry | undefined {
   for (const group of PARSHIYOT_BY_BOOK) {
-    const exact = group.parshiyot.find((parsha) => parsha.english === englishName)
+    const exact = group.parshiyot.find((parsha) => sameName(parsha.english, englishName))
     if (exact) return exact
     const parts = englishName.split('-')
     if (parts.length !== 2) continue
-    const index = group.parshiyot.findIndex((entry) => entry.english === parts[0])
+    const index = group.parshiyot.findIndex((entry) => sameName(entry.english, parts[0]))
     const first = group.parshiyot[index]
     const second = group.parshiyot[index + 1]
-    if (!first || second?.english !== parts[1]) continue
+    if (!first || !second || !sameName(second.english, parts[1])) continue
     const videos = new Map<string, string>()
     for (const entry of [first, second]) {
       entry.youtubeUrls?.forEach((url, i) => videos.set(url, entry.youtubeTitles?.[i] ?? "Sanjay's teaching"))

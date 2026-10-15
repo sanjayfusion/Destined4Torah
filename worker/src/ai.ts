@@ -65,3 +65,23 @@ export async function draftFromNotes(env: Env, subject: string, notes: string): 
   )
   return keepOnlyKnownLinks(draft, notes)
 }
+
+/**
+ * A short introduction to the coming Torah portion for the weekly newsletter. It may only use the
+ * summary it is given, and anything that looks like a link, headline or sign-off is stripped.
+ */
+export async function reflectOnPortion(env: Env, name: string, ref: string, summary: string): Promise<string> {
+  const text = await ask(
+    env,
+    `${VOICE}\n\n${FORMAT}`,
+    `Write a short introduction to this week's Torah portion for the weekly newsletter: two short paragraphs, about 90 to 130 words in all. Use only the facts in the summary below. Do not quote any verse word for word, do not add stories or events, do not describe personal experiences, and do not include a headline, greeting, sign-off or any link. Invite the reader to read the portion this week. Return only the two paragraphs.\n\nPortion: ${name} (${ref})\n\nSummary: ${summary.slice(0, 1500)}`,
+    500,
+  )
+  return text
+    .split('\n')
+    .filter((line) => !/^\s*(#|blessings|dr\.? sanjay|\*\*dr)/i.test(line))
+    .join('\n')
+    .replace(/\[([^\]]+)\]\([^)]*\)/g, '$1')
+    .replace(/https?:\/\/\S+/g, '')
+    .trim()
+}

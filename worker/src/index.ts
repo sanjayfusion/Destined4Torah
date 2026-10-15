@@ -6,6 +6,7 @@ import { handleNews, refreshNewsIfStale } from './news'
 import { processQueue } from './sender'
 import { now } from './util'
 import { handleResendWebhook } from './webhook'
+import { handleWeeklyCancel, runWeekly } from './weekly'
 
 async function route(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
   const { pathname } = new URL(request.url)
@@ -26,6 +27,7 @@ async function route(request: Request, env: Env, ctx: ExecutionContext): Promise
   if (pathname === '/join' && (request.method === 'GET' || request.method === 'POST')) return handleJoin(request, env)
   if (pathname === '/preferences' && (request.method === 'GET' || request.method === 'POST')) return handlePreferences(request, env)
   if (pathname === '/unsubscribe' && (request.method === 'GET' || request.method === 'POST')) return handleUnsubscribe(request, env)
+  if (pathname === '/weekly/cancel' && (request.method === 'GET' || request.method === 'POST')) return handleWeeklyCancel(request, env)
   if (pathname === '/webhooks/resend' && request.method === 'POST') return handleResendWebhook(request, env)
   if (pathname === '/admin' || pathname.startsWith('/admin/')) return handleAdmin(request, env, ctx)
   if (pathname === '/') return Response.redirect(env.SITE_URL, 302)
@@ -48,6 +50,7 @@ export default {
     ctx.waitUntil(
       (async () => {
         await processQueue(env)
+        await runWeekly(env).catch((error) => console.error('Weekly newsletter failed:', String(error)))
         await refreshNewsIfStale(env).catch((error) => console.error('News refresh failed:', String(error)))
         await env.DB.prepare('DELETE FROM rate_limits WHERE at < ?').bind(now() - 24 * 60 * 60).run()
       })(),
