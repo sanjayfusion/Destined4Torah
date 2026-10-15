@@ -1,5 +1,3 @@
-import { ReadingControls } from './ReadingControls'
-import { BibleComparison } from './BibleComparison'
 import { useEffect, useState } from 'react'
 import { fetchChapterCommentary, fetchNTCommentary, type CommentaryByVerse } from '../lib/commentary'
 import { ALL_BOOKS } from '../data/books'
@@ -9,7 +7,6 @@ import { GreekVerseText } from './GreekVerseText'
 import { HebrewVerseText } from './HebrewVerseText'
 import { ReadAloudBar } from './ReadAloudBar'
 import { CopyPassageLink } from './CopyPassageLink'
-import { StudyHelp } from './StudyHelp'
 import { TextCredit } from './TextCredit'
 import { VerseCommentary } from './VerseCommentary'
 
@@ -98,9 +95,6 @@ export function Reader({ chapter, loading, error, source, bookSlug, chapterNum, 
 
       <CopyPassageLink route={{ view: 'book', book: bookSlug, chapter: chapterNum }} label="Copy chapter link" />
       {targetVerse && targetVerse.verse > verseCount && <p role="status" className="study-help">Verse {targetVerse.verse} is not in this chapter. Showing the full chapter.</p>}
-      <ReadingControls originalLanguage={source === 'kjv' ? 'Greek' : 'Hebrew'} />
-      <BibleComparison book={bookSlug} chapter={chapterNum} />
-      <StudyHelp version={source === 'kjv' ? 'King James Version (KJV)' : chapter.englishVersion ?? 'Sefaria English translation'} originalLanguage={source === 'kjv' ? 'Greek' : 'Hebrew'} compareTranslations={source === 'sefaria'} />
       <ReadAloudBar
         texts={chapter.hebrew}
         status={hebrewReadAloud.status}

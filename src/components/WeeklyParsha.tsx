@@ -1,5 +1,3 @@
-import { ReadingControls } from './ReadingControls'
-import { BibleComparison } from './BibleComparison'
 import { useEffect, useState } from 'react'
 import type { SavedPassage } from '../lib/studyProgress'
 import { useReadAloud } from '../hooks/useReadAloud'
@@ -11,7 +9,6 @@ import { YouTubeIcon } from './icons'
 import { ParshaDateHeader } from './ParshaDateHeader'
 import { ReadAloudBar } from './ReadAloudBar'
 import { CopyPassageLink } from './CopyPassageLink'
-import { StudyHelp } from './StudyHelp'
 import { SubscribeForm } from './SubscribeForm'
 import { TextCredit } from './TextCredit'
 import { VerseCommentary } from './VerseCommentary'
@@ -112,9 +109,6 @@ export function WeeklyParsha({ overrideParsha = null, onReadingLoaded }: WeeklyP
       </header>
       <p className="parsha-ref">{parsha.ref}</p>
       <CopyPassageLink route={{ view: 'parsha', parsha: overrideParsha ?? { english: parsha.englishName, hebrew: parsha.hebrewName, ref: parsha.ref } }} label="Copy Torah portion link" />
-      <ReadingControls originalLanguage="Hebrew" />
-      <BibleComparison book={parsha.ref.split(' ')[0]} chapter={parsha.sections[0]?.chapter ?? 1} />
-      <StudyHelp version={parsha.sections[0]?.englishVersion ?? 'Sefaria English translation'} originalLanguage="Hebrew" compareTranslations />
 
       {youtubeUrls.length > 0 && (
         <div className="youtube-teaching-links">
