@@ -92,6 +92,7 @@ try {
     }
   }
   check('portion lookup ignores hyphens and case', findParshaEntry('Lech-Lecha')?.english, 'Lech Lecha')
+  check('portion lookup accepts Sefaria\'s Chayei Sara spelling', findParshaEntry('Chayei Sara')?.english, 'Chayei Sarah')
   check('portion lookup still finds combined portions', findParshaEntry('vayakhel-pekudei')?.english, 'vayakhel-pekudei')
   check('combined portions have no outside-playlist teaching', (findParshaEntry('Vayakhel-Pekudei').youtubeUrls ?? []).length, 0)
   const memory = new Map()
