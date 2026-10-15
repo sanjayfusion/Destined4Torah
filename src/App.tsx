@@ -15,7 +15,7 @@ import { readPassageRoute, passageUrl, type PassageRoute } from './lib/passageLi
 import { fetchChapter, type ChapterText } from './lib/sefaria'
 import { initialStudyRoute, loadStudyProgress, saveStudyProgress, savedPassageLabel, type SavedPassage } from './lib/studyProgress'
 import { SocialLinks } from './components/SocialLinks'
-import logo from './assets/logo.png'
+import headerBanner from './assets/header-banner.jpg'
 import './App.css'
 
 function App() {
@@ -134,9 +134,14 @@ function App() {
       <TopTicker />
       <div className="app">
         <header className="app-header">
-          <img src={logo} className="app-logo" alt="Destined4Torah" />
+          <img
+            src={headerBanner}
+            className="app-banner"
+            width={1600}
+            height={592}
+            alt="Destined4Torah. Dr. Sanjay Prajapati. Scripture in its Jewish context, Genesis to Revelation."
+          />
           <SocialLinks />
-          <p>Scripture in its Jewish context, Genesis to Revelation.</p>
           <p className="header-verse">
             &ldquo;Ye worship ye know not what: we know what we worship: for salvation is of the
             Jews.&rdquo; &mdash; John 4:22 (KJV)
