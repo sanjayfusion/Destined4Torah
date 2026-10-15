@@ -1000,7 +1000,9 @@
 .social-links a[data-brand='spotify'] { background: #1db954; }
 .social-links a[data-brand='youtube'] { background: #ff0000; }
 .social-links a[data-brand='amazon'] { background: #ff9900; color: #111; }
-.social-links a[data-brand='podcasts'] { background: linear-gradient(180deg, #f452ff 0%, #832bc1 100%); }
+/* The Apple Podcasts logo is a whole tile with the microphone cut out, so it fills a white tile in Apple's purple. */
+.social-links a[data-brand='podcasts'] { background: #fff; color: #9933cc; border-radius: 22%; }
+.social-links a[data-brand='podcasts'] .social-icon { width: 100%; height: 100%; }
 .social-links a[data-brand='x'] { background: #000; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.35); }
 
 .social-icon {
