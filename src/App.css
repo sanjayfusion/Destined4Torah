@@ -162,20 +162,20 @@
   margin-top: 16px;
   display: inline-block;
   border: 1px solid var(--accent);
-  background: var(--accent);
-  color: #fff;
+  background: transparent;
+  color: var(--accent);
   border-radius: 20px;
   padding: 8px 18px;
   font-size: 14px;
   font-weight: 600;
   text-decoration: none;
-  transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+  transition: transform 0.15s ease, background 0.15s ease;
 }
 
+/* Same outlined look as the other buttons: only the page you are on is filled. */
 .donate-link:hover {
-  opacity: 0.92;
+  background: var(--accent-bg);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px -4px var(--accent);
 }
 
 .app-body {
