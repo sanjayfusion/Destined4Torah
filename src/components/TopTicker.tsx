@@ -100,8 +100,8 @@ export function TopTicker() {
   const holidayInProgress = nextHoliday !== undefined && nextHoliday.start.getTime() <= Date.now()
   const holidayMessage = nextHoliday
     ? holidayInProgress
-      ? `${nextHoliday.name} is underway \u2014 ${nextHoliday.hebrewDate} · ends ${formatDateLabel(nextHoliday.end)} sunset`
-      : `${formatCountdown(nextHoliday.start)} until ${nextHoliday.name} \u2014 ${nextHoliday.hebrewDate} · ${formatDateLabel(nextHoliday.start)} sunset to ${formatDateLabel(nextHoliday.end)} sunset`
+      ? `${nextHoliday.name} is underway · ${nextHoliday.hebrewDate} · ends ${formatDateLabel(nextHoliday.end)} sunset`
+      : `${formatCountdown(nextHoliday.start)} until ${nextHoliday.name} · ${nextHoliday.hebrewDate} · ${formatDateLabel(nextHoliday.start)} sunset to ${formatDateLabel(nextHoliday.end)} sunset`
     : null
 
   // Re-measuring on every minute tick would restart the CSS animation (a visible jump),
@@ -111,7 +111,7 @@ export function TopTicker() {
 
   const segments: React.ReactNode[] = [
     <span key="verse" className="top-ticker-verse">
-      &ldquo;Pray for the peace of Jerusalem: they shall prosper that love thee.&rdquo; &mdash; Psalm 122:6
+      &ldquo;Pray for the peace of Jerusalem: they shall prosper that love thee.&rdquo; (Psalm 122:6)
     </span>,
   ]
   if (dateMessage) segments.push(<span key="date">{dateMessage}</span>)

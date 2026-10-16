@@ -3,7 +3,7 @@ import { passageUrl } from '../lib/passageLinks'
 
 const sections = [
   { key: 'torah', name: 'Torah', hebrew: 'תורה', meaning: 'Instruction', description: 'The five books of Moses: the foundation of Torah study, from creation to Israel’s covenant journey.', groups: [{ key: undefined, title: 'The Five Books of Moses' }] },
-  { key: 'neviim', name: 'Nevi’im', hebrew: 'נביאים', meaning: 'Prophets', description: 'Israel’s life in the land and the prophetic call to faithfulness, justice, repentance, and hope.', groups: [{ key: 'former-prophets', title: 'Nevi’im Rishonim — Former Prophets' }, { key: 'latter-prophets', title: 'Nevi’im Acharonim — Latter Prophets' }, { key: 'trei-asar', title: 'Trei Asar — The Twelve · within the Latter Prophets' }] },
+  { key: 'neviim', name: 'Nevi’im', hebrew: 'נביאים', meaning: 'Prophets', description: 'Israel’s life in the land and the prophetic call to faithfulness, justice, repentance, and hope.', groups: [{ key: 'former-prophets', title: 'Nevi’im Rishonim: Former Prophets' }, { key: 'latter-prophets', title: 'Nevi’im Acharonim: Latter Prophets' }, { key: 'trei-asar', title: 'Trei Asar: The Twelve · within the Latter Prophets' }] },
   { key: 'ketuvim', name: 'Ketuvim', hebrew: 'כתובים', meaning: 'Writings', description: 'Poetry, wisdom, prayer, and accounts of faith through suffering, exile, and restoration.', groups: [{ key: 'sifrei-emet', title: 'Poetry & Wisdom' }, { key: 'megillot', title: 'Five Megillot · The Five Scrolls' }, { key: 'other-writings', title: 'Other Writings' }] },
 ] as const
 
