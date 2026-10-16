@@ -31,7 +31,7 @@ export function About() {
         <p>
           He began studying Torah under Dr. Michelle Corral, founder of Breath of the Spirit
           Ministries, in 1991, and teaches a weekly Torah service, Destined4Torah, exploring
-          how the Torah — the five books of Moses — is the foundation of all Scripture,
+          how the Torah, the five books of Moses, is the foundation of all Scripture,
           Hebrew and New Testament alike. He is a frequent guest on Dr. Corral's program The
           Prophetic Word (Word Network).
         </p>
@@ -42,7 +42,7 @@ export function About() {
       <div className="about-bio">
         <p>
           His mission is to reveal the depths of the Bible through Hebrew roots and Messianic
-          Jewish scholarship — showing that Scripture isn't a memoir of the past, but a living
+          Jewish scholarship, showing that Scripture isn't a memoir of the past, but a living
           blueprint for today. His unique style inspires, empowers, and entertains audiences
           while giving them the tools and strategies they need to discover and implement the
           blueprint to their destinies.

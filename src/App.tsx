@@ -144,7 +144,7 @@ function App() {
           <SocialLinks />
           <p className="header-verse">
             &ldquo;Ye worship ye know not what: we know what we worship: for salvation is of the
-            Jews.&rdquo; &mdash; John 4:22 (KJV)
+            Jews.&rdquo; (John 4:22, KJV)
           </p>
           <nav className="header-nav" aria-label="Main navigation">
             <div className="study-navigation">

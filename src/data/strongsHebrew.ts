@@ -64,7 +64,7 @@ export const STRONGS_HEBREW: Record<string, StrongsEntry> = {
   עם: { strongs: 'H5971', hebrew: 'עַם', transliteration: 'am', definition: 'People, nation, kinsmen' },
   ישראל: { strongs: 'H3478', hebrew: 'יִשְׂרָאֵל', transliteration: 'Yisrael', definition: 'Israel (the nation and the patriarch Jacob’s renamed identity, "one who strives with God")' },
   ירושלים: { strongs: 'H3389', hebrew: 'יְרוּשָׁלַיִם', transliteration: 'Yerushalayim', definition: 'Jerusalem' },
-  ציון: { strongs: 'H6726', hebrew: 'צִיּוֹן', transliteration: 'Tzion', definition: 'Zion — the hill of Jerusalem, and by extension Jerusalem or Israel itself' },
+  ציון: { strongs: 'H6726', hebrew: 'צִיּוֹן', transliteration: 'Tzion', definition: 'Zion: the hill of Jerusalem, and by extension Jerusalem or Israel itself' },
 
   שמע: { strongs: 'H8085', hebrew: 'שָׁמַע', transliteration: 'shama', definition: 'To hear, listen, obey' },
   ראה: { strongs: 'H7200', hebrew: 'רָאָה', transliteration: 'ra\'ah', definition: 'To see, look, perceive' },
@@ -81,7 +81,7 @@ export const STRONGS_HEBREW: Record<string, StrongsEntry> = {
   שמר: { strongs: 'H8104', hebrew: 'שָׁמַר', transliteration: 'shamar', definition: 'To keep, guard, observe' },
   אהב: { strongs: 'H157', hebrew: 'אָהַב', transliteration: 'ahav', definition: 'To love' },
   ירא: { strongs: 'H3372', hebrew: 'יָרֵא', transliteration: 'yare', definition: 'To fear, be afraid; also "fearing, reverent"' },
-  אמן: { strongs: 'H539', hebrew: 'אָמַן', transliteration: 'aman', definition: 'To believe, be faithful, trust (root of "Amen" — truly, so be it; H539/H543)' },
+  אמן: { strongs: 'H539', hebrew: 'אָמַן', transliteration: 'aman', definition: 'To believe, be faithful, trust (root of "Amen": truly, so be it; H539/H543)' },
   קרא: { strongs: 'H7121', hebrew: 'קָרָא', transliteration: 'qara', definition: 'To call, proclaim, read aloud' },
   ברך: { strongs: 'H1288', hebrew: 'בֵּרַךְ', transliteration: 'barak', definition: 'To bless, kneel' },
   ברכה: { strongs: 'H1293', hebrew: 'בְּרָכָה', transliteration: 'berakah', definition: 'Blessing' },
@@ -251,7 +251,7 @@ export const STRONGS_HEBREW: Record<string, StrongsEntry> = {
   חמה: { strongs: 'H2534', hebrew: 'חֵמָה', transliteration: 'chemah', definition: 'Heat, wrath, rage' },
   תמים: { strongs: 'H8549', hebrew: 'תָּמִים', transliteration: 'tamim', definition: 'Blameless, complete, whole, perfect' },
   ישר: { strongs: 'H3477', hebrew: 'יָשָׁר', transliteration: 'yashar', definition: 'Upright, straight, right' },
-  עקב: { strongs: 'H6119', hebrew: 'עָקֵב', transliteration: 'aqev', definition: 'Heel; also "because" (root of the name Jacob — "ya\'aqov")' },
+  עקב: { strongs: 'H6119', hebrew: 'עָקֵב', transliteration: 'aqev', definition: 'Heel; also "because" (root of the name Jacob, "ya\'aqov")' },
 
   // Materials, objects, warfare
   ברזל: { strongs: 'H1270', hebrew: 'בַּרְזֶל', transliteration: 'barzel', definition: 'Iron' },

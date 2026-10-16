@@ -13,7 +13,7 @@ export interface GreekStrongsEntry {
  * interlinear tagging of every word in the text.
  */
 export const STRONGS_GREEK: Record<string, GreekStrongsEntry> = {
-  αγαπη: { strongs: 'G26', greek: 'ἀγάπη', transliteration: 'agape', definition: 'Love — selfless, sacrificial love' },
+  αγαπη: { strongs: 'G26', greek: 'ἀγάπη', transliteration: 'agape', definition: 'Love: selfless, sacrificial love' },
   αγαπ: { strongs: 'G25', greek: 'ἀγαπάω', transliteration: 'agapao', definition: 'To love' },
   λογ: { strongs: 'G3056', greek: 'λόγος', transliteration: 'logos', definition: 'Word, message, reason' },
   πιστις: { strongs: 'G4102', greek: 'πίστις', transliteration: 'pistis', definition: 'Faith, belief, trust' },
@@ -133,7 +133,7 @@ export const STRONGS_GREEK: Record<string, GreekStrongsEntry> = {
   νεκρ: { strongs: 'G3498', greek: 'νεκρός', transliteration: 'nekros', definition: 'Dead' },
 
   // Worship, spiritual life
-  μαρτυρ: { strongs: 'G3144', greek: 'μάρτυς', transliteration: 'martys', definition: 'Witness (also "to testify," same root — origin of "martyr")' },
+  μαρτυρ: { strongs: 'G3144', greek: 'μάρτυς', transliteration: 'martys', definition: 'Witness (also "to testify," same root; origin of "martyr")' },
   προσευχ: { strongs: 'G4335', greek: 'προσευχή', transliteration: 'proseuche', definition: 'Prayer' },
   δεησ: { strongs: 'G1162', greek: 'δέησις', transliteration: 'deesis', definition: 'Petition, supplication' },
   ευχαριστ: { strongs: 'G2168', greek: 'εὐχαριστέω', transliteration: 'eucharisteo', definition: 'To give thanks (root of "Eucharist")' },

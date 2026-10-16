@@ -36,7 +36,7 @@ export function GoToVerse({ onGo }: GoToVerseProps) {
       <button type="submit" className="go-to-verse-button">
         Go
       </button>
-      {error && <p className="go-to-verse-error">Couldn't find that reference — try "Genesis 12:1" or "John 3:16".</p>}
+      {error && <p className="go-to-verse-error">Couldn't find that reference. Try "Genesis 12:1" or "John 3:16".</p>}
     </form>
   )
 }
