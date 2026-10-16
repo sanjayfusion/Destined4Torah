@@ -1,4 +1,5 @@
 import { TanakhPage } from './components/TanakhPage'
+import { NewTestamentPage } from './components/NewTestamentPage'
 import { ReadingPreferencesProvider } from './components/ReadingControls'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { About } from './components/About'
@@ -35,7 +36,7 @@ function App() {
   const [studyMenuOpen, setStudyMenuOpen] = useState(false)
   useEffect(() => setStudyMenuOpen(false), [route])
   const view = route.view
-  const overviewPage = view === 'subscribe' || view === 'tanakh' || view === 'about'
+  const overviewPage = view === 'subscribe' || view === 'tanakh' || view === 'new-testament' || view === 'about'
   // The book/chapter panel only helps while reading a book; the weekly portion and portion list get the full width.
   const showBookNav = view === 'book'
   const selectedParsha = route.view === 'parsha' ? route.parsha ?? null : null
@@ -169,6 +170,7 @@ function App() {
               Parshiyot
             </button>
             <button type="button" className={view === 'tanakh' ? 'parsha-toggle active' : 'parsha-toggle'} aria-current={view === 'tanakh' ? 'page' : undefined} onClick={() => navigate({ view: 'tanakh' })}>Tanakh</button>
+            <button type="button" className={view === 'new-testament' ? 'parsha-toggle active' : 'parsha-toggle'} aria-current={view === 'new-testament' ? 'page' : undefined} onClick={() => navigate({ view: 'new-testament' })}>New Testament</button>
             </div>
             </div>
             <button
@@ -236,6 +238,7 @@ function App() {
             )}
             {view === 'about' && <About />}
             {view === 'tanakh' && <TanakhPage onSelect={(book) => navigate({ view: 'book', book, chapter: 1 })} />}
+            {view === 'new-testament' && <NewTestamentPage onSelect={(book) => navigate({ view: 'book', book, chapter: 1 })} />}
             {view === 'subscribe' && <SubscribePage onBackToReading={() => navigate(lastReading.current)} />}
             {view === 'book' && (
               <Reader
