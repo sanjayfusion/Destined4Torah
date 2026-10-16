@@ -24,6 +24,7 @@ export function About() {
           <h3 className="about-name">Dr. Sanjay Prajapati</h3>
           <p className="about-title">Author, Teacher &amp; Public Speaker</p>
           <div className="about-intro">
+        <p>Scripture in its Jewish context, Genesis to Revelation.</p>
         <p>
           Dr. Sanjay Prajapati is an author, teacher, and public speaker revealing Jesus in
           His Jewish context through Torah study.
