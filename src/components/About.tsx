@@ -54,7 +54,7 @@ export function About() {
 
       <section className="about-library" aria-labelledby="books-heading">
         <p className="about-eyebrow">Continue the journey</p>
-        <h3 id="books-heading">Books by Sanjay Prajapati</h3>
+        <h3 id="books-heading">Books by Dr. Sanjay Prajapati</h3>
         <p className="about-library-intro">Explore Scripture, discover your purpose, and grow in your walk with God.</p>
         <div className="about-book-grid">
           {BOOKS.map((book, index) => (
