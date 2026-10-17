@@ -60,7 +60,7 @@ export function About() {
         <section className="about-speaking" aria-labelledby="speaking-heading">
           <h3 id="speaking-heading">Speaking engagements</h3>
           <p>Invite Dr. Sanjay Prajapati to teach Torah, reveal Yeshua (Jesus) in His Jewish context, and help your audience discover the blueprint to their God-given destiny through the lives of biblical figures.</p>
-          <p>For speaking inquiries, email <a href="mailto:sanjay@destined4torah.com?subject=Speaking%20engagement%20inquiry">sanjay@destined4torah.com</a>.</p>
+          <p><a href="https://linktr.ee/Destined4torah#118883822" target="_blank" rel="noopener noreferrer">Speaking Engagement Inquiries</a> — share your event details through our inquiry form.</p>
         </section>
       </div>
     </article>
