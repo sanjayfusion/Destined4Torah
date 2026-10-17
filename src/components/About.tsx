@@ -24,39 +24,21 @@ export function About() {
           <h3 className="about-name">Dr. Sanjay Prajapati</h3>
           <p className="about-title">Author, Teacher &amp; Public Speaker</p>
           <div className="about-intro">
-        <p>Scripture in its Jewish context, Genesis to Revelation.</p>
-        <p>
-          Dr. Sanjay Prajapati is an author, teacher, and public speaker revealing Jesus in
-          His Jewish context through Torah study.
-        </p>
-        <p>
-          He began studying Torah under Dr. Michelle Corral, founder of Breath of the Spirit
-          Ministries, in 1991, and teaches a weekly Torah service, Destined4Torah, exploring
-          how the Torah, the five books of Moses, is the foundation of all Scripture,
-          Hebrew and New Testament alike. He is a frequent guest on Dr. Corral's program The
-          Prophetic Word (Word Network).
-        </p>
+            <p>Teaching Torah | Revealing Jesus in His Jewish Context</p>
+            <p>Destined4Torah helps you study Scripture in its Jewish context with Dr. Sanjay Prajapati, author, teacher and speaker. Explore the weekly Torah portion, read Scripture in Hebrew and English, and discover connections between the Torah and New Testament through the Jewish context of Yeshua (Jesus).</p>
           </div>
         </div>
       </div>
-
       <div className="about-bio">
-        <p>
-          His mission is to reveal the depths of the Bible through Hebrew roots and Messianic
-          Jewish scholarship, showing that Scripture isn't a memoir of the past, but a living
-          blueprint for today. His unique style inspires, empowers, and entertains audiences
-          while giving them the tools and strategies they need to discover and implement the
-          blueprint to their destinies.
-        </p>
-        <blockquote className="about-motto">
-          "The blueprint to your destiny is found in the lives of Biblical figures."
-        </blockquote>
+        <blockquote className="about-motto">Discover the blueprint to your God-given destiny through the lives of biblical figures.</blockquote>
+        <p>TORAH → YESHUA → DESTINY</p>
+        <p>Begin with this week's Torah portion, continue through the Tanakh and New Testament, or explore Sanjay's five books below.</p>
       </div>
 
       <section className="about-library" aria-labelledby="books-heading">
         <p className="about-eyebrow">Continue the journey</p>
         <h3 id="books-heading">Books by Dr. Sanjay Prajapati</h3>
-        <p className="about-library-intro">Explore Scripture, discover your purpose, and grow in your walk with God.</p>
+        <p className="about-library-intro">Discover the blueprint to your God-given destiny through the lives of biblical figures.</p>
         <div className="about-book-grid">
           {BOOKS.map((book, index) => (
             <article className={index === 0 ? 'about-book about-book-featured' : 'about-book'} key={book.asin}>
@@ -77,7 +59,7 @@ export function About() {
       <div className="about-bio">
         <section className="about-speaking" aria-labelledby="speaking-heading">
           <h3 id="speaking-heading">Speaking engagements</h3>
-          <p>Dr. Sanjay Prajapati is available for speaking engagements at churches, conferences, and Bible-study gatherings. Invite him to share the depths of Scripture in its Jewish context and help your audience discover the blueprint to their destiny.</p>
+          <p>Invite Dr. Sanjay Prajapati to teach Torah, reveal Yeshua (Jesus) in His Jewish context, and help your audience discover the blueprint to their God-given destiny through the lives of biblical figures.</p>
           <p>For speaking inquiries, email <a href="mailto:sanjay@destined4torah.com?subject=Speaking%20engagement%20inquiry">sanjay@destined4torah.com</a>.</p>
         </section>
       </div>
