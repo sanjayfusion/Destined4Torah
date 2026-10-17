@@ -4,6 +4,7 @@ import {
   FacebookIcon,
   InstagramIcon,
   SpotifyIcon,
+  TikTokIcon,
   XIcon,
   YouTubeIcon,
 } from './icons'
@@ -24,6 +25,7 @@ const SOCIAL_LINKS = [
     Icon: ApplePodcastsIcon,
   },
   { label: 'X', href: 'https://x.com/destined4torah', Icon: XIcon },
+  { label: 'TikTok', href: 'https://www.tiktok.com/@destined4torah', Icon: TikTokIcon },
 ]
 
 export function SocialLinks() {
