@@ -30,8 +30,8 @@ export function About() {
         </div>
       </div>
       <div className="about-bio">
-        <blockquote className="about-motto">Discover the blueprint to your God-given destiny through the lives of biblical figures.</blockquote>
-        <p>TORAH → YESHUA → DESTINY</p>
+        <p>TORAH → JESUS → HOLY SPIRIT → DESTINY</p>
+        <blockquote className="about-motto">Rooted in Torah. Revealed in Jesus. Empowered by the Holy Spirit. Destined for Purpose.</blockquote>
         <p>Begin with this week's Torah portion, continue through the Tanakh and New Testament, or explore Sanjay's five books below.</p>
       </div>
 

@@ -140,7 +140,7 @@ function App() {
             <div className="brand-copy">
               <h1>Destined4Torah</h1>
               <p className="brand-tagline">Teaching Torah | Revealing Jesus in His Jewish Context</p>
-              <p className="brand-pillars">TORAH → YESHUA → DESTINY</p>
+              <p className="brand-pillars">TORAH → JESUS → HOLY SPIRIT → DESTINY</p>
               <p className="brand-name">Dr. Sanjay Prajapati</p>
             </div>
           </div>
