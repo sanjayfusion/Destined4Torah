@@ -1,4 +1,5 @@
 import { OLD_TESTAMENT_BOOKS } from '../data/books'
+import { PARSHIYOT_BY_BOOK } from '../data/parshiyot'
 import { passageUrl } from '../lib/passageLinks'
 
 const sections = [
@@ -7,7 +8,7 @@ const sections = [
   { key: 'ketuvim', name: 'Ketuvim', hebrew: 'כתובים', meaning: 'Writings', description: 'Poetry, wisdom, prayer, and accounts of faith through suffering, exile, and restoration.', groups: [{ key: 'sifrei-emet', title: 'Poetry & Wisdom' }, { key: 'megillot', title: 'Five Megillot · The Five Scrolls' }, { key: 'other-writings', title: 'Other Writings' }] },
 ] as const
 
-export function TanakhPage({ onSelect }: { onSelect: (book: string) => void }) {
+export function TanakhPage({ onSelect, onSelectPortions }: { onSelect: (book: string) => void; onSelectPortions: (book: string) => void }) {
   return <article className="tanakh-page">
     <header className="tanakh-intro">
       <p className="tanakh-eyebrow">EXPLORE THE HEBREW SCRIPTURES</p>
@@ -31,6 +32,17 @@ export function TanakhPage({ onSelect }: { onSelect: (book: string) => void }) {
             </a>
           </li>)}</ul>
         </div>)}
+        {section.key === 'torah' && <div className="tanakh-book-group">
+          <h3>Weekly portions</h3>
+          <ul>{PARSHIYOT_BY_BOOK.map((group) => <li key={group.book}>
+            <a href={passageUrl({ view: 'parshiyot-list', book: group.book }, window.location.href)} onClick={(event) => {
+              if (event.button === 0 && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey) { event.preventDefault(); onSelectPortions(group.book) }
+            }}>
+              <span><strong>{OLD_TESTAMENT_BOOKS.find((book) => book.slug === group.book)?.transliteration ?? group.book}</strong><small>{group.book}</small></span>
+              <span>{group.parshiyot.length} portions →</span>
+            </a>
+          </li>)}</ul>
+        </div>}
       </section>)}
     </div>
     <p className="tanakh-source">Explore the organization of these books in the <a href="https://www.sefaria.org/texts/Tanakh" target="_blank" rel="noopener noreferrer">Sefaria Tanakh library</a>.</p>

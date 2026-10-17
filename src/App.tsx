@@ -231,13 +231,14 @@ function App() {
             {view === 'parsha' && <WeeklyParsha key={selectedParsha?.english ?? "weekly"} overrideParsha={selectedParsha} onReadingLoaded={selectedParsha ? rememberPassage : undefined} />}
             {view === 'parshiyot-list' && (
               <AllParshiyot
+                focusBook={route.view === 'parshiyot-list' ? route.book : undefined}
                 onSelect={(parsha) => {
                   navigate({ view: 'parsha', parsha })
                 }}
               />
             )}
             {view === 'about' && <About />}
-            {view === 'tanakh' && <TanakhPage onSelect={(book) => navigate({ view: 'book', book, chapter: 1 })} />}
+            {view === 'tanakh' && <TanakhPage onSelect={(book) => navigate({ view: 'book', book, chapter: 1 })} onSelectPortions={(book) => navigate({ view: 'parshiyot-list', book })} />}
             {view === 'new-testament' && <NewTestamentPage onSelect={(book) => navigate({ view: 'book', book, chapter: 1 })} />}
             {view === 'subscribe' && <SubscribePage onBackToReading={() => navigate(lastReading.current)} />}
             {view === 'book' && (
