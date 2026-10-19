@@ -101,18 +101,13 @@
   margin-bottom: 44px;
 }
 
-/* The same banner as the YouTube channel. Cropped to a slim strip on wide screens so it does not push the reading down. */
-.app-banner {
-  display: block;
-  width: 100%;
-  height: auto;
-  aspect-ratio: 1546 / 423;
-  object-fit: cover;
-  /* Crop mostly from the bottom: the top of the head sits near the top edge of the artwork. */
-  object-position: center 18%;
-  border-radius: 14px;
-  margin: 0 0 14px;
-  background: #000;
+.app-logo {
+  width: min(100%, 720px);
+  aspect-ratio: 1372 / 214;
+  margin: 12px auto 24px;
+  background-color: var(--accent);
+  -webkit-mask: url('./assets/script-logo.png') center / contain no-repeat;
+  mask: url('./assets/script-logo.png') center / contain no-repeat;
 }
 
 .app-header p {
@@ -1189,7 +1184,7 @@
 @media (max-width: 640px) {
   .app { padding: 20px 12px 48px; }
   .app-header { margin-bottom: 24px; }
-  .app-banner { aspect-ratio: 1702 / 630; border-radius: 10px; margin-bottom: 8px; }
+  .app-logo { margin: 8px auto 18px; }
   .app-header p { font-size: 14px; margin: 8px 0; }
   .app-header .header-verse { font-size: 12px; }
   .header-nav { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
