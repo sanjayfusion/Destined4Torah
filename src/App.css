@@ -1359,3 +1359,12 @@
 
 /* Without the side panel the reading column would stretch very wide; keep lines comfortable to read. */
 .subscribe-layout .reader { max-width: 900px; margin-left: auto; margin-right: auto; }
+
+/* Keep the approved identity as readable text at every screen size. */
+.brand-header { display: flex; align-items: center; gap: clamp(18px, 4vw, 48px); padding: clamp(20px, 4vw, 44px); margin-bottom: 14px; border: 1px solid #7e633c; border-radius: 14px; background: #10100e; text-align: left; }
+.brand-portrait { width: clamp(100px, 20vw, 210px); height: auto; border-radius: 50%; flex-shrink: 0; }
+.brand-copy h1 { margin: 0 0 14px; color: #e4c58d; font-family: Fraunces, Georgia, serif; font-size: clamp(28px, 4.5vw, 48px); overflow-wrap: anywhere; }
+.app-header .brand-tagline { color: #f3e8d4; font-size: clamp(16px, 2vw, 21px); line-height: 1.5; margin: 0 0 14px; }
+.app-header .brand-pillars { color: #e4c58d; font-size: 13px; letter-spacing: .07em; }
+.app-header .brand-name { color: #d1c6b6; font-size: 14px; }
+@media (max-width: 600px) { .brand-header { flex-direction: column; text-align: center; gap: 16px; } .brand-portrait { width: 110px; } }
