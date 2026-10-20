@@ -26,7 +26,7 @@ export function SubscribeForm({ compact = false }: { compact?: boolean }) {
       const data = (await response.json()) as { ok: boolean; error?: string }
       if (data.ok) {
         setStatus('done')
-        setMessage('Almost there! Check your email and click the link to confirm your subscription. If you don\u2019t see it within a minute, look in your spam or promotions folder.')
+        setMessage('Thank you! If you\u2019re already subscribed, you\u2019re all set\u2014no new confirmation email is sent. If you\u2019re joining for the first time, check your inbox for a confirmation link, including your spam or promotions folder. If you recently requested a link, please use that email.')
       } else {
         setStatus('error')
         setMessage(data.error ?? 'Something went wrong. Please try again.')
