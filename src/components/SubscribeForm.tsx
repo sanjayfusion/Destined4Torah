@@ -17,14 +17,17 @@ export function SubscribeForm({ compact = false }: { compact?: boolean }) {
   async function handleSubmit(event: FormEvent) {
     event.preventDefault()
     setStatus('sending')
+    const controller = new AbortController()
+    const timeout = window.setTimeout(() => controller.abort(), 15000)
     try {
       const response = await fetch(`${SUBSCRIBE_API_URL}/api/subscribe`, {
         method: 'POST',
+        signal: controller.signal,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, name, phone, address, company, via: compact ? 'prompt' : 'website' }),
       })
       const data = (await response.json()) as { ok: boolean; error?: string }
-      if (data.ok) {
+      if (response.ok && data.ok) {
         setStatus('done')
         setMessage('Thank you! If you\u2019re already subscribed, you\u2019re all set\u2014no new confirmation email is sent. If you\u2019re joining for the first time, check your inbox for a confirmation link, including your spam or promotions folder. If you recently requested a link, please use that email.')
       } else {
@@ -33,7 +36,9 @@ export function SubscribeForm({ compact = false }: { compact?: boolean }) {
       }
     } catch {
       setStatus('error')
-      setMessage('Could not reach the server. Please try again in a moment.')
+      setMessage('We couldn’t complete your signup request. Try again, or use the direct signup page below. If you’re inside Messenger or Facebook, open this page in Chrome or Safari and try there.')
+    } finally {
+      window.clearTimeout(timeout)
     }
   }
 
@@ -107,6 +112,8 @@ export function SubscribeForm({ compact = false }: { compact?: boolean }) {
           {status === 'error' && (
             <p className="subscribe-message error" role="alert">
               {message}
+              <br />
+              <a href={`${SUBSCRIBE_API_URL}/join`} target="_blank" rel="noopener noreferrer">Open direct signup page →</a>
             </p>
           )}
         </form>
