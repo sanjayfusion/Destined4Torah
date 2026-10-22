@@ -545,13 +545,29 @@
 }
 
 .parsha-title-row h2.hebrew {
+  margin-left: auto;
   font-size: 30px;
   font-weight: 500;
   color: var(--accent);
 }
 
+.parsha-name {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: 12px;
+}
+
+.parsha-meaning {
+  margin: 0;
+  font-family: Fraunces, Georgia, serif;
+  font-size: 16px;
+  font-style: italic;
+  color: var(--accent);
+}
+
 .parsha-ref-row {
-  margin-top: 4px;
+  margin-top: 6px;
 }
 
 .parsha-ref {

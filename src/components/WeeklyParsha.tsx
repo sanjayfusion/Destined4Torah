@@ -124,7 +124,10 @@ export function WeeklyParsha({ overrideParsha = null, onReadingLoaded }: WeeklyP
       <header className="parsha-header">
         <p className="parsha-label">{overrideParsha ? 'Parashah' : "This Week's Parashah"}</p>
         <div className="parsha-title-row">
-          <h2>{parsha.englishName}</h2>
+          <div className="parsha-name">
+            <h2>{parsha.englishName}</h2>
+            {teachingEntry?.meaning && <p className="parsha-meaning">{teachingEntry.meaning}</p>}
+          </div>
           <h2 className="hebrew" dir="rtl" lang="he">{teachingEntry?.hebrew ?? parsha.hebrewName}</h2>
         </div>
         <div className="parsha-title-row parsha-ref-row">
