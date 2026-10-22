@@ -34,7 +34,10 @@ with deterministic feed fixtures; it does not submit forms or contact subscriber
 Use `?ref=John+3%3A16` for a verse, `?ref=Genesis+1` for a chapter,
 or `?parsha=Noach` for a fixed Torah portion. Combined portions such as
 `?parsha=Vayakhel-Pekudei` are supported. Copy buttons generate these URLs;
-browser Back/Forward restores the passage. Invalid links fall back to the
+browser Back/Forward restores the passage.
+To copy Scripture, tap a verse number to select it, then tap another verse
+number to extend the selection to a range. A bar at the bottom of the page copies
+the English text, the text with Hebrew or Greek, or a link to the first verse. Invalid links fall back to the
 weekly reading, and unavailable verse numbers show a notice with the chapter.
 
 ## Continue studying

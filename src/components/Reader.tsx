@@ -8,6 +8,8 @@ import { HebrewVerseText } from './HebrewVerseText'
 import { ReadAloudBar } from './ReadAloudBar'
 import { CopyPassageLink } from './CopyPassageLink'
 import { TextCredit } from './TextCredit'
+import { useVerseSelection } from '../hooks/useVerseSelection'
+import { VerseNumberButton, VerseSelectionBar } from './VerseSelection'
 import { VerseCommentary } from './VerseCommentary'
 
 interface ReaderProps {
@@ -26,6 +28,7 @@ export function Reader({ chapter, loading, error, source, bookSlug, chapterNum, 
   const [highlightedVerse, setHighlightedVerse] = useState<number | null>(null)
   const hebrewReadAloud = useReadAloud(chapter?.hebrew ?? [], 'he-IL')
   const greekReadAloud = useReadAloud(chapter?.greek ?? [], 'el-GR')
+  const selection = useVerseSelection(`${bookSlug}.${chapterNum}`)
 
   useEffect(() => {
     if (loading || !chapter || !targetVerse) return
@@ -83,6 +86,13 @@ export function Reader({ chapter, loading, error, source, bookSlug, chapterNum, 
   }
 
   const verseCount = Math.max(chapter.english.length, chapter.hebrew.length)
+  const selectableVerses = Array.from({ length: verseCount }, (_, i) => ({
+    chapter: chapterNum,
+    verse: i + 1,
+    english: chapter.english[i] ?? '',
+    hebrew: chapter.hebrew[i],
+    greek: chapter.greek?.[i],
+  }))
 
   return (
     <article className="reader">
@@ -118,9 +128,9 @@ export function Reader({ chapter, loading, error, source, bookSlug, chapterNum, 
           <li
             key={i}
             id={`verse-${i + 1}`}
-            className={highlightedVerse === i + 1 ? 'verse verse-highlighted' : 'verse'}
+            className={`verse${highlightedVerse === i + 1 ? ' verse-highlighted' : ''}${selection.isSelected(i) ? ' verse-selected' : ''}`}
           >
-            <span className="verse-number">{i + 1}</span>
+            <VerseNumberButton label={`${i + 1}`} selected={selection.isSelected(i)} onClick={() => selection.toggle(i)} />
             {chapter.hebrew[i] && (
               <HebrewVerseText
                 book={bookSlug}
@@ -135,11 +145,19 @@ export function Reader({ chapter, loading, error, source, bookSlug, chapterNum, 
               />
             )}
             <p className="verse-english">{chapter.english[i]}</p>
-            <div className="verse-share"><CopyPassageLink route={{ view: 'book', book: bookSlug, chapter: chapterNum, verse: i + 1 }} label={`Copy verse ${i + 1} link`} /></div>
             <VerseCommentary entries={commentary[i + 1] ?? []} />
           </li>
         ))}
       </ol>
+
+      <VerseSelectionBar
+        book={chapter.ref.replace(/\s+\d+$/, '')}
+        bookSlug={bookSlug}
+        translation={chapter.englishVersion?.replace(/\s*\(.*\)$/, '') ?? (source === 'kjv' ? 'KJV' : 'JPS 1917')}
+        verses={selectableVerses}
+        range={selection.range}
+        onClear={selection.clear}
+      />
 
       <TextCredit source={source} />
     </article>
