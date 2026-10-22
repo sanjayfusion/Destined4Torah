@@ -1205,8 +1205,27 @@
 .copy-passage-button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .copy-passage-status { color: var(--text); font-size: 12px; }
 .copy-passage input { width: 100%; min-width: 0; color: var(--text); background: var(--bg); border: 1px solid var(--border); padding: 8px; }
-.verse-share { grid-column: 2; margin-top: 8px; }
-.verse-share .copy-passage { margin-bottom: 0; }
+
+/* Verse numbers select verses to copy, Blue Letter Bible style. */
+.verse-number-button { align-self: start; border: none; background: none; padding: 4px 0 0; margin: 0; font: inherit; font-size: 13px; font-weight: 600; color: var(--accent); text-align: left; cursor: pointer; text-decoration: underline dotted transparent; text-underline-offset: 3px; }
+.verse-number-button:hover { text-decoration-color: currentColor; }
+.verse-number-button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+.verse-number-button[aria-pressed='true'] { text-decoration: underline solid currentColor; }
+.verse-selected { background-color: var(--accent-bg); box-shadow: -6px 0 0 var(--accent-bg), 6px 0 0 var(--accent-bg); }
+.verse-select-bar { position: fixed; left: 50%; bottom: 16px; transform: translateX(-50%); z-index: 45; width: min(640px, calc(100% - 32px)); display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding: 12px 14px; background: var(--surface); border: 1px solid var(--accent); border-radius: 12px; box-shadow: var(--shadow-card); }
+.verse-select-summary { display: flex; flex-direction: column; flex: 1 1 180px; min-width: 0; padding-right: 36px; }
+.verse-select-summary strong { color: var(--text-h); font-size: 15px; }
+.verse-select-hint { color: var(--text); font-size: 12px; opacity: 0.8; }
+.verse-select-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+.verse-select-actions button { border: 1px solid var(--accent); border-radius: 999px; background: none; color: var(--accent); padding: 6px 12px; font-size: 13px; font-weight: 600; cursor: pointer; }
+.verse-select-actions button:first-child { background: var(--accent); color: var(--bg); }
+.verse-select-actions button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.verse-select-clear { position: absolute; top: 8px; right: 8px; border: 1px solid var(--border); border-radius: 999px; background: none; color: var(--text); font-size: 16px; line-height: 1; padding: 5px 9px; cursor: pointer; }
+.verse-select-clear:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.verse-select-status { flex-basis: 100%; color: var(--text); font-size: 12px; }
+.verse-select-status:empty { display: none; }
+.verse-select-bar textarea { flex-basis: 100%; min-width: 0; color: var(--text); background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 8px; font: inherit; font-size: 13px; }
+body:has(.verse-select-bar) .back-to-top { bottom: 180px; }
 
 .continue-studying { display: flex; align-items: center; gap: 10px; padding: 6px 8px 6px 16px; margin-bottom: 16px; background: var(--surface); border: 1px solid var(--border); border-radius: 999px; font-size: 14px; }
 .continue-studying-text { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text); }

@@ -11,6 +11,8 @@ import { ReadAloudBar } from './ReadAloudBar'
 import { CopyPassageLink } from './CopyPassageLink'
 import { SubscribeForm } from './SubscribeForm'
 import { TextCredit } from './TextCredit'
+import { useVerseSelection } from '../hooks/useVerseSelection'
+import { VerseNumberButton, VerseSelectionBar } from './VerseSelection'
 import { VerseCommentary } from './VerseCommentary'
 
 interface WeeklyParshaProps {
@@ -25,6 +27,7 @@ export function WeeklyParsha({ overrideParsha = null, onReadingLoaded }: WeeklyP
   const [error, setError] = useState<string | null>(null)
   const [commentaryByChapter, setCommentaryByChapter] = useState<Record<number, CommentaryByVerse>>({})
   const readAloud = useReadAloud(parsha?.sections.flatMap((section) => section.hebrew) ?? [], 'he-IL')
+  const selection = useVerseSelection(parsha?.ref ?? '')
 
   useEffect(() => {
     let cancelled = false
@@ -95,6 +98,15 @@ export function WeeklyParsha({ overrideParsha = null, onReadingLoaded }: WeeklyP
 
   const teachingEntry = overrideParsha ?? findParshaEntry(parsha.englishName)
   const youtubeUrls = teachingEntry?.youtubeUrls ?? []
+  const bookSlug = parsha.ref.split(' ')[0]
+  const selectableVerses = parsha.sections.flatMap((section) =>
+    section.hebrew.map((hebrew, i) => ({
+      chapter: section.chapter,
+      verse: section.startVerse + i,
+      english: section.english[i] ?? '',
+      hebrew,
+    })),
+  )
 
   return (
     <article className="reader">
@@ -160,19 +172,20 @@ export function WeeklyParsha({ overrideParsha = null, onReadingLoaded }: WeeklyP
               )}
               <ol className="verse-list">
                 {section.hebrew.map((_, i) => (
-                  <li key={i} className="verse">
-                    <span className="verse-number">
-                      {section.chapter}:{section.startVerse + i}
-                    </span>
+                  <li key={i} className={selection.isSelected(sectionStartIndex + i) ? 'verse verse-selected' : 'verse'}>
+                    <VerseNumberButton
+                      label={`${section.chapter}:${section.startVerse + i}`}
+                      selected={selection.isSelected(sectionStartIndex + i)}
+                      onClick={() => selection.toggle(sectionStartIndex + i)}
+                    />
                     <HebrewVerseText
-                      book={parsha.ref.split(' ')[0]}
+                      book={bookSlug}
                       text={section.hebrew[i]}
                       highlightCharIndex={
                         readAloud.currentIndex === sectionStartIndex + i ? readAloud.currentCharIndex : null
                       }
                     />
                     <p className="verse-english">{section.english[i]}</p>
-                    <div className="verse-share"><CopyPassageLink route={{ view: 'book', book: parsha.ref.split(' ')[0], chapter: section.chapter, verse: section.startVerse + i }} label={`Copy verse ${section.chapter}:${section.startVerse + i} link`} /></div>
                     <VerseCommentary
                       entries={commentaryByChapter[section.chapter]?.[section.startVerse + i] ?? []}
                     />
@@ -183,6 +196,15 @@ export function WeeklyParsha({ overrideParsha = null, onReadingLoaded }: WeeklyP
           )
         })
       })()}
+
+      <VerseSelectionBar
+        book={bookSlug}
+        bookSlug={bookSlug}
+        translation="JPS 1917"
+        verses={selectableVerses}
+        range={selection.range}
+        onClear={selection.clear}
+      />
 
       <SubscribeForm compact />
 
