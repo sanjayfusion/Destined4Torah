@@ -1,3 +1,5 @@
+import { ALIYOT_BY_PARSHA_REF } from '../data/aliyot'
+
 export interface ChapterText {
   ref: string
   heRef: string
@@ -54,7 +56,7 @@ interface ParshaRange {
   endVerse: number
 }
 
-function parseParshaRef(ref: string): ParshaRange {
+export function parseParshaRef(ref: string): ParshaRange {
   const crossChapter = ref.match(/^([A-Za-z]+)\s+(\d+):(\d+)-(\d+):(\d+)$/)
   if (crossChapter) {
     const [, book, startChapter, startVerse, endChapter, endVerse] = crossChapter
@@ -97,11 +99,36 @@ function refToUrlSlug(ref: string): string {
   return `${book}.${rest.replace(/:/g, '.')}`
 }
 
+/** Narrows a portion's sections to the verses of one aliyah ref, e.g. "Genesis 12:14-13:4". */
+export function sectionsForRef(sections: ParshaSection[], ref: string): ParshaSection[] {
+  const range = parseParshaRef(ref)
+  const start = range.startChapter * 1000 + range.startVerse
+  const end = range.endChapter * 1000 + range.endVerse
+  return sections
+    .map((section) => {
+      const keep = section.hebrew.map((_, i) => {
+        const position = section.chapter * 1000 + section.startVerse + i
+        return position >= start && position <= end
+      })
+      const first = keep.indexOf(true)
+      const last = keep.lastIndexOf(true)
+      return {
+        ...section,
+        startVerse: section.startVerse + first,
+        hebrew: section.hebrew.slice(first, last + 1),
+        english: section.english.slice(first, last + 1),
+      }
+    })
+    .filter((section) => section.hebrew.length > 0)
+}
+
 export interface ParshaInfo {
   englishName: string
   hebrewName: string
   ref: string
   url: string
+  /** The seven aliyah refs, e.g. "Genesis 12:14-13:4". Empty when unknown. */
+  aliyot: string[]
 }
 
 /** Just the current parsha's name/ref — no verse text. Cheap to call often. */
@@ -126,6 +153,8 @@ export async function fetchParshaInfo(): Promise<ParshaInfo> {
     hebrewName: item.displayValue?.he ?? '',
     ref: item.ref,
     url: item.url ?? refToUrlSlug(item.ref),
+    // Sefaria lists maftir as an eighth entry; only the seven aliyot are shown.
+    aliyot: Array.isArray(item.extraDetails?.aliyot) ? item.extraDetails.aliyot.slice(0, 7) : [],
   }
 }
 
@@ -137,6 +166,7 @@ interface NamedParshaRef {
   englishName: string
   hebrewName: string
   ref: string
+  aliyot?: string[]
 }
 
 /** Fetches the full text for any named parsha (not just the current week's). */
@@ -170,11 +200,12 @@ export async function fetchParshaByRef(entry: NamedParshaRef): Promise<WeeklyPar
     hebrewName: entry.hebrewName,
     ref: entry.ref,
     url: refToUrlSlug(entry.ref),
+    aliyot: entry.aliyot?.length ? entry.aliyot : ALIYOT_BY_PARSHA_REF[entry.ref] ?? [],
     sections,
   }
 }
 
 export async function fetchWeeklyParsha(): Promise<WeeklyParsha> {
   const info = await fetchParshaInfo()
-  return fetchParshaByRef({ englishName: info.englishName, hebrewName: info.hebrewName, ref: info.ref })
+  return fetchParshaByRef({ englishName: info.englishName, hebrewName: info.hebrewName, ref: info.ref, aliyot: info.aliyot })
 }

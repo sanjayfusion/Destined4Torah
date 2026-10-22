@@ -2,13 +2,13 @@ import { useEffect, useState } from 'react'
 import type { SavedPassage } from '../lib/studyProgress'
 import { useReadAloud } from '../hooks/useReadAloud'
 import { fetchChapterCommentary, type CommentaryByVerse } from '../lib/commentary'
-import { fetchParshaByRef, fetchWeeklyParsha, type WeeklyParsha as WeeklyParshaData } from '../lib/sefaria'
+import { fetchParshaByRef, fetchWeeklyParsha, sectionsForRef, type WeeklyParsha as WeeklyParshaData } from '../lib/sefaria'
+import { OLD_TESTAMENT_BOOKS } from '../data/books'
 import { findParshaEntry, type ParshaListEntry } from '../data/parshiyot'
 import { HebrewVerseText } from './HebrewVerseText'
 import { YouTubeIcon } from './icons'
 import { ParshaDateHeader } from './ParshaDateHeader'
 import { ReadAloudBar } from './ReadAloudBar'
-import { CopyPassageLink } from './CopyPassageLink'
 import { SubscribeForm } from './SubscribeForm'
 import { TextCredit } from './TextCredit'
 import { useVerseSelection } from '../hooks/useVerseSelection'
@@ -26,8 +26,14 @@ export function WeeklyParsha({ overrideParsha = null, onReadingLoaded }: WeeklyP
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [commentaryByChapter, setCommentaryByChapter] = useState<Record<number, CommentaryByVerse>>({})
-  const readAloud = useReadAloud(parsha?.sections.flatMap((section) => section.hebrew) ?? [], 'he-IL')
-  const selection = useVerseSelection(parsha?.ref ?? '')
+  const [aliyahChoice, setAliyahChoice] = useState({ ref: '', index: 0 })
+  const aliyot = parsha?.aliyot ?? []
+  const aliyahIndex = aliyahChoice.ref === parsha?.ref ? aliyahChoice.index : 0
+  const aliyahRef = aliyot[aliyahIndex]
+  // Without known aliyot (e.g. a combined portion outside its week) the whole portion is shown.
+  const shownSections = parsha ? (aliyahRef ? sectionsForRef(parsha.sections, aliyahRef) : parsha.sections) : []
+  const readAloud = useReadAloud(shownSections.flatMap((section) => section.hebrew), 'he-IL')
+  const selection = useVerseSelection(`${parsha?.ref ?? ''}#${aliyahIndex}`)
 
   useEffect(() => {
     let cancelled = false
@@ -99,7 +105,8 @@ export function WeeklyParsha({ overrideParsha = null, onReadingLoaded }: WeeklyP
   const teachingEntry = overrideParsha ?? findParshaEntry(parsha.englishName)
   const youtubeUrls = teachingEntry?.youtubeUrls ?? []
   const bookSlug = parsha.ref.split(' ')[0]
-  const selectableVerses = parsha.sections.flatMap((section) =>
+  const bookTransliteration = OLD_TESTAMENT_BOOKS.find((book) => book.slug === bookSlug)?.transliteration
+  const selectableVerses = shownSections.flatMap((section) =>
     section.hebrew.map((hebrew, i) => ({
       chapter: section.chapter,
       verse: section.startVerse + i,
@@ -119,8 +126,9 @@ export function WeeklyParsha({ overrideParsha = null, onReadingLoaded }: WeeklyP
         </div>
         <h2 className="hebrew" dir="rtl">{parsha.hebrewName}</h2>
       </header>
-      <p className="parsha-ref">{parsha.ref}</p>
-      <CopyPassageLink route={{ view: 'parsha', parsha: overrideParsha ?? { english: parsha.englishName, hebrew: parsha.hebrewName, ref: parsha.ref } }} label="Copy Torah portion link" />
+      <p className="parsha-ref">
+        {bookTransliteration ? parsha.ref.replace(bookSlug, `${bookSlug} (${bookTransliteration})`) : parsha.ref}
+      </p>
 
       {youtubeUrls.length > 0 && (
         <div className="youtube-teaching-links">
@@ -133,16 +141,41 @@ export function WeeklyParsha({ overrideParsha = null, onReadingLoaded }: WeeklyP
         </div>
       )}
 
+      {aliyot.length > 0 && (
+        <nav className="jump-menu aliyah-menu" aria-label="Choose an aliyah">
+          {aliyot.map((ref, i) => (
+            <button
+              key={ref}
+              type="button"
+              className="jump-menu-link"
+              aria-pressed={i === aliyahIndex}
+              title={ref}
+              onClick={() => {
+                readAloud.stop()
+                setAliyahChoice({ ref: parsha.ref, index: i })
+              }}
+            >
+              Aliyah {i + 1}
+            </button>
+          ))}
+        </nav>
+      )}
+      {aliyahRef && (
+        <p className="aliyah-ref">
+          Aliyah {aliyahIndex + 1} · {aliyahRef.replace(/(\d+):(\d+)-\1:/, '$1:$2-')}
+        </p>
+      )}
+
       <ReadAloudBar
-        texts={parsha.sections.flatMap((section) => section.hebrew)}
+        texts={shownSections.flatMap((section) => section.hebrew)}
         status={readAloud.status}
         currentIndex={readAloud.currentIndex}
         play={readAloud.play}
         stop={readAloud.stop}
-        label="Read parashah aloud"
+        label={aliyahRef ? `Read Aliyah ${aliyahIndex + 1} aloud` : 'Read parashah aloud'}
       />
 
-      {parsha.sections.length > 1 && (
+      {!aliyahRef && parsha.sections.length > 1 && (
         <nav className="jump-menu" aria-label="Jump to a chapter">
           <span className="jump-menu-label">Jump to:</span>
           {parsha.sections.map((section) => (
@@ -161,13 +194,13 @@ export function WeeklyParsha({ overrideParsha = null, onReadingLoaded }: WeeklyP
       {(() => {
         let globalVerseIndex = 0
 
-        return parsha.sections.map((section) => {
+        return shownSections.map((section) => {
           const sectionStartIndex = globalVerseIndex
           globalVerseIndex += section.hebrew.length
 
           return (
             <div key={section.chapter} id={`chapter-${section.chapter}`} className="parsha-section">
-              {parsha.sections.length > 1 && (
+              {shownSections.length > 1 && (
                 <h3 className="chapter-divider">Chapter {section.chapter}</h3>
               )}
               <ol className="verse-list">
@@ -196,6 +229,20 @@ export function WeeklyParsha({ overrideParsha = null, onReadingLoaded }: WeeklyP
           )
         })
       })()}
+
+      {aliyahRef && aliyahIndex < aliyot.length - 1 && (
+        <button
+          type="button"
+          className="aliyah-next"
+          onClick={() => {
+            readAloud.stop()
+            setAliyahChoice({ ref: parsha.ref, index: aliyahIndex + 1 })
+            document.querySelector('.aliyah-menu')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+          }}
+        >
+          Continue to Aliyah {aliyahIndex + 2} →
+        </button>
+      )}
 
       <VerseSelectionBar
         book={bookSlug}
