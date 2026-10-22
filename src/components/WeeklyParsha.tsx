@@ -4,6 +4,7 @@ import { useReadAloud } from '../hooks/useReadAloud'
 import { fetchChapterCommentary, type CommentaryByVerse } from '../lib/commentary'
 import { fetchParshaByRef, fetchWeeklyParsha, sectionsForRef, type WeeklyParsha as WeeklyParshaData } from '../lib/sefaria'
 import { OLD_TESTAMENT_BOOKS } from '../data/books'
+import { hebrewTorahRef } from '../lib/hebrewNumerals'
 import { findParshaEntry, type ParshaListEntry } from '../data/parshiyot'
 import { HebrewVerseText } from './HebrewVerseText'
 import { YouTubeIcon } from './icons'
@@ -105,6 +106,7 @@ export function WeeklyParsha({ overrideParsha = null, onReadingLoaded }: WeeklyP
   const teachingEntry = overrideParsha ?? findParshaEntry(parsha.englishName)
   const youtubeUrls = teachingEntry?.youtubeUrls ?? []
   const bookSlug = parsha.ref.split(' ')[0]
+  const hebrewRef = hebrewTorahRef(parsha.ref)
   const bookTransliteration = OLD_TESTAMENT_BOOKS.find((book) => book.slug === bookSlug)?.transliteration
   const selectableVerses = shownSections.flatMap((section) =>
     section.hebrew.map((hebrew, i) => ({
@@ -117,18 +119,21 @@ export function WeeklyParsha({ overrideParsha = null, onReadingLoaded }: WeeklyP
 
   return (
     <article className="reader">
-      {!overrideParsha && <ParshaDateHeader parshaName={parsha.englishName} parshaUrl={parsha.url} />}
+      {!overrideParsha && <ParshaDateHeader />}
 
-      <header className="reader-header">
-        <div>
-          <p className="parsha-label">{overrideParsha ? 'Parashah' : "This Week's Parashah"}</p>
+      <header className="parsha-header">
+        <p className="parsha-label">{overrideParsha ? 'Parashah' : "This Week's Parashah"}</p>
+        <div className="parsha-title-row">
           <h2>{parsha.englishName}</h2>
+          <h2 className="hebrew" dir="rtl" lang="he">{teachingEntry?.hebrew ?? parsha.hebrewName}</h2>
         </div>
-        <h2 className="hebrew" dir="rtl">{parsha.hebrewName}</h2>
+        <div className="parsha-title-row parsha-ref-row">
+          <p className="parsha-ref">
+            {bookTransliteration ? parsha.ref.replace(bookSlug, `${bookSlug} (${bookTransliteration})`) : parsha.ref}
+          </p>
+          {hebrewRef && <p className="parsha-ref hebrew" dir="rtl" lang="he">{hebrewRef}</p>}
+        </div>
       </header>
-      <p className="parsha-ref">
-        {bookTransliteration ? parsha.ref.replace(bookSlug, `${bookSlug} (${bookTransliteration})`) : parsha.ref}
-      </p>
 
       {youtubeUrls.length > 0 && (
         <div className="youtube-teaching-links">

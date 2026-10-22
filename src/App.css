@@ -517,15 +517,6 @@
   color: var(--text);
 }
 
-.parsha-date-header a {
-  color: var(--accent);
-  font-weight: 600;
-  text-decoration: none;
-}
-
-.parsha-date-header a:hover {
-  text-decoration: underline;
-}
 
 .parsha-label {
   margin: 0 0 2px;
@@ -536,10 +527,41 @@
   color: var(--accent);
 }
 
+.parsha-header {
+  margin-bottom: 20px;
+}
+
+.parsha-title-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: baseline;
+  column-gap: 16px;
+}
+
+.parsha-title-row h2 {
+  font-size: 26px;
+  margin: 0;
+}
+
+.parsha-title-row h2.hebrew {
+  font-size: 30px;
+  font-weight: 500;
+  color: var(--accent);
+}
+
+.parsha-ref-row {
+  margin-top: 4px;
+}
+
 .parsha-ref {
-  margin: -8px 0 20px;
+  margin: 0;
   font-size: 13px;
   color: var(--text);
+}
+
+.parsha-ref.hebrew {
+  font-size: 15px;
 }
 
 .read-aloud-bar {
