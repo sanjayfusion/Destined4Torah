@@ -550,8 +550,16 @@
   color: var(--accent);
 }
 
+.parsha-meaning {
+  margin: 2px 0 0;
+  font-family: Fraunces, Georgia, serif;
+  font-size: 16px;
+  font-style: italic;
+  color: var(--accent);
+}
+
 .parsha-ref-row {
-  margin-top: 4px;
+  margin-top: 6px;
 }
 
 .parsha-ref {

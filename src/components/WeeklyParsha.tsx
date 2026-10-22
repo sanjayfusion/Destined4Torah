@@ -127,6 +127,7 @@ export function WeeklyParsha({ overrideParsha = null, onReadingLoaded }: WeeklyP
           <h2>{parsha.englishName}</h2>
           <h2 className="hebrew" dir="rtl" lang="he">{teachingEntry?.hebrew ?? parsha.hebrewName}</h2>
         </div>
+        {teachingEntry?.meaning && <p className="parsha-meaning">{teachingEntry.meaning}</p>}
         <div className="parsha-title-row parsha-ref-row">
           <p className="parsha-ref">
             {bookTransliteration ? parsha.ref.replace(bookSlug, `${bookSlug} (${bookTransliteration})`) : parsha.ref}
