@@ -155,7 +155,7 @@ async function subscribersPage(env: Env, url: URL): Promise<Response> {
         .map(
           (s) => `<tr><td>${s.name ? esc(s.name) : '<span class="muted">(no name)</span>'}<br><span class="muted">${esc(s.email)}</span></td><td>${esc(s.phone)}</td><td class="muted">${esc(s.address)}</td><td class="muted">${esc(s.lists)}</td><td class="muted">${esc(s.source_name)}</td><td><span class="pill ${s.status}">${s.status}</span></td>
           <td class="muted">${s.opens || s.clicks ? `${s.opens ?? 0} open${s.opens === 1 ? '' : 's'} · ${s.clicks ?? 0} click${s.clicks === 1 ? '' : 's'}<br>last ${esc(formatDate(s.last_engaged).slice(0, 10))}` : '—'}</td><td>${formatDate(s.created_at)}</td>
-          <td><form method="post" action="/admin/subscribers/${s.id}/delete" style="margin:0"><button class="link" type="submit">Delete</button></form></td></tr>`,
+          <td>${s.status === 'confirmed' || s.status === 'pending' ? `<form method="post" action="/admin/subscribers/${s.id}/delete" style="margin:0"><button class="link" type="submit">Remove</button></form>` : ''}</td></tr>`,
         )
         .join('')
     : '<tr><td colspan="9" class="muted">No subscribers match.</td></tr>'
@@ -807,8 +807,12 @@ export async function handleAdmin(request: Request, env: Env, ctx: ExecutionCont
   if (path === '/admin/subscribers/import' && post) return importSubscribers(request, env)
   const deleteMatch = /^\/admin\/subscribers\/(\d+)\/delete$/.exec(path)
   if (deleteMatch && post) {
-    await env.DB.prepare('DELETE FROM subscribers WHERE id = ?').bind(Number(deleteMatch[1])).run()
-    return redirect('/admin/subscribers', 'Subscriber deleted.')
+    // Someone who confirmed is kept on file as unsubscribed rather than deleted, so a later
+    // import can never re-add them. Only people who never confirmed are deleted outright.
+    const id = Number(deleteMatch[1])
+    await env.DB.prepare(`DELETE FROM subscribers WHERE id = ? AND status = 'pending'`).bind(id).run()
+    await env.DB.prepare(`UPDATE subscribers SET status = 'unsubscribed', unsubscribed_at = ? WHERE id = ? AND status = 'confirmed'`).bind(now(), id).run()
+    return redirect('/admin/subscribers', 'Removed. Anyone who had confirmed is kept on file as unsubscribed, so an import will not add them back.')
   }
 
   if (path === '/admin/campaigns') return post ? saveCampaign(request, env, null) : campaignsPage(env, url)

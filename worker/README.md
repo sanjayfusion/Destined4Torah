@@ -128,7 +128,7 @@ wrangler kv key put weekly:force-test 1 --binding IMAGES --remote     # next min
 
 - **Write and send:** Admin, Emails, Write an email. Use "Save and send test" until it looks right, then "Review and send to everyone".
 - **Results:** open any sent email to see sent, delivered, opened, clicked, bounced.
-- **Removing someone:** they can unsubscribe themselves; you can also delete them on the Subscribers page.
+- **Removing someone:** they can unsubscribe themselves, or you can click Remove on the Subscribers page. Removed subscribers stay on file as unsubscribed (only people who never confirmed are deleted), so re-importing an old list never adds back anyone who opted out, bounced or reported spam.
 
 ## Running it locally
 
