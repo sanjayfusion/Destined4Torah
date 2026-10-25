@@ -1,8 +1,8 @@
 import { DictionaryDetails } from './DictionaryDetails'
-import { useState } from 'react'
+import { Fragment, useState } from 'react'
 import { tokenizeHebrewVerse } from '../lib/hebrewWords'
 import { buildHebrewInterlinear } from '../lib/interlinear'
-import { transliterateHebrew } from '../lib/transliterate'
+import { transliterateHebrewWords } from '../lib/transliterate'
 import { findTokenIndexAtChar } from '../lib/wordHighlight'
 import { VerseInterlinear } from './VerseInterlinear'
 
@@ -40,7 +40,15 @@ export function HebrewVerseText({ text, book, highlightCharIndex = null }: Hebre
         })}
       </p>
 
-      <p className="verse-translit">{transliterateHebrew(text)}</p>
+      {/* Right-to-left, word for word under the Hebrew; each word is isolated so it still reads left-to-right. */}
+      <p className="verse-translit" dir="rtl">
+        {transliterateHebrewWords(tokens).map((word, i) => (
+          <Fragment key={i}>
+            {i > 0 && ' '}
+            <bdi className={spokenIndex !== null && word.tokens.includes(spokenIndex) ? 'read-aloud-active' : undefined}>{word.text}</bdi>
+          </Fragment>
+        ))}
+      </p>
 
       {active?.entry && (
         <div className="strongs-popover" dir="ltr">

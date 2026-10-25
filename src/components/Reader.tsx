@@ -3,6 +3,7 @@ import { fetchChapterCommentary, fetchNTCommentary, type CommentaryByVerse } fro
 import { ALL_BOOKS } from '../data/books'
 import type { ChapterText } from '../lib/sefaria'
 import { useReadAloud } from '../hooks/useReadAloud'
+import { useReadAloudRate } from '../hooks/useReadAloudRate'
 import { GreekVerseText } from './GreekVerseText'
 import { HebrewVerseText } from './HebrewVerseText'
 import { ReadAloudBar } from './ReadAloudBar'
@@ -26,8 +27,9 @@ interface ReaderProps {
 export function Reader({ chapter, loading, error, source, bookSlug, chapterNum, targetVerse }: ReaderProps) {
   const [commentary, setCommentary] = useState<CommentaryByVerse>({})
   const [highlightedVerse, setHighlightedVerse] = useState<number | null>(null)
-  const hebrewReadAloud = useReadAloud(chapter?.hebrew ?? [], 'he-IL')
-  const greekReadAloud = useReadAloud(chapter?.greek ?? [], 'el-GR')
+  const [readAloudRate, setReadAloudRate] = useReadAloudRate()
+  const hebrewReadAloud = useReadAloud(chapter?.hebrew ?? [], 'he-IL', readAloudRate)
+  const greekReadAloud = useReadAloud(chapter?.greek ?? [], 'el-GR', readAloudRate)
   const selection = useVerseSelection(`${bookSlug}.${chapterNum}`)
 
   useEffect(() => {
@@ -111,6 +113,8 @@ export function Reader({ chapter, loading, error, source, bookSlug, chapterNum, 
         currentIndex={hebrewReadAloud.currentIndex}
         play={hebrewReadAloud.play}
         stop={hebrewReadAloud.stop}
+        rate={readAloudRate}
+        onRateChange={setReadAloudRate}
       />
       {chapter.greek && chapter.greek.length > 0 && (
         <ReadAloudBar
@@ -119,6 +123,8 @@ export function Reader({ chapter, loading, error, source, bookSlug, chapterNum, 
           currentIndex={greekReadAloud.currentIndex}
           play={greekReadAloud.play}
           stop={greekReadAloud.stop}
+          rate={readAloudRate}
+          onRateChange={setReadAloudRate}
           label="Read Greek aloud"
         />
       )}

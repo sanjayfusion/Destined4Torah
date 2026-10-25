@@ -582,9 +582,27 @@
 
 .read-aloud-bar {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 12px;
   margin-bottom: 18px;
+}
+
+.read-aloud-speed {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--text);
+}
+
+.read-aloud-speed select {
+  font: inherit;
+  color: var(--text-h);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 4px 6px;
 }
 
 .youtube-teaching-links {

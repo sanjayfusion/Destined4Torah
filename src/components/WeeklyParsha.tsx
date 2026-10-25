@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { SavedPassage } from '../lib/studyProgress'
 import { useReadAloud } from '../hooks/useReadAloud'
+import { useReadAloudRate } from '../hooks/useReadAloudRate'
 import { fetchChapterCommentary, type CommentaryByVerse } from '../lib/commentary'
 import { fetchParshaByRef, fetchWeeklyParsha, sectionsForRef, type WeeklyParsha as WeeklyParshaData } from '../lib/sefaria'
 import { OLD_TESTAMENT_BOOKS } from '../data/books'
@@ -33,7 +34,8 @@ export function WeeklyParsha({ overrideParsha = null, onReadingLoaded }: WeeklyP
   const aliyahRef = aliyot[aliyahIndex]
   // Without known aliyot (e.g. a combined portion outside its week) the whole portion is shown.
   const shownSections = parsha ? (aliyahRef ? sectionsForRef(parsha.sections, aliyahRef) : parsha.sections) : []
-  const readAloud = useReadAloud(shownSections.flatMap((section) => section.hebrew), 'he-IL')
+  const [readAloudRate, setReadAloudRate] = useReadAloudRate()
+  const readAloud = useReadAloud(shownSections.flatMap((section) => section.hebrew), 'he-IL', readAloudRate)
   const selection = useVerseSelection(`${parsha?.ref ?? ''}#${aliyahIndex}`)
 
   useEffect(() => {
@@ -180,6 +182,8 @@ export function WeeklyParsha({ overrideParsha = null, onReadingLoaded }: WeeklyP
         currentIndex={readAloud.currentIndex}
         play={readAloud.play}
         stop={readAloud.stop}
+        rate={readAloudRate}
+        onRateChange={setReadAloudRate}
         label={aliyahRef ? `Read Aliyah ${aliyahIndex + 1} aloud` : 'Read parashah aloud'}
       />
 

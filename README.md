@@ -49,3 +49,14 @@ an explicit passage or navigation URL always takes precedence. The Continue
 studying button remains available on other views. Progress stays on the device,
 does not require an account, and is not sent to the newsletter service. If
 browser storage is unavailable, reading and sharing still work normally.
+
+## Read aloud
+
+Read Hebrew aloud speaks each verse phrase by phrase, pausing at the
+cantillation marks' natural breaks, with cantillation stripped so the voice
+reads only the vowelled words. The word being spoken is highlighted in both
+the Hebrew and the transliteration. The transliteration is shown right to left,
+word for word under the Hebrew, so it can be followed in the same order. A Speed
+menu (Very slow to Natural, default Slow) is remembered on the device. Most
+Hebrew voices don't report word timing, so the highlight is estimated from
+syllable counts and resyncs at the start of every phrase.
