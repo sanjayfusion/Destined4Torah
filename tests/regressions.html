@@ -2,6 +2,7 @@
 import { stripTags, fetchChapter, JPS_1917_VERSION, parseParshaRef, splitHaftarahRef } from '/src/lib/sefaria.ts'
 import { transliterateHebrew, transliterateHebrewWords } from '/src/lib/transliterate.ts'
 import { speechChunks, wordAtSpokenChar } from '/src/lib/speech.ts'
+import { targumName } from '/src/lib/commentary.ts'
 import { tokenizeHebrewVerse } from '/src/lib/hebrewWords.ts'
 import { PARSHIYOT_BY_BOOK, findParshaEntry } from '/src/data/parshiyot.ts'
 import { initialStudyRoute, loadStudyProgress, saveStudyProgress, STUDY_PROGRESS_KEY } from '/src/lib/studyProgress.ts'
@@ -141,6 +142,10 @@ try {
   check('haftarah ref across chapters', parseParshaRef('Isaiah 54:1-55:5').endChapter, 55)
   check('haftarah ref single verse', parseParshaRef('Isaiah 66:23').endVerse, 23)
   check('compound haftarah ref split', splitHaftarahRef('Isaiah 66:1-24, 66:23').join(' | '), 'Isaiah 66:1-24 | Isaiah 66:23')
+  check('Onkelos per-book title', targumName('Onkelos Genesis', 'Genesis 17:8'), 'Targum Onkelos')
+  check('Targum Jonathan per-book title', targumName('Targum Jonathan on Genesis', 'Genesis 17:8'), 'Targum Jonathan')
+  check('Targum on numbered book', targumName('Targum Jonathan on I Samuel', 'I Samuel 20:18'), 'Targum Jonathan')
+  check('collective Onkelos title', targumName('Onkelos'), 'Targum Onkelos')
   const gen2112 = 'וַיֹּ֨אמֶר אֱלֹהִ֜ים אֶל־אַבְרָהָ֗ם אַל־יֵרַ֤ע בְּעֵינֶ֙יךָ֙'
   check('transliteration keeps Hebrew word order', transliterateHebrewWords(tokenizeHebrewVerse(gen2112)).slice(0, 3).map((w) => w.text).join(' '), 'Vayomer elohim el-avraham')
   check('transliterated word maps to its tokens', transliterateHebrewWords(tokenizeHebrewVerse(gen2112))[2].tokens.join(','), '4,5,6')
