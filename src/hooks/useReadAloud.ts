@@ -1,25 +1,22 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { speechChunks, wordAtSpokenChar } from '../lib/speech'
 
 export type ReadAloudStatus = 'idle' | 'playing' | 'unsupported'
 
 const isSupported = typeof window !== 'undefined' && 'speechSynthesis' in window
 
-// How long to wait after a verse starts before assuming the browser/voice
-// won't send word-boundary events at all (common for non-English voices),
-// and switching to the estimated fallback instead.
+// How long to wait after a phrase starts before assuming the browser/voice
+// won't send word-boundary events at all (common for Hebrew voices), and
+// switching to the estimated timing instead.
 const BOUNDARY_GRACE_MS = 350
-// Roughly seconds-per-word at rate 1 (~2.6 words/sec, typical natural
-// speech), scaled by rate. This is a rough estimate, not a true sync —
-// it exists only so the highlight moves along when the browser gives no
-// real timing signal at all.
-const BASE_MS_PER_WORD = 380
+// Roughly milliseconds per syllable at rate 1, scaled by rate. Only an
+// estimate, but each phrase restarts it, so drift stays small.
+const BASE_MS_PER_SYLLABLE = 190
 
-function estimateWordOffsets(text: string): number[] {
-  const offsets: number[] = []
-  const regex = /\S+/g
-  let match: RegExpExecArray | null
-  while ((match = regex.exec(text))) offsets.push(match.index)
-  return offsets
+function findVoice(lang: string): SpeechSynthesisVoice | undefined {
+  const prefix = lang.slice(0, 2).toLowerCase()
+  const voices = window.speechSynthesis.getVoices().filter((voice) => voice.lang.toLowerCase().replace('_', '-').startsWith(prefix))
+  return voices.find((voice) => voice.localService) ?? voices[0]
 }
 
 export function useReadAloud(texts: string[], lang = 'he-IL', rate = 0.5) {
@@ -29,6 +26,10 @@ export function useReadAloud(texts: string[], lang = 'he-IL', rate = 0.5) {
   const textsRef = useRef(texts)
   textsRef.current = texts
   const activeFallbackRef = useRef<(() => void) | null>(null)
+  const statusRef = useRef(status)
+  statusRef.current = status
+  const currentIndexRef = useRef(currentIndex)
+  currentIndexRef.current = currentIndex
 
   useEffect(() => {
     return () => {
@@ -48,62 +49,62 @@ export function useReadAloud(texts: string[], lang = 'he-IL', rate = 0.5) {
     setCurrentCharIndex(null)
   }, [])
 
-  const play = useCallback(() => {
+  const play = useCallback((fromIndex = 0) => {
     if (!isSupported) return
     activeFallbackRef.current?.()
     activeFallbackRef.current = null
     window.speechSynthesis.cancel()
 
+    const voice = findVoice(lang)
     const verses = textsRef.current
-    verses.forEach((text, i) => {
-      const utterance = new SpeechSynthesisUtterance(text)
+    const queue = verses.flatMap((text, i) => (i < fromIndex ? [] : speechChunks(text).map((chunk) => ({ verse: i, chunk }))))
+    if (queue.length === 0) return
+
+    queue.forEach(({ verse, chunk }, q) => {
+      const utterance = new SpeechSynthesisUtterance(chunk.text)
       utterance.lang = lang
       utterance.rate = rate
+      if (voice) utterance.voice = voice
 
-      const wordOffsets = estimateWordOffsets(text)
       let boundaryFired = false
-      let fallbackTimer: number | undefined
+      let timers: number[] = []
 
       const clearFallback = () => {
-        if (fallbackTimer !== undefined) {
-          clearInterval(fallbackTimer)
-          fallbackTimer = undefined
-        }
+        timers.forEach((timer) => clearTimeout(timer))
+        timers = []
       }
 
       utterance.onstart = () => {
-        setCurrentIndex(i)
-        setCurrentCharIndex(wordOffsets[0] ?? 0)
+        setCurrentIndex(verse)
+        setCurrentCharIndex(chunk.words[0].start)
         activeFallbackRef.current = clearFallback
 
-        setTimeout(() => {
-          if (boundaryFired || wordOffsets.length <= 1) return
-          let wordIndex = 0
-          const msPerWord = BASE_MS_PER_WORD / rate
-          fallbackTimer = setInterval(() => {
-            wordIndex++
-            if (wordIndex >= wordOffsets.length) {
-              clearFallback()
-              return
-            }
-            setCurrentCharIndex(wordOffsets[wordIndex])
-          }, msPerWord)
-        }, BOUNDARY_GRACE_MS)
+        timers.push(window.setTimeout(() => {
+          if (boundaryFired) return
+          // Space the remaining words out by their syllable counts, measured
+          // from the phrase's start (the grace period has already passed).
+          const msPerSyllable = BASE_MS_PER_SYLLABLE / rate
+          let offset = 0
+          chunk.words.forEach((word, w) => {
+            if (w > 0) timers.push(window.setTimeout(() => setCurrentCharIndex(word.start), Math.max(0, offset - BOUNDARY_GRACE_MS)))
+            offset += word.syllables * msPerSyllable
+          })
+        }, BOUNDARY_GRACE_MS))
       }
 
       // Real word-boundary events (where supported) always take priority
-      // over the estimated fallback.
+      // over the estimated timing.
       utterance.onboundary = (event) => {
-        if (!event.name || event.name === 'word') {
-          boundaryFired = true
-          clearFallback()
-          setCurrentCharIndex(event.charIndex)
-        }
+        if (event.name && event.name !== 'word') return
+        boundaryFired = true
+        clearFallback()
+        const word = wordAtSpokenChar(chunk, event.charIndex)
+        if (word) setCurrentCharIndex(word.start)
       }
 
       utterance.onend = () => {
         clearFallback()
-        if (i === verses.length - 1) {
+        if (q === queue.length - 1) {
           activeFallbackRef.current = null
           setStatus('idle')
           setCurrentIndex(null)
@@ -116,6 +117,14 @@ export function useReadAloud(texts: string[], lang = 'he-IL', rate = 0.5) {
 
     setStatus('playing')
   }, [lang, rate])
+
+  // A new speed applies straight away: restart from the verse being read.
+  const lastRateRef = useRef(rate)
+  useEffect(() => {
+    if (lastRateRef.current === rate) return
+    lastRateRef.current = rate
+    if (statusRef.current === 'playing') play(currentIndexRef.current ?? 0)
+  }, [rate, play])
 
   return { status, currentIndex, currentCharIndex, play, stop }
 }

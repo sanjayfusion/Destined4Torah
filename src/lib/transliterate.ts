@@ -148,6 +148,38 @@ export function transliterateHebrew(text: string): string {
     .replace(/^\w/, (c) => c.toUpperCase())
 }
 
+export interface TransliteratedWord {
+  text: string
+  /** Indexes of the verse tokens (from tokenizeHebrewVerse) this word covers. */
+  tokens: number[]
+}
+
+/**
+ * Transliterates a tokenized verse word by word (maqaf-joined words stay
+ * together, e.g. "el-avraham"), in Hebrew order, so it can be shown
+ * right-to-left under the Hebrew and highlighted with the spoken word.
+ */
+export function transliterateHebrewWords(tokens: { text: string }[]): TransliteratedWord[] {
+  const words: TransliteratedWord[] = []
+  let current: TransliteratedWord | null = null
+  tokens.forEach((token, i) => {
+    if (/^\s+$/.test(token.text)) {
+      current = null
+      return
+    }
+    if (!current) {
+      current = { text: '', tokens: [] }
+      words.push(current)
+    }
+    current.text += token.text
+    current.tokens.push(i)
+  })
+  return words
+    .map((word) => ({ ...word, text: transliterateWord(word.text) }))
+    .filter((word) => word.text)
+    .map((word, i) => (i === 0 ? { ...word, text: word.text.replace(/^\w/, (c) => c.toUpperCase()) } : word))
+}
+
 const GREEK_LETTERS: Record<string, string> = {
   α: 'a', β: 'b', γ: 'g', δ: 'd', ε: 'e', ζ: 'z', η: 'ē', θ: 'th',
   ι: 'i', κ: 'k', λ: 'l', μ: 'm', ν: 'n', ξ: 'x', ο: 'o', π: 'p',
