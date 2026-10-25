@@ -173,6 +173,20 @@ export function WeeklyParsha({ overrideParsha = null, onReadingLoaded }: WeeklyP
           ))}
         </nav>
       )}
+      {todaysAliyah === 5 && aliyahIndex !== 6 && (
+        <p className="shabbat-eve-note" role="note">
+          Shabbat begins at sunset tonight · Aliyah 7 is Shabbat&rsquo;s reading.{' '}
+          <button
+            type="button"
+            onClick={() => {
+              readAloud.stop()
+              setAliyahChoice({ ref: parsha.ref, index: 6 })
+            }}
+          >
+            Read Aliyah 7
+          </button>
+        </p>
+      )}
       {aliyahRef && (
         <p className="aliyah-ref">
           Aliyah {aliyahIndex + 1}{aliyahIndex === todaysAliyah && " · Today's reading"} · {aliyahRef.replace(/(\d+):(\d+)-\1:/, '$1:$2-')}
