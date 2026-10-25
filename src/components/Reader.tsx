@@ -3,7 +3,7 @@ import { fetchChapterCommentary, fetchNTCommentary, type CommentaryByVerse } fro
 import { ALL_BOOKS } from '../data/books'
 import type { ChapterText } from '../lib/sefaria'
 import { useReadAloud } from '../hooks/useReadAloud'
-import { useReadAloudRate } from '../hooks/useReadAloudRate'
+import { useReadAloudRate, useReadAloudWordByWord } from '../hooks/useReadAloudRate'
 import { GreekVerseText } from './GreekVerseText'
 import { HebrewVerseText } from './HebrewVerseText'
 import { ReadAloudBar } from './ReadAloudBar'
@@ -28,8 +28,9 @@ export function Reader({ chapter, loading, error, source, bookSlug, chapterNum, 
   const [commentary, setCommentary] = useState<CommentaryByVerse>({})
   const [highlightedVerse, setHighlightedVerse] = useState<number | null>(null)
   const [readAloudRate, setReadAloudRate] = useReadAloudRate()
-  const hebrewReadAloud = useReadAloud(chapter?.hebrew ?? [], 'he-IL', readAloudRate)
-  const greekReadAloud = useReadAloud(chapter?.greek ?? [], 'el-GR', readAloudRate)
+  const [wordByWord, setWordByWord] = useReadAloudWordByWord()
+  const hebrewReadAloud = useReadAloud(chapter?.hebrew ?? [], 'he-IL', readAloudRate, wordByWord)
+  const greekReadAloud = useReadAloud(chapter?.greek ?? [], 'el-GR', readAloudRate, wordByWord)
   const selection = useVerseSelection(`${bookSlug}.${chapterNum}`)
 
   useEffect(() => {
@@ -115,6 +116,8 @@ export function Reader({ chapter, loading, error, source, bookSlug, chapterNum, 
         stop={hebrewReadAloud.stop}
         rate={readAloudRate}
         onRateChange={setReadAloudRate}
+        wordByWord={wordByWord}
+        onWordByWordChange={setWordByWord}
       />
       {chapter.greek && chapter.greek.length > 0 && (
         <ReadAloudBar
@@ -125,6 +128,8 @@ export function Reader({ chapter, loading, error, source, bookSlug, chapterNum, 
           stop={greekReadAloud.stop}
           rate={readAloudRate}
           onRateChange={setReadAloudRate}
+          wordByWord={wordByWord}
+          onWordByWordChange={setWordByWord}
           label="Read Greek aloud"
         />
       )}

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { speechChunks, wordAtSpokenChar } from '../lib/speech'
+import { speechChunks, wordAtSpokenChar, wordChunks } from '../lib/speech'
 
 export type ReadAloudStatus = 'idle' | 'playing' | 'unsupported'
 
@@ -19,7 +19,7 @@ function findVoice(lang: string): SpeechSynthesisVoice | undefined {
   return voices.find((voice) => voice.localService) ?? voices[0]
 }
 
-export function useReadAloud(texts: string[], lang = 'he-IL', rate = 0.5) {
+export function useReadAloud(texts: string[], lang = 'he-IL', rate = 0.5, wordByWord = false) {
   const [status, setStatus] = useState<ReadAloudStatus>(isSupported ? 'idle' : 'unsupported')
   const [currentIndex, setCurrentIndex] = useState<number | null>(null)
   const [currentCharIndex, setCurrentCharIndex] = useState<number | null>(null)
@@ -57,7 +57,11 @@ export function useReadAloud(texts: string[], lang = 'he-IL', rate = 0.5) {
 
     const voice = findVoice(lang)
     const verses = textsRef.current
-    const queue = verses.flatMap((text, i) => (i < fromIndex ? [] : speechChunks(text).map((chunk) => ({ verse: i, chunk }))))
+    const queue = verses.flatMap((text, i) => {
+      if (i < fromIndex) return []
+      const chunks = speechChunks(text)
+      return (wordByWord ? wordChunks(chunks) : chunks).map((chunk) => ({ verse: i, chunk }))
+    })
     if (queue.length === 0) return
 
     queue.forEach(({ verse, chunk }, q) => {
@@ -116,15 +120,16 @@ export function useReadAloud(texts: string[], lang = 'he-IL', rate = 0.5) {
     })
 
     setStatus('playing')
-  }, [lang, rate])
+  }, [lang, rate, wordByWord])
 
-  // A new speed applies straight away: restart from the verse being read.
-  const lastRateRef = useRef(rate)
+  // A new speed or mode applies straight away: restart from the verse being read.
+  const lastSettingsRef = useRef(`${rate}|${wordByWord}`)
   useEffect(() => {
-    if (lastRateRef.current === rate) return
-    lastRateRef.current = rate
+    const settings = `${rate}|${wordByWord}`
+    if (lastSettingsRef.current === settings) return
+    lastSettingsRef.current = settings
     if (statusRef.current === 'playing') play(currentIndexRef.current ?? 0)
-  }, [rate, play])
+  }, [rate, wordByWord, play])
 
   return { status, currentIndex, currentCharIndex, play, stop }
 }

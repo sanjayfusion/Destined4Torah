@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { SavedPassage } from '../lib/studyProgress'
 import { useReadAloud } from '../hooks/useReadAloud'
-import { useReadAloudRate } from '../hooks/useReadAloudRate'
+import { useReadAloudRate, useReadAloudWordByWord } from '../hooks/useReadAloudRate'
 import { fetchChapterCommentary, type CommentaryByVerse } from '../lib/commentary'
 import { fetchParshaByRef, fetchRefSections, fetchWeeklyParsha, sectionsForRef, type ParshaSection, type WeeklyParsha as WeeklyParshaData } from '../lib/sefaria'
 import { OLD_TESTAMENT_BOOKS } from '../data/books'
@@ -47,7 +47,8 @@ export function WeeklyParsha({ overrideParsha = null, onReadingLoaded }: WeeklyP
       ? haftarahLoaded?.sections ?? []
       : aliyahRef ? sectionsForRef(parsha.sections, aliyahRef) : parsha.sections
   const [readAloudRate, setReadAloudRate] = useReadAloudRate()
-  const readAloud = useReadAloud(shownSections.flatMap((section) => section.hebrew), 'he-IL', readAloudRate)
+  const [wordByWord, setWordByWord] = useReadAloudWordByWord()
+  const readAloud = useReadAloud(shownSections.flatMap((section) => section.hebrew), 'he-IL', readAloudRate, wordByWord)
   const selection = useVerseSelection(`${parsha?.ref ?? ''}#${aliyahIndex}`)
   useEffect(() => {
     if (!showingHaftarah || haftarahLoaded) return
@@ -267,6 +268,8 @@ export function WeeklyParsha({ overrideParsha = null, onReadingLoaded }: WeeklyP
         stop={readAloud.stop}
         rate={readAloudRate}
         onRateChange={setReadAloudRate}
+        wordByWord={wordByWord}
+        onWordByWordChange={setWordByWord}
         label={showingHaftarah ? 'Read Haftarah aloud' : aliyahRef ? `Read Aliyah ${aliyahIndex + 1} aloud` : 'Read parashah aloud'}
       />
 

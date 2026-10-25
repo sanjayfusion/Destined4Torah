@@ -18,6 +18,22 @@ function readStoredRate(): number {
   }
 }
 
+const wordByWordKey = 'd4t.read-aloud-word-by-word.v1'
+
+/** Whether read-aloud speaks one word at a time (exact highlighting), remembered on this device. Defaults to on. */
+export function useReadAloudWordByWord() {
+  const [wordByWord, setState] = useState(() => {
+    try { return localStorage.getItem(wordByWordKey) !== 'false' } catch { return true }
+  })
+
+  function setWordByWord(next: boolean) {
+    setState(next)
+    try { localStorage.setItem(wordByWordKey, String(next)) } catch { /* storage unavailable: keep it for this visit only */ }
+  }
+
+  return [wordByWord, setWordByWord] as const
+}
+
 /** The chosen read-aloud speed, remembered on this device. */
 export function useReadAloudRate() {
   const [rate, setRateState] = useState(readStoredRate)
