@@ -157,6 +157,7 @@ export function Reader({ chapter, loading, error, source, bookSlug, chapterNum, 
         verses={selectableVerses}
         range={selection.range}
         onClear={selection.clear}
+        onExtend={selection.extend}
       />
 
       <TextCredit source={source} />

@@ -45,13 +45,15 @@ interface VerseSelectionBarProps {
   verses: SelectableVerse[]
   range: { start: number; end: number } | null
   onClear: () => void
+  onExtend: () => void
 }
 
 type CopyMode = 'english' | 'original' | 'link'
 
-export function VerseSelectionBar({ book, bookSlug, translation, verses, range, onClear }: VerseSelectionBarProps) {
+export function VerseSelectionBar({ book, bookSlug, translation, verses, range, onClear, onExtend }: VerseSelectionBarProps) {
   const [status, setStatus] = useState('')
   const [fallback, setFallback] = useState('')
+  const [toast, setToast] = useState('')
 
   const rangeKey = range ? `${range.start}-${range.end}` : ''
   useEffect(() => { setStatus(''); setFallback('') }, [rangeKey])
@@ -63,7 +65,13 @@ export function VerseSelectionBar({ book, bookSlug, translation, verses, range, 
     return () => window.removeEventListener('keydown', onKey)
   }, [range, onClear])
 
-  if (!range) return null
+  useEffect(() => {
+    if (!toast) return
+    const timer = window.setTimeout(() => setToast(''), 2000)
+    return () => window.clearTimeout(timer)
+  }, [toast])
+
+  if (!range) return toast ? <div className="verse-copy-toast" role="status">{toast}</div> : null
 
   const selected = verses.slice(range.start, range.end + 1)
   const first = selected[0]
@@ -90,8 +98,9 @@ export function VerseSelectionBar({ book, bookSlug, translation, verses, range, 
     const text = textFor(mode)
     try {
       await navigator.clipboard.writeText(text)
-      setStatus(mode === 'link' ? 'Link copied' : `${reference} copied`)
-      setFallback('')
+      // Copied: close the panel and confirm with a short toast.
+      setToast(mode === 'link' ? 'Link copied' : `${reference} copied`)
+      onClear()
     } catch {
       setStatus('Select and copy the text below')
       setFallback(text)
@@ -103,7 +112,7 @@ export function VerseSelectionBar({ book, bookSlug, translation, verses, range, 
       <div className="verse-select-summary">
         <strong>{reference}</strong>
         <span className="verse-select-hint">
-          {selected.length === 1 ? 'Tap another verse number to select a range' : `${selected.length} verses selected`}
+          {selected.length === 1 ? 'Tap another verse number, or add the next verse, to copy several' : `${selected.length} verses selected`}
         </span>
       </div>
       <button type="button" className="verse-select-clear" aria-label="Clear selection" onClick={onClear}>&times;</button>
@@ -113,6 +122,9 @@ export function VerseSelectionBar({ book, bookSlug, translation, verses, range, 
           <button type="button" onClick={() => copy('original')}>Copy with {hasHebrew ? 'Hebrew' : 'Greek'}</button>
         )}
         <button type="button" onClick={() => copy('link')}>Copy link</button>
+        {range.end < verses.length - 1 && (
+          <button type="button" onClick={onExtend}>+ Next verse</button>
+        )}
       </div>
       <span role="status" className="verse-select-status">{status}</span>
       {fallback && (

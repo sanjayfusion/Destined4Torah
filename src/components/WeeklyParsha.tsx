@@ -259,6 +259,7 @@ export function WeeklyParsha({ overrideParsha = null, onReadingLoaded }: WeeklyP
         verses={selectableVerses}
         range={selection.range}
         onClear={selection.clear}
+        onExtend={selection.extend}
       />
 
       <SubscribeForm compact />
