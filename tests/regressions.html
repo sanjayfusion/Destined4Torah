@@ -1,7 +1,7 @@
 <!doctype html><html lang="en"><meta charset="utf-8"><title>D4T regression checks</title><body><h1>D4T regression checks</h1><pre id="results">Running…</pre><script type="module">
 import { stripTags, fetchChapter, JPS_1917_VERSION, parseParshaRef, splitHaftarahRef } from '/src/lib/sefaria.ts'
 import { transliterateHebrew, transliterateHebrewWords } from '/src/lib/transliterate.ts'
-import { speechChunks, wordAtSpokenChar } from '/src/lib/speech.ts'
+import { speechChunks, wordAtSpokenChar, wordChunks } from '/src/lib/speech.ts'
 import { targumName } from '/src/lib/commentary.ts'
 import { tokenizeHebrewVerse } from '/src/lib/hebrewWords.ts'
 import { PARSHIYOT_BY_BOOK, findParshaEntry } from '/src/data/parshiyot.ts'
@@ -151,6 +151,8 @@ try {
   check('transliterated word maps to its tokens', transliterateHebrewWords(tokenizeHebrewVerse(gen2112))[2].tokens.join(','), '4,5,6')
   const chunks = speechChunks(gen2112)
   check('speech pauses at revia', chunks.map((c) => c.words.length).join(','), '4,3')
+  check('word-by-word speech', wordChunks(chunks).map((c) => c.words.length).join(','), '1,1,1,1,1,1,1')
+  check('word chunk maps to verse word', gen2112.slice(wordChunks(chunks)[3].words[0].start).startsWith('אַבְרָהָ'), true)
   check('speech drops cantillation', /[\u0591-\u05AF]/.test(chunks.map((c) => c.text).join(' ')), false)
   check('spoken offsets map back to verse', gen2112.slice(wordAtSpokenChar(chunks[0], chunks[0].text.lastIndexOf(' ') + 1).start).startsWith('אַבְרָהָ'), true)
   let calls = 0

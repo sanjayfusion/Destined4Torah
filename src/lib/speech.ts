@@ -60,6 +60,20 @@ export function speechChunks(verse: string): SpeechChunk[] {
   return chunks
 }
 
+/**
+ * Splits phrase chunks into one chunk per word. Each word then starts its own
+ * utterance, so the highlight follows the voice exactly even when the voice
+ * reports no word timing (as with iPhone Hebrew voices).
+ */
+export function wordChunks(chunks: SpeechChunk[]): SpeechChunk[] {
+  return chunks.flatMap((chunk) =>
+    chunk.words.map((word, i) => ({
+      text: chunk.text.slice(word.spokenStart, chunk.words[i + 1]?.spokenStart ?? chunk.text.length).trim(),
+      words: [{ ...word, spokenStart: 0 }],
+    })),
+  )
+}
+
 /** The word a boundary event's character offset (within the chunk's spoken text) falls in. */
 export function wordAtSpokenChar(chunk: SpeechChunk, charIndex: number): SpeechWord | undefined {
   let found: SpeechWord | undefined

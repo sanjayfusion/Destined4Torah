@@ -58,8 +58,10 @@ reads only the vowelled words. The word being spoken is highlighted in both
 the Hebrew and the transliteration. The transliteration is shown right to left,
 word for word under the Hebrew, so it can be followed in the same order. A Speed
 menu (Very slow to Natural, default Slow) is remembered on the device. Most
-Hebrew voices don't report word timing, so the highlight is estimated from
-syllable counts and resyncs at the start of every phrase.
+Hebrew voices (including iPhone's) don't report word timing, so the Word by word
+option (on by default) speaks one word at a time, keeping the highlight exactly
+with the voice. With it off, phrases are spoken smoothly and the highlight is
+estimated from syllable counts, resyncing at the start of every phrase.
 
 ## Targum
 

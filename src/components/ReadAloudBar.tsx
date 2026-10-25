@@ -9,6 +9,8 @@ interface ReadAloudBarProps {
   stop: () => void
   rate: number
   onRateChange: (rate: number) => void
+  wordByWord: boolean
+  onWordByWordChange: (wordByWord: boolean) => void
   label?: string
 }
 
@@ -20,6 +22,8 @@ export function ReadAloudBar({
   stop,
   rate,
   onRateChange,
+  wordByWord,
+  onWordByWordChange,
   label = 'Read Hebrew aloud',
 }: ReadAloudBarProps) {
   if (status === 'unsupported' || texts.length === 0) {
@@ -44,6 +48,10 @@ export function ReadAloudBar({
             <option key={speed.rate} value={speed.rate}>{speed.label}</option>
           ))}
         </select>
+      </label>
+      <label className="read-aloud-speed" title="Speaks one word at a time so the highlight stays exactly with the voice">
+        <input type="checkbox" checked={wordByWord} onChange={(event) => onWordByWordChange(event.target.checked)} />
+        <span>Word by word</span>
       </label>
       {status === 'playing' && currentIndex !== null && (
         <span className="read-aloud-status">
