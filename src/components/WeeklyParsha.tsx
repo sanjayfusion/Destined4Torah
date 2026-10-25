@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { SavedPassage } from '../lib/studyProgress'
 import { useReadAloud } from '../hooks/useReadAloud'
 import { useReadAloudRate } from '../hooks/useReadAloudRate'
@@ -39,6 +39,14 @@ export function WeeklyParsha({ overrideParsha = null, onReadingLoaded }: WeeklyP
   const [readAloudRate, setReadAloudRate] = useReadAloudRate()
   const readAloud = useReadAloud(shownSections.flatMap((section) => section.hebrew), 'he-IL', readAloudRate)
   const selection = useVerseSelection(`${parsha?.ref ?? ''}#${aliyahIndex}`)
+  // Set by "Continue to Aliyah"; the scroll waits until the next aliyah has rendered.
+  const scrollToTopRef = useRef(false)
+
+  useEffect(() => {
+    if (!scrollToTopRef.current) return
+    scrollToTopRef.current = false
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }, [aliyahIndex])
 
   useEffect(() => {
     let cancelled = false
@@ -265,8 +273,8 @@ export function WeeklyParsha({ overrideParsha = null, onReadingLoaded }: WeeklyP
           className="aliyah-next"
           onClick={() => {
             readAloud.stop()
+            scrollToTopRef.current = true
             setAliyahChoice({ ref: parsha.ref, index: aliyahIndex + 1 })
-            document.querySelector('.aliyah-menu')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
           }}
         >
           Continue to Aliyah {aliyahIndex + 2} →
