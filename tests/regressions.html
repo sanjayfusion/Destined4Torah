@@ -1,5 +1,5 @@
 <!doctype html><html lang="en"><meta charset="utf-8"><title>D4T regression checks</title><body><h1>D4T regression checks</h1><pre id="results">Running…</pre><script type="module">
-import { stripTags, fetchChapter, JPS_1917_VERSION } from '/src/lib/sefaria.ts'
+import { stripTags, fetchChapter, JPS_1917_VERSION, parseParshaRef, splitHaftarahRef } from '/src/lib/sefaria.ts'
 import { transliterateHebrew, transliterateHebrewWords } from '/src/lib/transliterate.ts'
 import { speechChunks, wordAtSpokenChar } from '/src/lib/speech.ts'
 import { tokenizeHebrewVerse } from '/src/lib/hebrewWords.ts'
@@ -137,6 +137,10 @@ try {
   check('ruach final patach', transliterateHebrew('ר֣וּחַ'), 'Ruach')
   check('maqaf final patach', transliterateHebrew('נֹחַ־נֹחַ'), 'Noach-noach')
   check('ordinary initial patach', transliterateHebrew('חַי'), 'Chay')
+  check('haftarah ref with numbered book', JSON.stringify(parseParshaRef('I Samuel 20:18-42')), JSON.stringify({ book: 'I Samuel', startChapter: 20, startVerse: 18, endChapter: 20, endVerse: 42 }))
+  check('haftarah ref across chapters', parseParshaRef('Isaiah 54:1-55:5').endChapter, 55)
+  check('haftarah ref single verse', parseParshaRef('Isaiah 66:23').endVerse, 23)
+  check('compound haftarah ref split', splitHaftarahRef('Isaiah 66:1-24, 66:23').join(' | '), 'Isaiah 66:1-24 | Isaiah 66:23')
   const gen2112 = 'וַיֹּ֨אמֶר אֱלֹהִ֜ים אֶל־אַבְרָהָ֗ם אַל־יֵרַ֤ע בְּעֵינֶ֙יךָ֙'
   check('transliteration keeps Hebrew word order', transliterateHebrewWords(tokenizeHebrewVerse(gen2112)).slice(0, 3).map((w) => w.text).join(' '), 'Vayomer elohim el-avraham')
   check('transliterated word maps to its tokens', transliterateHebrewWords(tokenizeHebrewVerse(gen2112))[2].tokens.join(','), '4,5,6')

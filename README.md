@@ -67,3 +67,11 @@ Tanakh verses show the Aramaic Targums that Sefaria links to the verse
 (Targum Onkelos first, then e.g. Targum Jonathan or Targum Jerusalem) under
 "Show Aramaic Targum", separate from the classical commentators. The Aramaic is
 shown right to left, followed by Sefaria's English translation when it has one.
+
+## Haftarah
+
+This week's parashah has a Haftarah button after Aliyah 7 (and "Continue to
+Haftarah" at the end of Aliyah 7). The haftarah ref comes from Sefaria's weekly
+calendar, so special Shabbatot are reflected, and its text, read-aloud, verse
+copying and commentary (including Targum Jonathan) work like the aliyot.
+Portions opened by link don't show a haftarah.
