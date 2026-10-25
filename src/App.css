@@ -856,6 +856,7 @@
 }
 
 .verse-commentary-toggle {
+  text-align: start;
   border: none;
   background: transparent;
   padding: 0;

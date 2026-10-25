@@ -32,6 +32,20 @@ const CLASSICAL_COMMENTATORS = [
 const TARGUM_NAMES: Record<string, string> = {
   Onkelos: 'Targum Onkelos',
 }
+// Sefaria files these translations under "Targum" too, but they're Arabic, not Aramaic.
+const NON_ARAMAIC_TARGUM_REGEX = /tafsir|rasag|saadia|arabic/i
+
+/**
+ * Sefaria titles Targums per book ("Onkelos Genesis", "Targum Jonathan on
+ * Genesis"); this reduces them to the Targum's own name ("Targum Onkelos",
+ * "Targum Jonathan").
+ */
+export function targumName(title: string, anchorRef = ''): string {
+  const book = anchorRef.replace(/\s+\d.*$/, '')
+  let name = title.replace(/\s+(on|to)\s+.+$/, '')
+  if (book && name.endsWith(` ${book}`)) name = name.slice(0, -book.length - 1)
+  return TARGUM_NAMES[name] ?? name
+}
 
 interface SefariaLink {
   category?: string
@@ -69,7 +83,8 @@ export async function fetchChapterCommentary(bookSlug: string, chapter: number):
 
     const title = link.collectiveTitle?.en ?? link.index_title ?? ''
     if (!targum && !CLASSICAL_COMMENTATORS.some((name) => title.includes(name))) continue
-    const commentator = targum ? TARGUM_NAMES[title] ?? title : title
+    if (targum && NON_ARAMAIC_TARGUM_REGEX.test(title)) continue
+    const commentator = targum ? targumName(title, link.anchorRef) : title
 
     const cleaned = cleanTexts(link.text)
     const aramaic = targum ? cleanTexts(link.he) : []
