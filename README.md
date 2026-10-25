@@ -60,3 +60,10 @@ word for word under the Hebrew, so it can be followed in the same order. A Speed
 menu (Very slow to Natural, default Slow) is remembered on the device. Most
 Hebrew voices don't report word timing, so the highlight is estimated from
 syllable counts and resyncs at the start of every phrase.
+
+## Targum
+
+Tanakh verses show the Aramaic Targums that Sefaria links to the verse
+(Targum Onkelos first, then e.g. Targum Jonathan or Targum Jerusalem) under
+"Show Aramaic Targum", separate from the classical commentators. The Aramaic is
+shown right to left, followed by Sefaria's English translation when it has one.

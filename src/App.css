@@ -899,6 +899,13 @@
   color: var(--text);
 }
 
+.verse-commentary-aramaic {
+  font-family: var(--font-hebrew);
+  font-size: 19px;
+  line-height: 1.7;
+  color: var(--text-h);
+}
+
 .verse-commentary-text:last-child {
   margin-bottom: 0;
 }

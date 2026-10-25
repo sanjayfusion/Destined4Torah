@@ -3,6 +3,10 @@ import { stripTags } from './sefaria'
 export interface CommentaryEntry {
   commentator: string
   texts: string[]
+  /** Aramaic text, for Targum entries. */
+  aramaic?: string[]
+  /** True for Aramaic Targums (shown apart from the commentators). */
+  targum?: boolean
 }
 
 export type CommentaryByVerse = Record<number, CommentaryEntry[]>
@@ -24,12 +28,23 @@ const CLASSICAL_COMMENTATORS = [
   "Ba'al HaTurim",
 ]
 
+// Sefaria's short Targum titles, spelled out for readers.
+const TARGUM_NAMES: Record<string, string> = {
+  Onkelos: 'Targum Onkelos',
+}
+
 interface SefariaLink {
   category?: string
   collectiveTitle?: { en?: string }
   index_title?: string
   anchorRef?: string
   text?: string | string[]
+  he?: string | string[]
+}
+
+function cleanTexts(value: string | string[] | undefined): string[] {
+  const raw = Array.isArray(value) ? value.flat(Infinity as 1) : value ? [value] : []
+  return raw.filter((item): item is string => typeof item === 'string').map(stripTags).filter(Boolean)
 }
 
 export async function fetchChapterCommentary(bookSlug: string, chapter: number): Promise<CommentaryByVerse> {
@@ -49,14 +64,16 @@ export async function fetchChapterCommentary(bookSlug: string, chapter: number):
   const byVerse: CommentaryByVerse = {}
 
   for (const link of data) {
-    if (link.category !== 'Commentary') continue
+    const targum = link.category === 'Targum'
+    if (link.category !== 'Commentary' && !targum) continue
 
-    const commentator = link.collectiveTitle?.en ?? link.index_title ?? ''
-    if (!CLASSICAL_COMMENTATORS.some((name) => commentator.includes(name))) continue
+    const title = link.collectiveTitle?.en ?? link.index_title ?? ''
+    if (!targum && !CLASSICAL_COMMENTATORS.some((name) => title.includes(name))) continue
+    const commentator = targum ? TARGUM_NAMES[title] ?? title : title
 
-    const rawText = Array.isArray(link.text) ? link.text : link.text ? [link.text] : []
-    const cleaned = rawText.map(stripTags).filter(Boolean)
-    if (cleaned.length === 0) continue
+    const cleaned = cleanTexts(link.text)
+    const aramaic = targum ? cleanTexts(link.he) : []
+    if (cleaned.length === 0 && aramaic.length === 0) continue
 
     const verseMatch = /:(\d+)$/.exec(link.anchorRef ?? '')
     if (!verseMatch) continue
@@ -66,9 +83,15 @@ export async function fetchChapterCommentary(bookSlug: string, chapter: number):
     const existing = entries.find((entry) => entry.commentator === commentator)
     if (existing) {
       existing.texts.push(...cleaned)
+      if (targum) existing.aramaic = [...(existing.aramaic ?? []), ...aramaic]
     } else {
-      entries.push({ commentator, texts: cleaned })
+      entries.push(targum ? { commentator, texts: cleaned, aramaic, targum } : { commentator, texts: cleaned })
     }
+  }
+
+  // Onkelos, the authoritative Targum of the Torah, comes first.
+  for (const entries of Object.values(byVerse)) {
+    entries.sort((a, b) => Number(b.commentator === 'Targum Onkelos') - Number(a.commentator === 'Targum Onkelos'))
   }
 
   return byVerse
