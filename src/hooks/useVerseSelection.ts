@@ -24,6 +24,12 @@ export function useVerseSelection(resetKey: string) {
     setState({ key: resetKey, range: next })
   }
 
+  /** Grows the selection by the verse after its last one. */
+  function extend() {
+    if (!range) return
+    setState({ key: resetKey, range: { anchor: Math.min(range.anchor, range.end), end: Math.max(range.anchor, range.end) + 1 } })
+  }
+
   function clear() {
     setState({ key: resetKey, range: null })
   }
@@ -34,6 +40,7 @@ export function useVerseSelection(resetKey: string) {
     range: range ? { start, end } : null,
     isSelected: (index: number) => index >= start && index <= end,
     toggle,
+    extend,
     clear,
   }
 }

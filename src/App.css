@@ -1263,7 +1263,8 @@
 .verse-select-status { flex-basis: 100%; color: var(--text); font-size: 12px; }
 .verse-select-status:empty { display: none; }
 .verse-select-bar textarea { flex-basis: 100%; min-width: 0; color: var(--text); background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 8px; font: inherit; font-size: 13px; }
-body:has(.verse-select-bar) .back-to-top { bottom: 180px; }
+body:has(.verse-select-bar) .back-to-top { display: none; }
+.verse-copy-toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 45; padding: 10px 18px; background: var(--surface); color: var(--text-h); border: 1px solid var(--accent); border-radius: 999px; font-size: 14px; font-weight: 600; box-shadow: var(--shadow-card); white-space: nowrap; }
 
 .continue-studying { display: flex; align-items: center; gap: 10px; padding: 6px 8px 6px 16px; margin-bottom: 16px; background: var(--surface); border: 1px solid var(--border); border-radius: 999px; font-size: 14px; }
 .continue-studying-text { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text); }
