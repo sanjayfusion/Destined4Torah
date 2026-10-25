@@ -30,7 +30,9 @@ export function WeeklyParsha({ overrideParsha = null, onReadingLoaded }: WeeklyP
   const [commentaryByChapter, setCommentaryByChapter] = useState<Record<number, CommentaryByVerse>>({})
   const [aliyahChoice, setAliyahChoice] = useState({ ref: '', index: 0 })
   const aliyot = parsha?.aliyot ?? []
-  const aliyahIndex = aliyahChoice.ref === parsha?.ref ? aliyahChoice.index : 0
+  // Daily study reads one aliyah a day: Sunday is Aliyah 1 through Shabbat, Aliyah 7.
+  const todaysAliyah = !overrideParsha && aliyot.length === 7 ? new Date().getDay() : null
+  const aliyahIndex = aliyahChoice.ref === parsha?.ref ? aliyahChoice.index : todaysAliyah ?? 0
   const aliyahRef = aliyot[aliyahIndex]
   // Without known aliyot (e.g. a combined portion outside its week) the whole portion is shown.
   const shownSections = parsha ? (aliyahRef ? sectionsForRef(parsha.sections, aliyahRef) : parsha.sections) : []
@@ -157,7 +159,7 @@ export function WeeklyParsha({ overrideParsha = null, onReadingLoaded }: WeeklyP
             <button
               key={ref}
               type="button"
-              className="jump-menu-link"
+              className={`jump-menu-link${i === todaysAliyah ? ' aliyah-today' : ''}`}
               aria-pressed={i === aliyahIndex}
               title={ref}
               onClick={() => {
@@ -166,13 +168,14 @@ export function WeeklyParsha({ overrideParsha = null, onReadingLoaded }: WeeklyP
               }}
             >
               Aliyah {i + 1}
+              {i === todaysAliyah && <span className="aliyah-today-badge">Today</span>}
             </button>
           ))}
         </nav>
       )}
       {aliyahRef && (
         <p className="aliyah-ref">
-          Aliyah {aliyahIndex + 1} · {aliyahRef.replace(/(\d+):(\d+)-\1:/, '$1:$2-')}
+          Aliyah {aliyahIndex + 1}{aliyahIndex === todaysAliyah && " · Today's reading"} · {aliyahRef.replace(/(\d+):(\d+)-\1:/, '$1:$2-')}
         </p>
       )}
 

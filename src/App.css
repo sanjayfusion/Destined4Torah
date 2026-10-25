@@ -1428,6 +1428,9 @@ body:has(.verse-select-bar) .back-to-top { display: none; }
 .parsha-section { scroll-margin-top: 16px; }
 .aliyah-menu { scroll-margin-top: 16px; }
 .aliyah-menu .jump-menu-link[aria-pressed='true'] { background: var(--accent); border-color: var(--accent); color: var(--bg); font-weight: 600; }
+.aliyah-menu .aliyah-today { display: inline-flex; align-items: center; gap: 6px; border-width: 2px; border-color: var(--accent); }
+.aliyah-today-badge { font-size: 10px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; padding: 1px 6px; border-radius: 999px; background: var(--accent); color: var(--bg); }
+.aliyah-menu .jump-menu-link[aria-pressed='true'] .aliyah-today-badge { background: var(--bg); color: var(--accent); }
 .aliyah-ref { margin: -8px 0 18px; font-size: 13px; font-weight: 600; color: var(--accent); }
 .aliyah-next { display: block; margin: 28px auto 8px; border: 1px solid var(--accent); border-radius: 999px; background: none; color: var(--accent); padding: 8px 18px; font-size: 14px; font-weight: 600; cursor: pointer; }
 .aliyah-next:hover { background: var(--accent-bg); }
