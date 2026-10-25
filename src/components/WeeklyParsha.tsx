@@ -3,7 +3,7 @@ import type { SavedPassage } from '../lib/studyProgress'
 import { useReadAloud } from '../hooks/useReadAloud'
 import { useReadAloudRate } from '../hooks/useReadAloudRate'
 import { fetchChapterCommentary, type CommentaryByVerse } from '../lib/commentary'
-import { fetchParshaByRef, fetchWeeklyParsha, sectionsForRef, type WeeklyParsha as WeeklyParshaData } from '../lib/sefaria'
+import { fetchParshaByRef, fetchRefSections, fetchWeeklyParsha, sectionsForRef, type ParshaSection, type WeeklyParsha as WeeklyParshaData } from '../lib/sefaria'
 import { OLD_TESTAMENT_BOOKS } from '../data/books'
 import { hebrewTorahRef } from '../lib/hebrewNumerals'
 import { findParshaEntry, type ParshaListEntry } from '../data/parshiyot'
@@ -34,11 +34,44 @@ export function WeeklyParsha({ overrideParsha = null, onReadingLoaded }: WeeklyP
   const todaysAliyah = !overrideParsha && aliyot.length === 7 ? new Date().getDay() : null
   const aliyahIndex = aliyahChoice.ref === parsha?.ref ? aliyahChoice.index : todaysAliyah ?? 0
   const aliyahRef = aliyot[aliyahIndex]
+  // The haftarah is offered as the stop after the last aliyah.
+  const haftarahRefs = aliyot.length > 0 ? parsha?.haftarah ?? [] : []
+  const showingHaftarah = haftarahRefs.length > 0 && aliyahIndex === aliyot.length
+  const [haftarah, setHaftarah] = useState<{ key: string; sections: ParshaSection[]; commentary: Record<number, CommentaryByVerse>; failed?: boolean } | null>(null)
+  const haftarahKey = haftarahRefs.join('; ')
+  const haftarahLoaded = haftarah?.key === haftarahKey ? haftarah : null
   // Without known aliyot (e.g. a combined portion outside its week) the whole portion is shown.
-  const shownSections = parsha ? (aliyahRef ? sectionsForRef(parsha.sections, aliyahRef) : parsha.sections) : []
+  const shownSections = !parsha
+    ? []
+    : showingHaftarah
+      ? haftarahLoaded?.sections ?? []
+      : aliyahRef ? sectionsForRef(parsha.sections, aliyahRef) : parsha.sections
   const [readAloudRate, setReadAloudRate] = useReadAloudRate()
   const readAloud = useReadAloud(shownSections.flatMap((section) => section.hebrew), 'he-IL', readAloudRate)
   const selection = useVerseSelection(`${parsha?.ref ?? ''}#${aliyahIndex}`)
+  useEffect(() => {
+    if (!showingHaftarah || haftarahLoaded) return
+    let cancelled = false
+    const refs = haftarahKey.split('; ')
+    Promise.all(refs.map(fetchRefSections))
+      .then(async (parts) => {
+        const sections = parts.flat()
+        const book = refs[0].replace(/\s+\d.*$/, '').replace(/ /g, '_')
+        const commentary = Object.fromEntries(await Promise.all(sections.map((section) =>
+          fetchChapterCommentary(book, section.chapter)
+            .then((data) => [section.chapter, data] as const)
+            .catch(() => [section.chapter, {} as CommentaryByVerse] as const),
+        )))
+        if (!cancelled) setHaftarah({ key: haftarahKey, sections, commentary })
+      })
+      .catch(() => {
+        if (!cancelled) setHaftarah({ key: haftarahKey, sections: [], commentary: {}, failed: true })
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [showingHaftarah, haftarahLoaded, haftarahKey])
+
   // Set by "Continue to Aliyah"; the scroll waits until the next aliyah has rendered.
   const scrollToTopRef = useRef(false)
 
@@ -118,6 +151,12 @@ export function WeeklyParsha({ overrideParsha = null, onReadingLoaded }: WeeklyP
   const teachingEntry = overrideParsha ?? findParshaEntry(parsha.englishName)
   const youtubeUrls = teachingEntry?.youtubeUrls ?? []
   const bookSlug = parsha.ref.split(' ')[0]
+  // The book the shown verses come from (the haftarah's prophet, or the Torah book).
+  const readingBook = showingHaftarah ? haftarahRefs[0].replace(/\s+\d.*$/, '').replace(/ /g, '_') : bookSlug
+  const readingCommentary = showingHaftarah ? haftarahLoaded?.commentary ?? {} : commentaryByChapter
+  const haftarahLabel = haftarahRefs
+    .map((ref) => ref.replace(/^([A-Za-z][A-Za-z ]*?)(?=\s+\d)/, (book) => OLD_TESTAMENT_BOOKS.find((b) => b.slug === book.replace(/ /g, '_'))?.english ?? book))
+    .join('; ')
   const hebrewRef = hebrewTorahRef(parsha.ref)
   const bookTransliteration = OLD_TESTAMENT_BOOKS.find((book) => book.slug === bookSlug)?.transliteration
   const selectableVerses = shownSections.flatMap((section) =>
@@ -179,6 +218,20 @@ export function WeeklyParsha({ overrideParsha = null, onReadingLoaded }: WeeklyP
               {i === todaysAliyah && <span className="aliyah-today-badge">Today</span>}
             </button>
           ))}
+          {haftarahRefs.length > 0 && (
+            <button
+              type="button"
+              className="jump-menu-link"
+              aria-pressed={showingHaftarah}
+              title={haftarahLabel}
+              onClick={() => {
+                readAloud.stop()
+                setAliyahChoice({ ref: parsha.ref, index: aliyot.length })
+              }}
+            >
+              Haftarah
+            </button>
+          )}
         </nav>
       )}
       {todaysAliyah === 5 && aliyahIndex !== 6 && (
@@ -195,6 +248,11 @@ export function WeeklyParsha({ overrideParsha = null, onReadingLoaded }: WeeklyP
           </button>
         </p>
       )}
+      {showingHaftarah && (
+        <p className="aliyah-ref">Haftarah · {haftarahLabel}</p>
+      )}
+      {showingHaftarah && !haftarahLoaded && <p className="status">Loading haftarah…</p>}
+      {haftarahLoaded?.failed && showingHaftarah && <p className="status error">Could not load the haftarah. Please try again.</p>}
       {aliyahRef && (
         <p className="aliyah-ref">
           Aliyah {aliyahIndex + 1}{aliyahIndex === todaysAliyah && " · Today's reading"} · {aliyahRef.replace(/(\d+):(\d+)-\1:/, '$1:$2-')}
@@ -209,10 +267,10 @@ export function WeeklyParsha({ overrideParsha = null, onReadingLoaded }: WeeklyP
         stop={readAloud.stop}
         rate={readAloudRate}
         onRateChange={setReadAloudRate}
-        label={aliyahRef ? `Read Aliyah ${aliyahIndex + 1} aloud` : 'Read parashah aloud'}
+        label={showingHaftarah ? 'Read Haftarah aloud' : aliyahRef ? `Read Aliyah ${aliyahIndex + 1} aloud` : 'Read parashah aloud'}
       />
 
-      {!aliyahRef && parsha.sections.length > 1 && (
+      {!aliyahRef && !showingHaftarah && parsha.sections.length > 1 && (
         <nav className="jump-menu" aria-label="Jump to a chapter">
           <span className="jump-menu-label">Jump to:</span>
           {parsha.sections.map((section) => (
@@ -249,7 +307,7 @@ export function WeeklyParsha({ overrideParsha = null, onReadingLoaded }: WeeklyP
                       onClick={() => selection.toggle(sectionStartIndex + i)}
                     />
                     <HebrewVerseText
-                      book={bookSlug}
+                      book={readingBook}
                       text={section.hebrew[i]}
                       highlightCharIndex={
                         readAloud.currentIndex === sectionStartIndex + i ? readAloud.currentCharIndex : null
@@ -257,7 +315,7 @@ export function WeeklyParsha({ overrideParsha = null, onReadingLoaded }: WeeklyP
                     />
                     <p className="verse-english">{section.english[i]}</p>
                     <VerseCommentary
-                      entries={commentaryByChapter[section.chapter]?.[section.startVerse + i] ?? []}
+                      entries={readingCommentary[section.chapter]?.[section.startVerse + i] ?? []}
                     />
                   </li>
                 ))}
@@ -267,7 +325,7 @@ export function WeeklyParsha({ overrideParsha = null, onReadingLoaded }: WeeklyP
         })
       })()}
 
-      {aliyahRef && aliyahIndex < aliyot.length - 1 && (
+      {aliyahRef && (aliyahIndex < aliyot.length - 1 || haftarahRefs.length > 0) && (
         <button
           type="button"
           className="aliyah-next"
@@ -277,13 +335,13 @@ export function WeeklyParsha({ overrideParsha = null, onReadingLoaded }: WeeklyP
             setAliyahChoice({ ref: parsha.ref, index: aliyahIndex + 1 })
           }}
         >
-          Continue to Aliyah {aliyahIndex + 2} →
+          {aliyahIndex < aliyot.length - 1 ? `Continue to Aliyah ${aliyahIndex + 2} →` : 'Continue to Haftarah →'}
         </button>
       )}
 
       <VerseSelectionBar
-        book={bookSlug}
-        bookSlug={bookSlug}
+        book={OLD_TESTAMENT_BOOKS.find((book) => book.slug === readingBook)?.english ?? readingBook}
+        bookSlug={readingBook}
         translation="JPS 1917"
         verses={selectableVerses}
         range={selection.range}

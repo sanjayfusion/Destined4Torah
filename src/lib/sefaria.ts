@@ -57,7 +57,7 @@ interface ParshaRange {
 }
 
 export function parseParshaRef(ref: string): ParshaRange {
-  const crossChapter = ref.match(/^([A-Za-z]+)\s+(\d+):(\d+)-(\d+):(\d+)$/)
+  const crossChapter = ref.match(/^([A-Za-z][A-Za-z ]*?)\s+(\d+):(\d+)-(\d+):(\d+)$/)
   if (crossChapter) {
     const [, book, startChapter, startVerse, endChapter, endVerse] = crossChapter
     return {
@@ -69,7 +69,7 @@ export function parseParshaRef(ref: string): ParshaRange {
     }
   }
 
-  const sameChapter = ref.match(/^([A-Za-z]+)\s+(\d+):(\d+)-(\d+)$/)
+  const sameChapter = ref.match(/^([A-Za-z][A-Za-z ]*?)\s+(\d+):(\d+)-(\d+)$/)
   if (sameChapter) {
     const [, book, chapter, startVerse, endVerse] = sameChapter
     return {
@@ -79,6 +79,12 @@ export function parseParshaRef(ref: string): ParshaRange {
       endChapter: Number(chapter),
       endVerse: Number(endVerse),
     }
+  }
+
+  const singleVerse = ref.match(/^([A-Za-z][A-Za-z ]*?)\s+(\d+):(\d+)$/)
+  if (singleVerse) {
+    const [, book, chapter, verse] = singleVerse
+    return { book, startChapter: Number(chapter), startVerse: Number(verse), endChapter: Number(chapter), endVerse: Number(verse) }
   }
 
   throw new Error(`Unrecognized parsha reference: ${ref}`)
@@ -129,6 +135,24 @@ export interface ParshaInfo {
   url: string
   /** The seven aliyah refs, e.g. "Genesis 12:14-13:4". Empty when unknown. */
   aliyot: string[]
+  /** This week's haftarah ref(s), e.g. ["Isaiah 40:27-41:16"]. Empty when unknown. */
+  haftarah: string[]
+}
+
+/**
+ * Splits a haftarah ref that may list several passages, e.g.
+ * "Isaiah 66:1-24, 66:23", into full refs ("Isaiah 66:1-24", "Isaiah 66:23").
+ */
+export function splitHaftarahRef(ref: string): string[] {
+  let book = ''
+  return ref.split(/[;,]\s*/).map((part) => part.trim()).filter(Boolean).map((part) => {
+    const named = part.match(/^([A-Za-z][A-Za-z ]*?)\s+\d/)
+    if (named) {
+      book = named[1]
+      return part
+    }
+    return `${book} ${part}`
+  })
 }
 
 /** Just the current parsha's name/ref — no verse text. Cheap to call often. */
@@ -148,7 +172,12 @@ export async function fetchParshaInfo(): Promise<ParshaInfo> {
     throw new Error('Could not find this week\'s parsha')
   }
 
+  const haftarahItems = (data.calendar_items ?? []).filter(
+    (candidate: { title?: { en?: string }; ref?: string }) => candidate.title?.en === 'Haftarah' && candidate.ref,
+  )
+
   return {
+    haftarah: haftarahItems.flatMap((haftarah: { ref: string }) => splitHaftarahRef(haftarah.ref)),
     englishName: item.displayValue?.en ?? item.ref,
     hebrewName: item.displayValue?.he ?? '',
     ref: item.ref,
@@ -167,19 +196,21 @@ interface NamedParshaRef {
   hebrewName: string
   ref: string
   aliyot?: string[]
+  haftarah?: string[]
 }
 
-/** Fetches the full text for any named parsha (not just the current week's). */
-export async function fetchParshaByRef(entry: NamedParshaRef): Promise<WeeklyParsha> {
-  const range = parseParshaRef(entry.ref)
+/** Fetches the verses of one passage ref (any Tanakh book), one section per chapter. */
+export async function fetchRefSections(ref: string): Promise<ParshaSection[]> {
+  const range = parseParshaRef(ref)
+  const bookSlug = range.book.replace(/ /g, '_')
   const chapterNumbers = Array.from(
     { length: range.endChapter - range.startChapter + 1 },
     (_, i) => range.startChapter + i,
   )
 
-  const chapters = await Promise.all(chapterNumbers.map((chapter) => fetchChapter(range.book, chapter)))
+  const chapters = await Promise.all(chapterNumbers.map((chapter) => fetchChapter(bookSlug, chapter)))
 
-  const sections: ParshaSection[] = chapters.map((text, i) => {
+  return chapters.map((text, i) => {
     const chapterNumber = chapterNumbers[i]
     const isFirst = chapterNumber === range.startChapter
     const isLast = chapterNumber === range.endChapter
@@ -194,6 +225,11 @@ export async function fetchParshaByRef(entry: NamedParshaRef): Promise<WeeklyPar
       englishVersion: text.englishVersion,
     }
   })
+}
+
+/** Fetches the full text for any named parsha (not just the current week's). */
+export async function fetchParshaByRef(entry: NamedParshaRef): Promise<WeeklyParsha> {
+  const sections = await fetchRefSections(entry.ref)
 
   return {
     englishName: entry.englishName,
@@ -201,11 +237,12 @@ export async function fetchParshaByRef(entry: NamedParshaRef): Promise<WeeklyPar
     ref: entry.ref,
     url: refToUrlSlug(entry.ref),
     aliyot: entry.aliyot?.length ? entry.aliyot : ALIYOT_BY_PARSHA_REF[entry.ref] ?? [],
+    haftarah: entry.haftarah ?? [],
     sections,
   }
 }
 
 export async function fetchWeeklyParsha(): Promise<WeeklyParsha> {
   const info = await fetchParshaInfo()
-  return fetchParshaByRef({ englishName: info.englishName, hebrewName: info.hebrewName, ref: info.ref, aliyot: info.aliyot })
+  return fetchParshaByRef({ englishName: info.englishName, hebrewName: info.hebrewName, ref: info.ref, aliyot: info.aliyot, haftarah: info.haftarah })
 }
