@@ -13,6 +13,7 @@ import { findGreekStrongsMatch } from '/src/lib/greekWords.ts'
 import { parseReadingPreferences } from '/src/lib/readingPreferences.ts'
 import { kjvChapterCount } from '/src/lib/kjvNumbering.ts'
 import { fetchKjvChapter, fetchBibleTranslationChapter } from '/src/lib/bibleApi.ts'
+import { fetchChapterCommentary } from '/src/lib/commentary.ts'
 const results = []
 function check(name, actual, expected) {
   if (actual !== expected) throw new Error(`${name}: expected ${expected}, received ${actual}`)
@@ -20,6 +21,28 @@ function check(name, actual, expected) {
 }
 const originalFetch = window.fetch
 try {
+
+  let commentaryUrl = ''
+  window.fetch = async url => {
+    commentaryUrl = String(url)
+    return {ok:true,json:async () => [
+      {category:'Commentary',collectiveTitle:{en:'Rashi'},anchorRef:'Genesis 24:1',text:['<b>First</b>', ['Second']]},
+      {category:'Targum',collectiveTitle:{en:'Onkelos Genesis'},anchorRef:'Genesis 24:1',he:'Aramaic',text:[]},
+      {category:'Targum',collectiveTitle:{en:'Saadia'},anchorRef:'Genesis 24:1',he:'Excluded Arabic'},
+      {category:'Reference',collectiveTitle:{en:'Other'},anchorRef:'Genesis 24:1',text:'Not commentary'},
+    ]}
+  }
+  const commentary = await fetchChapterCommentary('Genesis',24,{start:1,end:9})
+  check('commentary requests only selected verses', new URL(commentaryUrl).pathname, '/api/links/Genesis.24.1-9')
+  check('commentary excludes costly unrelated link categories', new URL(commentaryUrl).searchParams.getAll('category').join(','), 'Commentary,Targum')
+  check('Aramaic-only Onkelos kept first', commentary[1][0].commentator, 'Targum Onkelos')
+  check('nested commentary text cleaned', commentary[1][1].texts.join(' '), 'First Second')
+  check('unrelated references and Arabic excluded', commentary[1].length, 2)
+  window.fetch = async () => ({ok:false,status:504})
+  let commentaryRejected = false
+  try { await fetchChapterCommentary('Genesis',24) } catch { commentaryRejected = true }
+  check('commentary timeout is not treated as empty results', commentaryRejected, true)
+  window.fetch = originalFetch
 
   check('Subscribe has a direct URL', readPassageRoute('?view=subscribe').view, 'subscribe')
   check('Subscribe links clear the previous passage query', new URL(passageUrl({view:'subscribe'}, 'https://app.destined4torah.com/?ref=John+3%3A16')).search, '?view=subscribe')

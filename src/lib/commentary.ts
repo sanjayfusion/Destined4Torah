@@ -61,9 +61,10 @@ function cleanTexts(value: string | string[] | undefined): string[] {
   return raw.filter((item): item is string => typeof item === 'string').map(stripTags).filter(Boolean)
 }
 
-export async function fetchChapterCommentary(bookSlug: string, chapter: number): Promise<CommentaryByVerse> {
-  const url = `https://www.sefaria.org/api/links/${bookSlug}.${chapter}?with_text=1`
-  const response = await fetch(url)
+export async function fetchChapterCommentary(bookSlug: string, chapter: number, range?: { start: number; end: number }): Promise<CommentaryByVerse> {
+  const ref = `${bookSlug}.${chapter}${range ? `.${range.start}-${range.end}` : ''}`
+  const url = `https://www.sefaria.org/api/links/${ref}?with_text=1&category=Commentary&category=Targum`
+  const response = await fetch(url, { signal: AbortSignal.timeout(25_000) })
 
   if (!response.ok) {
     throw new Error(`Sefaria links request failed (${response.status})`)
@@ -127,7 +128,7 @@ interface BollsCommentaryVerse {
  */
 export async function fetchNTCommentary(bookNumber: number, chapter: number): Promise<CommentaryByVerse> {
   const url = `https://bolls.life/get-commentary/MHCC/${bookNumber}/${chapter}/`
-  const response = await fetch(url)
+  const response = await fetch(url, { signal: AbortSignal.timeout(25_000) })
 
   if (!response.ok) {
     throw new Error(`NT commentary request failed (${response.status})`)

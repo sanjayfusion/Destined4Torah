@@ -28,6 +28,9 @@ npm run build
 Start the development server and open `/tests/regressions.html` in a browser.
 It checks Scripture HTML cleanup, final Hebrew vowel placement, and news freshness
 with deterministic feed fixtures; it does not submit forms or contact subscribers.
+Commentary checks also cover selected-verse requests, category filtering, and failures.
+Open `/tests/commentary.html` to verify independent chapter loading, failure/retry,
+and clearing or ignoring old commentary after switching readings using controlled responses.
 
 ## Shareable passages
 

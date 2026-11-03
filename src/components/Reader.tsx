@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { fetchChapterCommentary, fetchNTCommentary, type CommentaryByVerse } from '../lib/commentary'
+import { useCommentary } from '../hooks/useCommentary'
+import { CommentaryStatus } from './CommentaryStatus'
 import { ALL_BOOKS } from '../data/books'
 import type { ChapterText } from '../lib/sefaria'
 import { useReadAloud } from '../hooks/useReadAloud'
@@ -25,7 +26,8 @@ interface ReaderProps {
 }
 
 export function Reader({ chapter, loading, error, source, bookSlug, chapterNum, targetVerse }: ReaderProps) {
-  const [commentary, setCommentary] = useState<CommentaryByVerse>({})
+  const bookNumber = ALL_BOOKS.find((book) => book.slug === bookSlug)?.bookNumber
+  const commentary = useCommentary([{ book: bookSlug, chapter: chapterNum, ntBookNumber: source === 'kjv' ? bookNumber : undefined }])
   const [highlightedVerse, setHighlightedVerse] = useState<number | null>(null)
   const [readAloudRate, setReadAloudRate] = useReadAloudRate()
   const [wordByWord, setWordByWord] = useReadAloudWordByWord()
@@ -44,37 +46,6 @@ export function Reader({ chapter, loading, error, source, bookSlug, chapterNum, 
     const timeout = setTimeout(() => setHighlightedVerse(null), 2000)
     return () => clearTimeout(timeout)
   }, [chapter, targetVerse, loading])
-
-  useEffect(() => {
-    let cancelled = false
-
-    if (source === 'sefaria') {
-      fetchChapterCommentary(bookSlug, chapterNum)
-        .then((data) => {
-          if (!cancelled) setCommentary(data)
-        })
-        .catch(() => {
-          if (!cancelled) setCommentary({})
-        })
-    } else {
-      const bookNumber = ALL_BOOKS.find((book) => book.slug === bookSlug)?.bookNumber
-      if (bookNumber === undefined) {
-        setCommentary({})
-      } else {
-        fetchNTCommentary(bookNumber, chapterNum)
-          .then((data) => {
-            if (!cancelled) setCommentary(data)
-          })
-          .catch(() => {
-            if (!cancelled) setCommentary({})
-          })
-      }
-    }
-
-    return () => {
-      cancelled = true
-    }
-  }, [source, bookSlug, chapterNum])
 
   if (loading) {
     return <p className="status">Loading text…</p>
@@ -134,6 +105,7 @@ export function Reader({ chapter, loading, error, source, bookSlug, chapterNum, 
         />
       )}
 
+      <CommentaryStatus status={commentary.chapters[chapterNum]?.status ?? 'loading'} onRetry={commentary.retry} />
       <ol className="verse-list">
         {Array.from({ length: verseCount }, (_, i) => (
           <li
@@ -156,7 +128,7 @@ export function Reader({ chapter, loading, error, source, bookSlug, chapterNum, 
               />
             )}
             <p className="verse-english">{chapter.english[i]}</p>
-            <VerseCommentary entries={commentary[i + 1] ?? []} />
+            <VerseCommentary entries={commentary.chapters[chapterNum]?.data?.[i + 1] ?? []} />
           </li>
         ))}
       </ol>

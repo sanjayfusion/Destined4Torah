@@ -2,7 +2,8 @@ import { useEffect, useRef, useState } from 'react'
 import type { SavedPassage } from '../lib/studyProgress'
 import { useReadAloud } from '../hooks/useReadAloud'
 import { useReadAloudRate, useReadAloudWordByWord } from '../hooks/useReadAloudRate'
-import { fetchChapterCommentary, type CommentaryByVerse } from '../lib/commentary'
+import { useCommentary } from '../hooks/useCommentary'
+import { CommentaryStatus } from './CommentaryStatus'
 import { fetchParshaByRef, fetchRefSections, fetchWeeklyParsha, sectionsForRef, type ParshaSection, type WeeklyParsha as WeeklyParshaData } from '../lib/sefaria'
 import { OLD_TESTAMENT_BOOKS } from '../data/books'
 import { hebrewTorahRef } from '../lib/hebrewNumerals'
@@ -27,7 +28,6 @@ export function WeeklyParsha({ overrideParsha = null, onReadingLoaded }: WeeklyP
   const [parsha, setParsha] = useState<WeeklyParshaData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [commentaryByChapter, setCommentaryByChapter] = useState<Record<number, CommentaryByVerse>>({})
   const [aliyahChoice, setAliyahChoice] = useState({ ref: '', index: 0 })
   const aliyot = parsha?.aliyot ?? []
   // Daily study reads one aliyah a day: Sunday is Aliyah 1 through Shabbat, Aliyah 7.
@@ -37,7 +37,7 @@ export function WeeklyParsha({ overrideParsha = null, onReadingLoaded }: WeeklyP
   // The haftarah is offered as the stop after the last aliyah.
   const haftarahRefs = aliyot.length > 0 ? parsha?.haftarah ?? [] : []
   const showingHaftarah = haftarahRefs.length > 0 && aliyahIndex === aliyot.length
-  const [haftarah, setHaftarah] = useState<{ key: string; sections: ParshaSection[]; commentary: Record<number, CommentaryByVerse>; failed?: boolean } | null>(null)
+  const [haftarah, setHaftarah] = useState<{ key: string; sections: ParshaSection[]; failed?: boolean } | null>(null)
   const haftarahKey = haftarahRefs.join('; ')
   const haftarahLoaded = haftarah?.key === haftarahKey ? haftarah : null
   // Without known aliyot (e.g. a combined portion outside its week) the whole portion is shown.
@@ -55,18 +55,12 @@ export function WeeklyParsha({ overrideParsha = null, onReadingLoaded }: WeeklyP
     let cancelled = false
     const refs = haftarahKey.split('; ')
     Promise.all(refs.map(fetchRefSections))
-      .then(async (parts) => {
+      .then((parts) => {
         const sections = parts.flat()
-        const book = refs[0].replace(/\s+\d.*$/, '').replace(/ /g, '_')
-        const commentary = Object.fromEntries(await Promise.all(sections.map((section) =>
-          fetchChapterCommentary(book, section.chapter)
-            .then((data) => [section.chapter, data] as const)
-            .catch(() => [section.chapter, {} as CommentaryByVerse] as const),
-        )))
-        if (!cancelled) setHaftarah({ key: haftarahKey, sections, commentary })
+        if (!cancelled) setHaftarah({ key: haftarahKey, sections })
       })
       .catch(() => {
-        if (!cancelled) setHaftarah({ key: haftarahKey, sections: [], commentary: {}, failed: true })
+        if (!cancelled) setHaftarah({ key: haftarahKey, sections: [], failed: true })
       })
     return () => {
       cancelled = true
@@ -117,25 +111,16 @@ export function WeeklyParsha({ overrideParsha = null, onReadingLoaded }: WeeklyP
     onReadingLoaded?.({ view: 'parsha', parsha: overrideParsha ?? { english: parsha.englishName, hebrew: parsha.hebrewName, ref: parsha.ref } })
   }, [loading, error, parsha, overrideParsha, onReadingLoaded])
 
-  useEffect(() => {
-    if (!parsha) return
-    let cancelled = false
-
-    Promise.all(
-      parsha.sections.map((section) =>
-        fetchChapterCommentary(parsha.ref.split(' ')[0], section.chapter)
-          .then((data) => [section.chapter, data] as const)
-          .catch(() => [section.chapter, {} as CommentaryByVerse] as const),
-      ),
-    ).then((results) => {
-      if (cancelled) return
-      setCommentaryByChapter(Object.fromEntries(results))
-    })
-
-    return () => {
-      cancelled = true
-    }
-  }, [parsha])
+  // Commentary follows the visible aliyah or haftarah, rather than the entire portion.
+  const readingBook = showingHaftarah
+    ? haftarahRefs[0].replace(/\s+\d.*$/, '').replace(/ /g, '_')
+    : parsha?.ref.split(' ')[0] ?? ''
+  const commentary = useCommentary(shownSections.map((section) => ({
+    book: readingBook,
+    chapter: section.chapter,
+    start: section.startVerse,
+    end: section.startVerse + section.hebrew.length - 1,
+  })))
 
   if (loading) {
     return <p className="status">Loading parashah…</p>
@@ -152,9 +137,6 @@ export function WeeklyParsha({ overrideParsha = null, onReadingLoaded }: WeeklyP
   const teachingEntry = overrideParsha ?? findParshaEntry(parsha.englishName)
   const youtubeUrls = teachingEntry?.youtubeUrls ?? []
   const bookSlug = parsha.ref.split(' ')[0]
-  // The book the shown verses come from (the haftarah's prophet, or the Torah book).
-  const readingBook = showingHaftarah ? haftarahRefs[0].replace(/\s+\d.*$/, '').replace(/ /g, '_') : bookSlug
-  const readingCommentary = showingHaftarah ? haftarahLoaded?.commentary ?? {} : commentaryByChapter
   const haftarahLabel = haftarahRefs
     .map((ref) => ref.replace(/^([A-Za-z][A-Za-z ]*?)(?=\s+\d)/, (book) => OLD_TESTAMENT_BOOKS.find((b) => b.slug === book.replace(/ /g, '_'))?.english ?? book))
     .join('; ')
@@ -301,6 +283,7 @@ export function WeeklyParsha({ overrideParsha = null, onReadingLoaded }: WeeklyP
               {shownSections.length > 1 && (
                 <h3 className="chapter-divider">Chapter {section.chapter}</h3>
               )}
+              <CommentaryStatus status={commentary.chapters[section.chapter]?.status ?? 'loading'} onRetry={commentary.retry} />
               <ol className="verse-list">
                 {section.hebrew.map((_, i) => (
                   <li key={i} className={selection.isSelected(sectionStartIndex + i) ? 'verse verse-selected' : 'verse'}>
@@ -318,7 +301,7 @@ export function WeeklyParsha({ overrideParsha = null, onReadingLoaded }: WeeklyP
                     />
                     <p className="verse-english">{section.english[i]}</p>
                     <VerseCommentary
-                      entries={readingCommentary[section.chapter]?.[section.startVerse + i] ?? []}
+                      entries={commentary.chapters[section.chapter]?.data?.[section.startVerse + i] ?? []}
                     />
                   </li>
                 ))}
