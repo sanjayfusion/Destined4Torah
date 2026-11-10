@@ -7,7 +7,7 @@ binding = "DB"
 database_name = "d4t-mail"
 database_id = "8d2649c4-b3d5-4f21-bb33-8d183407f62e"
 
-# Drains the send queue once a minute.
+# Once a minute: mirrors subscribers to Resend Contacts and sends waiting newsletters as Broadcasts.
 [triggers]
 crons = ["* * * * *"]
 
@@ -24,8 +24,6 @@ FROM_EMAIL = "newsletter@mail.destined4torah.com"
 REPLY_TO = "destined4torah@gmail.com"
 # MAILING_ADDRESS (required by CAN-SPAM, shown in every email) is a secret, not a
 # variable, so it stays out of this public repo: `wrangler secret put MAILING_ADDRESS`.
-# Emails sent per minute (max 100 per batch call).
-SEND_BATCH_SIZE = "100"
 
 # Banner images uploaded in the admin are stored here.
 [[kv_namespaces]]

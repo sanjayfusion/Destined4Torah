@@ -21,7 +21,6 @@ export interface Env {
   FROM_NAME: string
   FROM_EMAIL: string
   REPLY_TO?: string
-  SEND_BATCH_SIZE?: string
 }
 
 export interface Subscriber {
@@ -52,6 +51,9 @@ export interface Campaign {
   created_at: number
   updated_at: number
   sent_at: number | null
+  broadcast_id: string | null
+  unopened_of: number | null
+  audience_segment_id: string | null
 }
 
 export interface Contact {

@@ -5,6 +5,7 @@ import { bannerFor, emailConfigured, mailingAddress, renderCampaign, sendBatch, 
 import type { Campaign, Contact, Env, Subscriber } from './env'
 import { esc, htmlResponse } from './html'
 import { detectImageType, storeImage, toDataUri } from './images'
+import { syncPending } from './resend'
 import { processQueue, QUOTA_PAUSE_KEY } from './sender'
 import { clientIp, formatDate, normalizeEmail, now, randomToken, recordRequest, tooManyRequests } from './util'
 
@@ -567,6 +568,7 @@ async function campaignReport(env: Env, campaign: Campaign, url: URL): Promise<R
   const failure = await env.DB.prepare(`SELECT error FROM deliveries WHERE campaign_id = ? AND status = 'failed' AND error IS NOT NULL LIMIT 1`).bind(campaign.id).first<{ error: string }>()
   const stat = (label: string, n: number | undefined) => `<div class="stat"><b>${n ?? 0}</b><span class="muted">${label}</span></div>`
   const paused = campaign.status === 'sending' && (await tooManyRequests(env.DB, QUOTA_PAUSE_KEY, 1, 3600))
+  const unsynced = campaign.status === 'sending' ? await syncPending(env) : 0
   const refresh = campaign.status === 'sending' ? '<meta http-equiv="refresh" content="10">' : ''
   const who = async (type: string, label: string) => {
     const people = (
@@ -587,7 +589,7 @@ async function campaignReport(env: Env, campaign: Campaign, url: URL): Promise<R
   return adminPage(
     campaign.subject,
     `<h1>${esc(campaign.subject)}</h1><p><span class="pill ${campaign.status}">${campaign.status}</span> <span class="muted">${formatDate(campaign.sent_at ?? campaign.created_at)}</span></p>
-    ${campaign.status === 'sending' ? '<div class="ok">Sending in the background. Large lists go out over several minutes. This page refreshes itself.</div>' : ''}
+    ${campaign.status === 'sending' ? `<div class="ok">Sending in the background as a Resend Broadcast, usually within a minute or two. ${unsynced ? `First ${unsynced} subscriber update${unsynced === 1 ? '' : 's'} must reach Resend (about 25 per minute). ` : ''}This page refreshes itself.</div>` : ''}
     ${paused ? '<div class="warn">Paused: your sending service says its daily or monthly limit has been reached. The remaining emails will go out automatically once the limit resets (checked every hour), or right away if you upgrade the plan.</div>' : ''}
     ${failure ? `<div class="err">Some emails failed: ${esc(failure.error)}</div>` : ''}
     ${(delivery.failed ?? 0) > 0 ? `<form method="post" action="/admin/campaigns/${campaign.id}/retry" style="margin:0 0 14px"><button type="submit" class="secondary">Retry ${delivery.failed} failed emails</button></form>` : ''}
@@ -761,8 +763,8 @@ async function sendCampaign(env: Env, ctx: ExecutionContext, id: number, unopene
        SELECT ?, id FROM subscribers WHERE status = 'confirmed' AND (SELECT status FROM campaigns WHERE id = ?) = 'draft'${unopenedId ? ` AND ${unopenedFilter(unopenedId)}` : ''}`,
     ).bind(id, id),
     env.DB.prepare(
-      `UPDATE campaigns SET status = 'sending', total_recipients = (SELECT COUNT(*) FROM deliveries WHERE campaign_id = ?), updated_at = ? WHERE id = ? AND status = 'draft'`,
-    ).bind(id, now(), id),
+      `UPDATE campaigns SET status = 'sending', unopened_of = ?, total_recipients = (SELECT COUNT(*) FROM deliveries WHERE campaign_id = ?), updated_at = ? WHERE id = ? AND status = 'draft'`,
+    ).bind(unopenedId || null, id, now(), id),
   ])
   if (results[1].meta.changes === 0) return redirect(`/admin/campaigns/${id}`, 'This email was already sent.', 'err')
 

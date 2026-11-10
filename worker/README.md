@@ -11,7 +11,7 @@ It runs as a [Cloudflare Worker](https://developers.cloudflare.com/workers/) wit
 | Signup | Form on the site; double opt-in (people must click a confirmation link) |
 | Unsubscribe | One-click link plus the `List-Unsubscribe` header mail apps use for their own "unsubscribe" button |
 | Admin (`/admin`) | Password login, subscriber list with search and CSV export, import from Constant Contact, write/preview/test/send emails, per-email results |
-| Sending | Queued and sent in the background (about 100 per minute), skips anyone who unsubscribes mid-send |
+| Sending | Newsletters go out as [Resend Broadcasts](https://resend.com/docs/dashboard/broadcasts/introduction), which don't count against Resend's daily sending quota. Confirmed subscribers are mirrored to Resend Contacts automatically (about 25 changes a minute), and anyone who unsubscribes or bounces is skipped |
 | Safety | Bounces and spam complaints are suppressed automatically; every email has your address and an unsubscribe link; rate-limited signups; escaped content |
 
 **Not included** (compared with Constant Contact): drag-and-drop editor, scheduling for later, automations/drip series, segments, A/B tests. Emails are written in simple Markdown (formatting help is on the compose page).
@@ -27,7 +27,7 @@ You need accounts on **Cloudflare** (you have one) and **Resend**, and access to
 3. In Resend, turn on open and click tracking for the domain if you want those stats.
 4. Create an API key with sending access. Keep it handy for step 4.
 
-> Resend's free plan has a daily sending cap. For a list of 500 to 5,000 people you will need a paid plan, so check Resend's current pricing.
+> Resend's free plan allows 100 transactional emails a day (confirmations, welcome emails, tests and previews) plus unlimited Broadcasts to up to 1,000 contacts. Newsletters are sent as Broadcasts, so the free plan works for a list of up to 1,000 people. Above that, check Resend's marketing pricing.
 
 ### 2. Create the database
 
@@ -84,7 +84,7 @@ npm run deploy
 
 ### 6. Connect bounce/open/click tracking
 
-In Resend, add a webhook pointing to `https://YOUR-WORKER-URL/webhooks/resend` with the events `email.delivered`, `email.bounced`, `email.complained`, `email.opened`, `email.clicked`. Copy its signing secret, then:
+In Resend, add a webhook pointing to `https://YOUR-WORKER-URL/webhooks/resend` with the events `email.delivered`, `email.bounced`, `email.complained`, `email.opened`, `email.clicked` and `contact.updated` (needed so people who unsubscribe through a Broadcast's link are unsubscribed here too). Copy its signing secret, then:
 
 ```bash
 npx wrangler secret put RESEND_WEBHOOK_SECRET

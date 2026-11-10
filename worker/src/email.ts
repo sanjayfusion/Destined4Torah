@@ -150,6 +150,8 @@ export function renderCampaign(
   unsubscribeUrl: string,
   banner?: Banner,
   recipientName?: string,
+  /** Include the "Update your contact details" link (it needs the subscriber's own token). */
+  showPreferences = true,
 ): { html: string; text: string } {
   const name = (recipientName ?? '').trim() || FALLBACK_NAME
   const lines = markdown.replace(/\r\n?/g, '\n').split('\n')
@@ -162,11 +164,26 @@ export function renderCampaign(
   const bodyHtml = `${headingMd ? markdownToHtml(headingMd) : ''}${greetingHtml}${markdownToHtml(restMd)}`
 
   const updateUrl = unsubscribeUrl.replace('/unsubscribe?', '/preferences?')
+  const updateLinkHtml = showPreferences ? `<a href="${esc(updateUrl)}" style="color:#7a7285">Update your contact details</a> &nbsp;|&nbsp; ` : ''
   const footerHtml = `You are receiving this because you subscribed at <a href="${esc(env.SITE_URL)}" style="color:#7a7285">${esc(env.SITE_URL.replace(/^https?:\/\//, ''))}</a>.<br>
-<a href="${esc(updateUrl)}" style="color:#7a7285">Update your contact details</a> &nbsp;|&nbsp; <a href="${esc(unsubscribeUrl)}" style="color:#7a7285">Unsubscribe</a><br>${addressHtml(env)}`
+${updateLinkHtml}<a href="${esc(unsubscribeUrl)}" style="color:#7a7285">Unsubscribe</a><br>${addressHtml(env)}`
   const textBody = [headingMd ? markdownToText(headingMd) : '', `Dear ${name},`, markdownToText(restMd)].filter(Boolean).join('\n\n')
-  const text = `${textBody}\n\n--\nYou are receiving this because you subscribed at ${env.SITE_URL}.\nUpdate your contact details: ${updateUrl}\nUnsubscribe: ${unsubscribeUrl}\n${mailingAddress(env)}`
+  const updateLinkText = showPreferences ? `Update your contact details: ${updateUrl}\n` : ''
+  const text = `${textBody}\n\n--\nYou are receiving this because you subscribed at ${env.SITE_URL}.\n${updateLinkText}Unsubscribe: ${unsubscribeUrl}\n${mailingAddress(env)}`
   return { html: layout({ env, subject, bodyHtml, footerHtml, banner, headerBanner: true }), text }
+}
+
+/** Resend fills these in for each recipient of a Broadcast. */
+export const BROADCAST_UNSUBSCRIBE_URL = '{{{RESEND_UNSUBSCRIBE_URL}}}'
+const BROADCAST_NAME = `{{{contact.first_name|${FALLBACK_NAME}}}}`
+
+/**
+ * Renders a newsletter once for a Resend Broadcast. Resend personalizes the greeting
+ * and gives each recipient their own unsubscribe link (and the List-Unsubscribe
+ * header mail apps use). Unsubscribes made there come back through the webhook.
+ */
+export function renderBroadcast(env: Env, subject: string, markdown: string, banner?: Banner): { html: string; text: string } {
+  return renderCampaign(env, subject, markdown, BROADCAST_UNSUBSCRIBE_URL, banner, BROADCAST_NAME, false)
 }
 
 export function renderConfirmation(env: Env, name: string, confirmUrl: string): { subject: string; html: string; text: string } {

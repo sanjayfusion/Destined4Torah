@@ -30,10 +30,15 @@ async function verifySignature(request: Request, rawBody: string, secret: string
 
 interface ResendEvent {
   type?: string
+  created_at?: string
   data?: {
     to?: string[] | string
     tags?: Record<string, string> | { name: string; value: string }[]
     bounce?: { type?: string }
+    broadcast_id?: string
+    // contact.* events
+    email?: string
+    unsubscribed?: boolean
   }
 }
 
@@ -59,12 +64,33 @@ export async function handleResendWebhook(request: Request, env: Env): Promise<R
     return new Response('Bad request', { status: 400 })
   }
 
+  // Someone used the unsubscribe link (or preference page) in a Broadcast: stop mailing them here too.
+  if (event.type === 'contact.updated' || event.type === 'contact.deleted') {
+    const email = event.data?.email?.toLowerCase()
+    // Ignore news older than the person's latest confirmation (they may have re-subscribed since).
+    const at = Math.floor(Date.parse(event.created_at ?? '') / 1000) || now()
+    if (email && event.type === 'contact.updated' && event.data?.unsubscribed === true) {
+      await env.DB.prepare(`UPDATE subscribers SET status = 'unsubscribed', unsubscribed_at = ? WHERE email = ? AND status = 'confirmed' AND COALESCE(confirmed_at, 0) < ?`)
+        .bind(now(), email, at)
+        .run()
+    } else if (email && event.type === 'contact.deleted') {
+      // Removed in the Resend dashboard: put them back so they keep getting the newsletter (delete them here to stop it).
+      await env.DB.prepare(`UPDATE subscribers SET resend_synced = 0, resend_exists = 0 WHERE email = ? AND status = 'confirmed' AND resend_exists = 1`).bind(email).run()
+    }
+    return new Response('ok')
+  }
+
   const type = (event.type ?? '').replace(/^email\./, '')
   const recipient = (Array.isArray(event.data?.to) ? event.data?.to[0] : event.data?.to)?.toLowerCase()
   if (!recipient || !type) return new Response('ok')
 
+  let campaignId = campaignIdFromTags(event.data?.tags)
+  if (campaignId === null && event.data?.broadcast_id) {
+    const row = await env.DB.prepare('SELECT id FROM campaigns WHERE broadcast_id = ?').bind(event.data.broadcast_id).first<{ id: number }>()
+    campaignId = row?.id ?? null
+  }
   await env.DB.prepare('INSERT INTO events (campaign_id, email, type, created_at) VALUES (?, ?, ?, ?)')
-    .bind(campaignIdFromTags(event.data?.tags), recipient, type, now())
+    .bind(campaignId, recipient, type, now())
     .run()
 
   // Stop mailing addresses that bounce permanently or mark us as spam.

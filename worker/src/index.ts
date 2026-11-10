@@ -45,7 +45,7 @@ export default {
     }
   },
 
-  // Runs every minute: sends the next batch of any email that is being sent.
+  // Runs every minute: mirrors subscriber changes to Resend and sends any newsletter waiting to go out.
   async scheduled(_event: ScheduledController, env: Env, ctx: ExecutionContext): Promise<void> {
     ctx.waitUntil(
       (async () => {
