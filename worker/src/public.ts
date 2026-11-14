@@ -2,6 +2,7 @@ import { renderConfirmation, renderWelcome, sendBatch, unsubscribeUrl } from './
 import type { Env, Subscriber } from './env'
 import { esc, htmlResponse, messagePage } from './html'
 import { clientIp, normalizeEmail, now, randomToken, recordRequest, tooManyRequests } from './util'
+import { signupSourceLabel } from './attribution'
 
 const CONFIRM_RESEND_COOLDOWN_SECONDS = 10 * 60
 
@@ -65,6 +66,7 @@ export async function handleSubscribe(request: Request, env: Env): Promise<Respo
   const phone = String(body.phone ?? '').trim().slice(0, 40)
   const address = String(body.address ?? '').trim().slice(0, 300)
   const sourceLabel = body.via === 'qr' ? 'QR code' : body.via === 'prompt' ? 'After-reading prompt' : 'Website signup'
+  const attributedSource = signupSourceLabel(sourceLabel, body.attribution)
 
   const existing = await env.DB.prepare('SELECT * FROM subscribers WHERE email = ?').bind(email).first<Subscriber>()
   const timestamp = now()
@@ -91,7 +93,7 @@ export async function handleSubscribe(request: Request, env: Env): Promise<Respo
       `INSERT INTO subscribers (email, name, phone, address, lists, source_name, status, token, source, created_at, confirmation_sent_at)
        VALUES (?, ?, ?, ?, ?, ?, 'pending', ?, 'website', ?, ?)`,
     )
-      .bind(email, name, phone, address, sourceLabel, sourceLabel, token, timestamp, timestamp)
+      .bind(email, name, phone, address, sourceLabel, attributedSource, token, timestamp, timestamp)
       .run()
     target = { email, name, token }
   }

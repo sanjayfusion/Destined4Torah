@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { SUBSCRIBE_API_URL } from '../config'
+import { getCampaign } from '../lib/campaignAttribution'
 
 type Status = 'idle' | 'sending' | 'done' | 'error'
 
@@ -24,7 +25,7 @@ export function SubscribeForm({ compact = false }: { compact?: boolean }) {
         method: 'POST',
         signal: controller.signal,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, name, phone, address, company, via: compact ? 'prompt' : 'website' }),
+        body: JSON.stringify({ email, name, phone, address, company, via: compact ? 'prompt' : 'website', attribution: getCampaign() }),
       })
       const data = (await response.json()) as { ok: boolean; error?: string }
       if (response.ok && data.ok) {
